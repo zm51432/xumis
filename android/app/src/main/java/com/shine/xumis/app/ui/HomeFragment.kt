@@ -28,18 +28,22 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.rv.adapter = adapter
         binding.swipe.setOnRefreshListener { load() }
+        binding.btnRetry.setOnClickListener { load() }
         load()
     }
 
     private fun load() {
         binding.swipe.isRefreshing = true
+        binding.btnRetry.visibility = View.GONE
         lifecycleScope.launch {
             try {
                 val page = ApiClient.api().products(0, 30)
                 val list = page.content ?: emptyList()
                 adapter.submit(list)
+                binding.btnRetry.visibility = View.GONE
                 if (list.isEmpty()) Toast.makeText(requireContext(), "暂无商品，请确认后端已初始化", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
+                binding.btnRetry.visibility = View.VISIBLE
                 Toast.makeText(requireContext(), "加载失败：${e.message}", Toast.LENGTH_LONG).show()
             } finally {
                 binding.swipe.isRefreshing = false

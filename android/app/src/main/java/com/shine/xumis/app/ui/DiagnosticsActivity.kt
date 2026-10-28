@@ -37,16 +37,23 @@ class DiagnosticsActivity : AppCompatActivity() {
         binding.progressBar.progress = 0
         var pass = 0
         var fail = 0
+        var totalMs = 0L
+        var maxMs = 0L
 
         lifecycleScope.launch {
             for (i in 1..TOTAL) {
+                val t0 = System.currentTimeMillis()
                 val ok = withContext(Dispatchers.IO) { checkOnce() }
+                val cost = System.currentTimeMillis() - t0
+                totalMs += cost
+                if (cost > maxMs) maxMs = cost
                 if (ok) pass++ else fail++
-                binding.tvLog.append("第 %d 次自检：%s   (通过 %d / 失败 %d)\n".format(i, if (ok) "通过" else "失败", pass, fail))
-                binding.tvSummary.text = "进度 $i/$TOTAL   通过 $pass   失败 $fail"
+                binding.tvLog.append("第 %d 次自检：%s  (%d ms)   通过 %d / 失败 %d\n".format(i, if (ok) "通过" else "失败", cost, pass, fail))
+                binding.tvSummary.text = "进度 $i/$TOTAL   通过 $pass   失败 $fail   均速 ${totalMs / i} ms"
                 binding.progressBar.progress = i * 100 / TOTAL
             }
-            binding.tvSummary.append("\n结论：${if (fail == 0) "全部 50 次通过 ✓" else "存在 $fail 次失败，请检查后端"}")
+            val avg = totalMs / TOTAL
+            binding.tvSummary.append("\n结论：${if (fail == 0) "全部 50 次通过 ✓" else "存在 $fail 次失败，请检查后端"}\n平均耗时 ${avg} ms，最大耗时 ${maxMs} ms")
             binding.btnRun.isEnabled = true
         }
     }

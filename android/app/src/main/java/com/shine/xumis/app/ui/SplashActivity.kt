@@ -21,10 +21,15 @@ class SplashActivity : AppCompatActivity() {
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        binding.btnRetry.visibility = View.GONE
+        binding.btnRetry.setOnClickListener { checkServer() }
         checkServer()
     }
 
     private fun checkServer() {
+        binding.pb.visibility = View.VISIBLE
+        binding.btnRetry.visibility = View.GONE
+        binding.btnSettings.visibility = View.GONE
         binding.tvStatus.text = "正在连接服务器…"
         lifecycleScope.launch {
             try {
@@ -44,7 +49,8 @@ class SplashActivity : AppCompatActivity() {
 
     private fun onFail(msg: String) {
         binding.pb.visibility = View.GONE
-        binding.tvStatus.text = "$msg\n可在右上角「设置」中修改服务器地址后重试"
+        binding.tvStatus.text = "$msg\n可在「设置」中修改服务器地址，或点击「重试连接」"
         binding.btnSettings.visibility = View.VISIBLE
+        binding.btnRetry.visibility = View.VISIBLE
     }
 }

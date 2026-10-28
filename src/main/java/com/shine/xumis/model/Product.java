@@ -7,7 +7,11 @@ import java.math.BigDecimal;
  * 商品实体：饰品 / 手工品等
  */
 @Entity
-@Table(name = "product")
+@Table(name = "product", indexes = {
+        @Index(name = "idx_product_category", columnList = "category"),
+        @Index(name = "idx_product_featured", columnList = "featured"),
+        @Index(name = "idx_product_customizable", columnList = "customizable")
+})
 public class Product {
 
     @Id

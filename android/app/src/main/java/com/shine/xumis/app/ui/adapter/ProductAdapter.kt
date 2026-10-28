@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.shine.xumis.app.R
 import com.shine.xumis.app.model.MobileProduct
 
@@ -47,7 +48,13 @@ class ProductAdapter(
         }
         val imgUrl = p.fullImageUrl()
         if (imgUrl != null) {
-            Glide.with(holder.img.context).load(imgUrl).placeholder(R.drawable.ic_placeholder).into(holder.img)
+            Glide.with(holder.img.context)
+                .load(imgUrl)
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_placeholder)
+                .thumbnail(0.2f)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(holder.img)
         } else {
             holder.img.setImageResource(R.drawable.ic_placeholder)
         }

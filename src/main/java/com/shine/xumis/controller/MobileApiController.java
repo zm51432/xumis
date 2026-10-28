@@ -8,6 +8,7 @@ import com.shine.xumis.model.Category;
 import com.shine.xumis.model.CustomIdea;
 import com.shine.xumis.model.Inquiry;
 import com.shine.xumis.model.Product;
+import com.shine.xumis.repository.ProductRepository;
 import com.shine.xumis.service.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +16,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/m")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
 public class MobileApiController {
 
     private final ProductService productService;
@@ -33,18 +38,37 @@ public class MobileApiController {
     private final InquiryService inquiryService;
     private final FileStorageService fileStorageService;
     private final ErpSyncService erpSyncService;
+    private final ProductRepository productRepository;
 
     @Value("${app.mobile-api-key:}")
     private String mobileApiKey;
 
+    /** 轻量 TTL 内存缓存：缓解商品/分类接口对 DB 的重复查询压力 */
+    private static final class TtlCache {
+        private record Entry(Object value, long expireAt) {}
+        private final ConcurrentHashMap<String, Entry> map = new ConcurrentHashMap<>();
+        Object get(String key) {
+            Entry e = map.get(key);
+            if (e == null) return null;
+            if (System.currentTimeMillis() > e.expireAt()) { map.remove(key); return null; }
+            return e.value();
+        }
+        void put(String key, Object value, long ttlMs) {
+            map.put(key, new Entry(value, System.currentTimeMillis() + ttlMs));
+        }
+    }
+    private final TtlCache cache = new TtlCache();
+    private static final long CACHE_TTL_MS = 30_000;
+
     public MobileApiController(ProductService productService, CustomIdeaService ideaService,
                                InquiryService inquiryService, FileStorageService fileStorageService,
-                               ErpSyncService erpSyncService) {
+                               ErpSyncService erpSyncService, ProductRepository productRepository) {
         this.productService = productService;
         this.ideaService = ideaService;
         this.inquiryService = inquiryService;
         this.fileStorageService = fileStorageService;
         this.erpSyncService = erpSyncService;
+        this.productRepository = productRepository;
     }
 
     /** 校验手机端密钥：未配置则放行（开发期） */
@@ -57,15 +81,28 @@ public class MobileApiController {
         return acceptLang != null && acceptLang.toLowerCase().contains("en");
     }
 
-    /** 健康检查探针：App 启动/切后台时用于确认后端可达 */
+    /** 健康检查探针：App 启动/切后台时用于确认后端可达（含 DB 连通性探测与耗时） */
     @GetMapping("/ping")
     public ResponseEntity<?> ping(
             @RequestHeader(value = "X-API-KEY", required = false) String key) {
         if (!authorized(key)) return unauthorized();
+        long start = System.currentTimeMillis();
+        boolean dbOk = true;
+        long dbMs = -1;
+        try {
+            long t0 = System.currentTimeMillis();
+            productRepository.count();
+            dbMs = System.currentTimeMillis() - t0;
+        } catch (Exception e) {
+            dbOk = false;
+        }
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("ok", true);
         body.put("service", "shine-xumis");
         body.put("ts", System.currentTimeMillis());
+        body.put("dbOk", dbOk);
+        body.put("dbMs", dbMs);
+        body.put("ms", System.currentTimeMillis() - start);
         return ResponseEntity.ok(body);
     }
 
@@ -73,19 +110,30 @@ public class MobileApiController {
     public ResponseEntity<?> products(@RequestHeader(value = "X-API-KEY", required = false) String key,
                                      @RequestHeader(value = "Accept-Language", required = false) String acceptLang,
                                      @RequestParam(value = "cat", required = false) Category cat,
+                                     @RequestParam(value = "featured", required = false) Boolean featured,
                                      @RequestParam(value = "page", defaultValue = "0") int page,
                                      @RequestParam(value = "size", defaultValue = "12") int size) {
         if (!authorized(key)) return unauthorized();
+        if (page < 0 || size < 1 || size > 50) return badRequest("invalid page/size (page>=0, 1<=size<=50)");
         boolean en = isEnglish(acceptLang);
-        Page<Product> result = (cat != null)
-                ? productService.findPageByCategory(cat, org.springframework.data.domain.PageRequest.of(page, size))
-                : productService.findPage(org.springframework.data.domain.PageRequest.of(page, size));
+        String cacheKey = "products:" + (cat == null ? "all" : cat.name()) + ":f" + featured
+                + ":" + page + ":" + size + ":" + en;
+        Object cached = cache.get(cacheKey);
+        if (cached != null) return ResponseEntity.ok(cached);
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size);
+        Page<Product> result = (featured != null && featured)
+                ? productService.findPageByFeatured(pageable)
+                : (cat != null)
+                    ? productService.findPageByCategory(cat, pageable)
+                    : productService.findPage(pageable);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("content", result.getContent().stream().map(p -> MobileProductDto.from(p, en)).collect(Collectors.toList()));
         body.put("page", result.getNumber());
         body.put("size", result.getSize());
         body.put("totalElements", result.getTotalElements());
         body.put("totalPages", result.getTotalPages());
+        cache.put(cacheKey, body, CACHE_TTL_MS);
         return ResponseEntity.ok(body);
     }
 
@@ -102,8 +150,12 @@ public class MobileApiController {
     @GetMapping("/categories")
     public ResponseEntity<?> categories(@RequestHeader(value = "X-API-KEY", required = false) String key) {
         if (!authorized(key)) return unauthorized();
-        return ResponseEntity.ok(Arrays.stream(Category.values())
-                .map(c -> Map.of("code", c.name(), "label", c.getLabel())).collect(Collectors.toList()));
+        Object cached = cache.get("categories");
+        if (cached != null) return ResponseEntity.ok(cached);
+        var body = Arrays.stream(Category.values())
+                .map(c -> Map.of("code", c.name(), "label", c.getLabel())).collect(Collectors.toList());
+        cache.put("categories", body, CACHE_TTL_MS);
+        return ResponseEntity.ok(body);
     }
 
     /** 手机端搜索 / 分类 / 排序 / 分页 */
@@ -116,6 +168,7 @@ public class MobileApiController {
                                     @RequestParam(value = "page", defaultValue = "0") int page,
                                     @RequestParam(value = "size", defaultValue = "12") int size) {
         if (!authorized(key)) return unauthorized();
+        if (page < 0 || size < 1 || size > 50) return badRequest("invalid page/size (page>=0, 1<=size<=50)");
         var result = productService.search(q, cat, sort, page, size);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("content", result.getItems().stream()
@@ -160,6 +213,22 @@ public class MobileApiController {
         Inquiry saved = inquiryService.save(inquiry);
         erpSyncService.syncInquiry(saved);
         return ResponseEntity.ok(Map.of("ok", true, "id", saved.getId()));
+    }
+
+    /** 统一异常处理：返回一致的 JSON 错误结构，便于 App 解析 */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleBadArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("ok", false, "error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleUnexpected(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("ok", false, "error", "internal server error"));
+    }
+
+    private ResponseEntity<?> badRequest(String msg) {
+        return ResponseEntity.badRequest().body(Map.of("ok", false, "error", msg));
     }
 
     private ResponseEntity<Map<String, String>> unauthorized() {

@@ -17,6 +17,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByFeaturedTrue();
     List<Product> findByCustomizableTrue();
     Page<Product> findByCategory(Category category, Pageable pageable);
+    Page<Product> findByFeaturedTrue(Pageable pageable);
 
     /**
      * 关键字 + 分类的**数据库侧**分页查询。

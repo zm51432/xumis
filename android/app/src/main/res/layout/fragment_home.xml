@@ -4,16 +4,22 @@
     android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/shine_bg">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-        android:orientation="vertical" android:padding="8dp">
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
-            android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:padding="8dp">
 
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="2"/>
-    </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
+                android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2"/>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_retry" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="重试" android:layout_gravity="center" android:visibility="gone"/>
+    </FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

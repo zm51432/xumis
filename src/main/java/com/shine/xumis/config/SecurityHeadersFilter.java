@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -35,7 +36,12 @@ public class SecurityHeadersFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        if (response instanceof HttpServletResponse res) {
+        if (response instanceof HttpServletResponse res && request instanceof HttpServletRequest req) {
+            String uri = req.getRequestURI();
+            // 商品图 / 上传文件：允许浏览器与 CDN 缓存一天，减少重复下载、降低源站压力
+            if (uri.startsWith("/img/products/") || uri.startsWith("/files/")) {
+                res.setHeader("Cache-Control", "public, max-age=86400");
+            }
             res.setHeader("X-Content-Type-Options", "nosniff");
             res.setHeader("X-Frame-Options", "SAMEORIGIN");
             res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

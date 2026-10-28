@@ -31,6 +31,7 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.rvResults.adapter = adapter
+        binding.swipe.setOnRefreshListener { doSearch() }
         setupCategorySpinner()
         binding.btnSearch.setOnClickListener { doSearch() }
         binding.etQuery.setOnEditorActionListener { _, actionId, _ ->

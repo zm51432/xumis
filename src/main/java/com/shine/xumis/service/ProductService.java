@@ -47,6 +47,10 @@ public class ProductService {
         return productRepository.findByCategory(category, pageable);
     }
 
+    public Page<Product> findPageByFeatured(Pageable pageable) {
+        return productRepository.findByFeaturedTrue(pageable);
+    }
+
     /**
      * 商品搜索 + 分类 + 排序 + 分页。
      * 说明：查询下沉到数据库（分页/排序由 SQL 完成），不再把整表读进内存再过滤，
