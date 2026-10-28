@@ -1,0 +1,13 @@
+{
+  "name": "shine星心 · 外贸独立站",
+  "short_name": "shine星心",
+  "description": "饰品与手工品外贸独立站展示模板",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffaf4",
+  "theme_color": "#f06b87",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

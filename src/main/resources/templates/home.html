@@ -5,29 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · ' + #{nav.home}">shine星心</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
 
 <!-- Hero -->
 <section class="hero">
-    <h1 th:text="#{home.hero}">让每一份心意，都被亲手点亮</h1>
-    <p th:text="#{home.subtitle}">shine星心 · 饰品与手工品的温柔制造者</p>
-    <div class="btn-row">
-        <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
-        <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+    <div class="hero-inner">
+        <span class="badge-soft">✿ 手作温度 · 跨境好物</span>
+        <h1 th:text="#{home.hero}">让每一份心意，都被亲手点亮</h1>
+        <p th:text="#{home.subtitle}">shine星心 · 饰品与手工品的温柔制造者</p>
+        <div class="btn-row">
+            <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+            <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+        </div>
     </div>
 </section>
 
 <div class="container section">
-    <h2 th:text="#{home.featured}">精选好物</h2>
-    <p class="sub" th:text="${storeName} + ' / ' + ${storeNameEn}">shine星心</p>
+    <h2 class="section-title reveal" th:text="#{home.featured}">精选好物</h2>
+    <p class="sub reveal" th:text="${storeName} + ' / ' + ${storeNameEn}">shine星心</p>
     <div class="grid">
-        <div class="card" th:each="p : ${featured}">
-            <a th:href="@{/product/{id}(id=${p.id})}">
-                <img th:src="${p.imageUrl}" alt="product"/>
-            </a>
+        <div class="card reveal" th:each="p : ${featured}">
+            <div class="thumb">
+                <a th:href="@{/product/{id}(id=${p.id})}">
+                    <img th:src="${p.imageUrl}" alt="product"/>
+                </a>
+            </div>
             <div class="card-body">
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
@@ -38,10 +47,23 @@
     </div>
 </div>
 
-<div class="container section" style="text-align:center;">
-    <h2 th:text="#{home.customTitle}">把你的想法交给我们</h2>
-    <p class="sub" th:text="#{home.customDesc}">上传参考图与描述，我们为你手工实现专属饰品与礼品。</p>
-    <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+<!-- 品牌故事 + 特色 -->
+<div class="container section">
+    <div class="story reveal">
+        <div class="story-grid">
+            <div>
+                <h2 class="section-title" th:text="#{home.customTitle}">把你的想法交给我们</h2>
+                <p class="sub" th:text="#{home.customDesc}">上传参考图与描述，我们为你手工实现专属饰品与礼品。</p>
+                <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+            </div>
+            <div class="features">
+                <div class="feature"><div class="ico">🌸</div><h4>温柔手作</h4><p>每一件饰品与手工品，都由匠人细致打磨。</p></div>
+                <div class="feature"><div class="ico">🎨</div><h4>来图定制</h4><p>上传你的灵感，我们为你实现专属设计。</p></div>
+                <div class="feature"><div class="ico">🌍</div><h4>跨境直发</h4><p>支持全球配送，外贸结算便捷透明。</p></div>
+                <div class="feature"><div class="ico">💌</div><h4>贴心服务</h4><p>询盘快速响应，售后无忧。</p></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer th:replace="~{fragments :: footer}"></footer>

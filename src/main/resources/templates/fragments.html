@@ -9,10 +9,14 @@
 <!-- 顶部导航 -->
 <nav class="nav" th:fragment="nav">
     <a class="brand" th:href="@{/}">
+        <span class="dot"></span>
         <span th:text="${storeName}">shine星心</span>
         <small th:text="${storeNameEn}">shine Star-Heart</small>
     </a>
-    <div class="nav-links">
+    <button class="hamburger" aria-label="menu" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
         <a th:href="@{/}" th:text="#{nav.home}">首页</a>
         <a th:href="@{/products}" th:text="#{nav.products}">商品</a>
         <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
@@ -20,6 +24,14 @@
         <a th:href="@{/admin}" th:text="#{nav.admin}">后台</a>
         <button class="lang-btn" onclick="toggleLang()" th:text="#{lang.toggle}">EN</button>
     </div>
+</nav>
+
+<!-- 手机端底部导航 -->
+<nav class="mobile-nav" th:fragment="mobilenav">
+    <a th:href="@{/}"><span class="mi">🏠</span><span th:text="#{nav.home}">首页</span></a>
+    <a th:href="@{/products}"><span class="mi">🛍️</span><span th:text="#{nav.products}">商品</span></a>
+    <a th:href="@{/custom}"><span class="mi">🎨</span><span th:text="#{nav.custom}">定制</span></a>
+    <a th:href="@{/inquiry}"><span class="mi">✉️</span><span th:text="#{nav.inquiry}">联系</span></a>
 </nav>
 
 <!-- 页脚 -->

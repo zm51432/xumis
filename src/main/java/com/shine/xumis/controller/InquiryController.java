@@ -1,6 +1,7 @@
 package com.shine.xumis.controller;
 
 import com.shine.xumis.dto.InquiryRequest;
+import com.shine.xumis.integration.erp.ErpSyncService;
 import com.shine.xumis.model.Inquiry;
 import com.shine.xumis.service.InquiryService;
 import jakarta.validation.Valid;
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class InquiryController {
 
     private final InquiryService inquiryService;
+    private final ErpSyncService erpSyncService;
 
-    public InquiryController(InquiryService inquiryService) {
+    public InquiryController(InquiryService inquiryService, ErpSyncService erpSyncService) {
         this.inquiryService = inquiryService;
+        this.erpSyncService = erpSyncService;
     }
 
     @GetMapping("/inquiry")
@@ -41,6 +44,7 @@ public class InquiryController {
         inquiry.setSubject(form.getSubject());
         inquiry.setMessage(form.getMessage());
         inquiryService.save(inquiry);
+        erpSyncService.syncInquiry(inquiry);
         return "redirect:/inquiry?success=1";
     }
 }

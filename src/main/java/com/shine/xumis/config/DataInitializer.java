@@ -1,5 +1,6 @@
 package com.shine.xumis.config;
 
+import com.shine.xumis.integration.erp.ErpSyncService;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
 import com.shine.xumis.repository.ProductRepository;
@@ -17,9 +18,11 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private final ProductRepository productRepository;
+    private final ErpSyncService erpSyncService;
 
-    public DataInitializer(ProductRepository productRepository) {
+    public DataInitializer(ProductRepository productRepository, ErpSyncService erpSyncService) {
         this.productRepository = productRepository;
+        this.erpSyncService = erpSyncService;
     }
 
     @Override
@@ -53,5 +56,6 @@ public class DataInitializer implements CommandLineRunner {
                     " from shine星心. Support custom design & small wholesale.");
         }
         productRepository.saveAll(seeds);
+        erpSyncService.syncAllProducts(seeds);
     }
 }

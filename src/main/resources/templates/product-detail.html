@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · ' + ${product.name}">商品详情</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
 
 <div class="container section">
     <div class="detail" th:if="${product != null}">

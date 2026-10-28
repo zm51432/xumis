@@ -1,6 +1,7 @@
 package com.shine.xumis.controller;
 
 import com.shine.xumis.dto.CustomIdeaRequest;
+import com.shine.xumis.integration.erp.ErpSyncService;
 import com.shine.xumis.model.CustomIdea;
 import com.shine.xumis.service.CustomIdeaService;
 import com.shine.xumis.service.FileStorageService;
@@ -22,10 +23,12 @@ public class CustomIdeaController {
 
     private final CustomIdeaService ideaService;
     private final FileStorageService fileStorageService;
+    private final ErpSyncService erpSyncService;
 
-    public CustomIdeaController(CustomIdeaService ideaService, FileStorageService fileStorageService) {
+    public CustomIdeaController(CustomIdeaService ideaService, FileStorageService fileStorageService, ErpSyncService erpSyncService) {
         this.ideaService = ideaService;
         this.fileStorageService = fileStorageService;
+        this.erpSyncService = erpSyncService;
     }
 
     @GetMapping("/custom")
@@ -53,6 +56,7 @@ public class CustomIdeaController {
                 idea.setReferenceImageUrl(fileStorageService.store(file));
             }
             ideaService.save(idea);
+            erpSyncService.syncCustomIdea(idea);
             return "redirect:/custom?success=1";
         } catch (Exception e) {
             model.addAttribute("error", "提交失败：" + e.getMessage());

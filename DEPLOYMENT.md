@@ -58,10 +58,31 @@ export DB_USER=shine
 export DB_PASSWORD='你的强密码'
 export UPLOAD_DIR=/var/lib/shine/uploads
 export ADMIN_KEY='请改成随机长字符串'
+# 手机端 API 密钥（配置后 /api/m/** 必须带 X-API-KEY）
+export MOBILE_API_KEY='随机长字符串'
+# ERP 对接（enabled=true 时业务数据才会同步）
+export ERP_ENABLED=false
+export ERP_TYPE=noop
+export ERP_BASE_URL=''
+export ERP_API_KEY=''
 java -jar target/shine-xumis.jar
 ```
 
 > `application.yml` 的 `prod` profile 已内置 MySQL 连接串，变量缺失时使用默认值（请勿在生产保留默认口令）。
+
+### 3.4 ERP 与手机端对接配置
+
+| 配置项 | 说明 | 默认值 |
+| --- | --- | --- |
+| `ERP_ENABLED` | 是否开启 ERP 同步总开关 | `false` |
+| `ERP_TYPE` | `noop`（仅日志）/ `http`（调用外部接口） | `noop` |
+| `ERP_BASE_URL` | ERP 接口基地址，如 `https://erp.example.com/api` | 空 |
+| `ERP_API_KEY` | ERP 接口鉴权密钥（写入请求头 `X-ERP-API-KEY`） | 空 |
+| `MOBILE_API_KEY` | 手机端 `/api/m/**` 访问密钥；配置后请求须带 `X-API-KEY` 头 | 空（开发期免校验） |
+
+- ERP 接入：新增 `ErpClient` 实现类，在 `ErpConfig` 中按 `type` 切换即可；同步失败不影响主流程。
+- 手动触发商品全量同步：`POST /api/erp/sync-products?key=ADMIN_KEY`。
+- 手机端调试（开发期免密钥）：`curl "http://localhost:8080/api/m/products"`。
 
 ### 3.3 端口与上下文
 
@@ -137,6 +158,8 @@ docker run -d --name shine \
 - [ ] 生产使用 `prod` profile 并指向 MySQL
 - [ ] 数据库账号为专用最小权限账号，口令为强随机值
 - [ ] `ADMIN_KEY` 已修改为随机长字符串，且 `/admin` 已加正式鉴权
+- [ ] 若开放手机端，已设置 `MOBILE_API_KEY` 并在 App 侧携带 `X-API-KEY`
+- [ ] 若对接 ERP，已设置 `ERP_ENABLED=true`、`ERP_TYPE`、`ERP_BASE_URL`、`ERP_API_KEY`，并验证同步日志
 - [ ] 上传目录已挂载持久卷 / 对象存储
 - [ ] 已配置 Nginx + HTTPS（443）
 - [ ] `client_max_body_size` ≥ 应用上传上限

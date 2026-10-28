@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · ' + #{custom.title}">来图定制</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
 
 <div class="container section">
     <h2 th:text="#{custom.title}">客户自定义上传想法</h2>

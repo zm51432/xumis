@@ -3,6 +3,8 @@ package com.shine.xumis.service;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
 import com.shine.xumis.repository.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +32,15 @@ public class ProductService {
 
     public List<Product> findCustomizable() {
         return productRepository.findByCustomizableTrue();
+    }
+
+    /** 分页查询（手机端 API 用） */
+    public Page<Product> findPage(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
+
+    public Page<Product> findPageByCategory(Category category, Pageable pageable) {
+        return productRepository.findByCategory(category, pageable);
     }
 
     public Product findById(Long id) {

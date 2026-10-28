@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · ' + #{nav.products}">商品</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
 
 <div class="container section">
-    <h2 th:text="#{products.title}">全部商品</h2>
+    <h2 class="section-title reveal" th:text="#{products.title}">全部商品</h2>
     <p class="sub" th:text="#{products.subtitle}">饰品 · 手工品 · 来图定制</p>
 
     <div class="filters">
@@ -23,7 +27,7 @@
     </div>
 
     <div class="grid">
-        <div class="card" th:each="p : ${products}">
+        <div class="card reveal" th:each="p : ${products}">
             <a th:href="@{/product/{id}(id=${p.id})}">
                 <img th:src="${p.imageUrl}" alt="product"/>
             </a>

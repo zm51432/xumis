@@ -41,6 +41,13 @@ app:
   upload-dir: ./uploads
   upload-url: /files/
   admin-key: admin        # 演示用后台密钥，生产务必修改并接入正式鉴权
+  mobile-api-key: ""       # 手机端 /api/m/** 访问密钥；留空=开发期免校验，生产务必设置
+  erp:
+    enabled: false        # 总开关：true 时业务数据才会同步到 ERP
+    type: noop            # noop(仅日志) | http(调用外部接口)
+    base-url: ""          # ERP 接口基地址，如 https://erp.example.com/api
+    api-key: ""
+    timeout-ms: 5000
 
 ---
 # 生产环境：执行 mvn -Dspring.profiles.active=prod 或设置环境变量 SPRING_PROFILES_ACTIVE=prod
@@ -67,3 +74,10 @@ app:
   upload-dir: ${UPLOAD_DIR:/var/lib/shine/uploads}
   upload-url: /files/
   admin-key: ${ADMIN_KEY:change-me}
+  mobile-api-key: ${MOBILE_API_KEY:}
+  erp:
+    enabled: ${ERP_ENABLED:false}
+    type: ${ERP_TYPE:noop}
+    base-url: ${ERP_BASE_URL:}
+    api-key: ${ERP_API_KEY:}
+    timeout-ms: ${ERP_TIMEOUT_MS:5000}
