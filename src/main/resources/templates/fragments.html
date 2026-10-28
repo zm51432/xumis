@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${storeName}">shine星心</title>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="nav" th:fragment="nav">
+    <a class="brand" th:href="@{/}">
+        <span th:text="${storeName}">shine星心</span>
+        <small th:text="${storeNameEn}">shine Star-Heart</small>
+    </a>
+    <div class="nav-links">
+        <a th:href="@{/}" th:text="#{nav.home}">首页</a>
+        <a th:href="@{/products}" th:text="#{nav.products}">商品</a>
+        <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
+        <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
+        <a th:href="@{/admin}" th:text="#{nav.admin}">后台</a>
+        <button class="lang-btn" onclick="toggleLang()" th:text="#{lang.toggle}">EN</button>
+    </div>
+</nav>
+
+<!-- 页脚 -->
+<footer class="footer" th:fragment="footer">
+    <span th:text="#{footer.text}">© shine星心</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Maven / 构建产物
+target/
+*.class
+*.jar
+*.war
+
+# 上传文件目录（运行时生成）
+uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log

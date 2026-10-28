@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{custom.title}">来图定制</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <h2 th:text="#{custom.title}">客户自定义上传想法</h2>
+    <p class="sub" th:text="#{custom.desc}">告诉我们你想要的饰品 / 手工品，可附上参考图。</p>
+
+    <div class="alert-success" th:if="${param.success != null}" th:text="#{custom.success}">
+        已收到你的想法！
+    </div>
+
+    <div class="form-wrap">
+        <form th:action="@{/custom}" method="post" enctype="multipart/form-data" th:object="${form}">
+            <div class="field">
+                <label th:text="#{form.name}">称呼</label>
+                <input type="text" th:field="*{customerName}" th:placeholder="#{form.name}"/>
+                <div class="error" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></div>
+            </div>
+            <div class="field">
+                <label th:text="#{form.email}">邮箱</label>
+                <input type="email" th:field="*{email}" th:placeholder="#{form.email}"/>
+                <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+            <div class="field">
+                <label th:text="#{form.country}">国家/地区</label>
+                <input type="text" th:field="*{country}" th:placeholder="#{form.country}"/>
+            </div>
+            <div class="field">
+                <label th:text="#{form.category}">期望分类</label>
+                <select th:field="*{expectCategory}">
+                    <option value="">--</option>
+                    <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}">分类</option>
+                </select>
+            </div>
+            <div class="field">
+                <label th:text="#{form.idea}">想法描述</label>
+                <textarea th:field="*{ideaDescription}" th:placeholder="#{form.idea}"></textarea>
+                <div class="error" th:if="${#fields.hasErrors('ideaDescription')}" th:errors="*{ideaDescription}"></div>
+            </div>
+            <div class="field">
+                <label th:text="#{form.image}">参考图（可选）</label>
+                <input type="file" name="referenceImage" accept="image/*" onchange="previewImage(this)"/>
+                <img id="preview" style="display:none;max-width:200px;margin-top:10px;border-radius:10px;"/>
+            </div>
+            <button type="submit" class="btn" th:text="#{form.submit}">提交</button>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

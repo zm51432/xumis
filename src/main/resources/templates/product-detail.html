@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + ${product.name}">商品详情</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="detail" th:if="${product != null}">
+        <img th:src="${product.imageUrl}" alt="product"/>
+        <div>
+            <h1 th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</h1>
+            <ul class="meta">
+                <li><strong th:text="#{product.category}">分类</strong>：
+                    <span th:text="${product.category.label}">饰品</span></li>
+                <li><strong th:text="#{product.material}">材质</strong>：
+                    <span th:text="${product.material}">—</span></li>
+                <li><strong th:text="#{product.stock}">库存</strong>：
+                    <span th:text="${product.stock}">0</span></li>
+                <li th:if="${product.customizable}">
+                    <span class="tag custom" th:text="#{product.customizable}">支持来图定制</span></li>
+            </ul>
+            <p th:text="${#locale.language == 'en' ? product.descriptionEn : product.description}">描述</p>
+            <div class="price" style="font-size:24px;margin:14px 0;"
+                 th:text="'$' + ${#numbers.formatDecimal(product.price,1,2)}">$0.00</div>
+            <div class="btn-row" style="justify-content:flex-start;">
+                <a class="btn" th:if="${product.customizable}" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+                <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+            </div>
+        </div>
+    </div>
+    <div th:if="${product == null}">
+        <p>商品不存在。</p>
+        <a class="btn" th:href="@{/products}" th:text="#{nav.products}">返回商品</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

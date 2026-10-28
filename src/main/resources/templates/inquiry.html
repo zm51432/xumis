@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{inquiry.title}">询盘联系</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <h2 th:text="#{inquiry.title}">询盘 / 联系我们</h2>
+    <p class="sub" th:text="#{inquiry.desc}">无论是批发、合作还是售后，欢迎留言。</p>
+
+    <div class="alert-success" th:if="${param.success != null}" th:text="#{inquiry.success}">
+        留言已发送！
+    </div>
+
+    <div class="form-wrap">
+        <form th:action="@{/inquiry}" method="post" th:object="${form}">
+            <div class="field">
+                <label th:text="#{form.name}">姓名</label>
+                <input type="text" th:field="*{name}" th:placeholder="#{form.name}"/>
+                <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+            </div>
+            <div class="field">
+                <label th:text="#{form.email}">邮箱</label>
+                <input type="email" th:field="*{email}" th:placeholder="#{form.email}"/>
+                <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+            <div class="field">
+                <label th:text="#{form.subject}">主题</label>
+                <input type="text" th:field="*{subject}" th:placeholder="#{form.subject}"/>
+            </div>
+            <div class="field">
+                <label th:text="#{form.message}">留言</label>
+                <textarea th:field="*{message}" th:placeholder="#{form.message}"></textarea>
+                <div class="error" th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></div>
+            </div>
+            <button type="submit" class="btn" th:text="#{form.submit}">提交</button>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>
