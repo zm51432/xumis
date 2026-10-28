@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="shine 星心"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <WebView android:id="@+id/web" android:layout_width="match_parent" android:layout_height="match_parent"/>
+</LinearLayout>

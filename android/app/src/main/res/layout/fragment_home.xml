@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="8dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"/>
+    </LinearLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

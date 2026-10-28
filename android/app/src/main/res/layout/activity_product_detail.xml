@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="商品详情"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+
+            <ImageView android:id="@+id/img_product" android:layout_width="match_parent" android:layout_height="240dp"
+                android:scaleType="centerCrop" android:background="@color/shine_pink"/>
+
+            <TextView android:id="@+id/tv_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="22sp" android:textStyle="bold" android:textColor="@color/shine_text" android:layout_marginTop="12dp"/>
+
+            <TextView android:id="@+id/tv_price" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="20sp" android:textColor="@color/shine_pink" android:textStyle="bold" android:layout_marginTop="6dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <TextView android:id="@+id/tv_cat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/shine_sub"/>
+                <TextView android:id="@+id/tv_stock" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/shine_sub" android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/tv_material" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/shine_sub" android:layout_marginTop="4dp"/>
+
+            <TextView android:id="@+id/tv_custom" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="支持来图定制" android:textColor="@color/shine_mint" android:textStyle="bold"
+                android:layout_marginTop="6dp" android:visibility="gone"/>
+
+            <TextView android:id="@+id/tv_desc" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/shine_text" android:layout_marginTop="12dp" android:lineSpacingMultiplier="1.3"/>
+
+            <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:layout_marginTop="12dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="16dp">
+                <Button android:id="@+id/btn_buy" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="去网页加购/购买"/>
+                <Button android:id="@+id/btn_cart" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:text="查看购物车" android:layout_marginStart="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

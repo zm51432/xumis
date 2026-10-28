@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="自检（50 遍）"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <TextView android:id="@+id/tv_summary" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="点击开始，自动对后端执行 50 次健康检查 + 接口校验" android:textColor="@color/shine_text"/>
+
+        <ProgressBar android:id="@+id/progress_bar" style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:max="100"/>
+
+        <Button android:id="@+id/btn_run" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="开始 50 遍自检" android:layout_marginTop="10dp"/>
+
+        <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="10dp">
+            <TextView android:id="@+id/tv_log" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/shine_text" android:textSize="12sp" android:typeface="monospace"/>
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>

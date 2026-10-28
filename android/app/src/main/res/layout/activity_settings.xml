@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="服务器设置"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="服务器地址（含 http:// 与端口）" android:textColor="@color/shine_sub"/>
+
+        <EditText android:id="@+id/et_url" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="http://10.0.2.2:8080" android:inputType="textUri" android:layout_marginTop="8dp"
+            android:backgroundTint="@color/shine_pink"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="模拟器访问宿主机用 10.0.2.2:8080；真机/公网填实际可访问地址" android:textSize="12sp"
+            android:textColor="@color/shine_sub" android:layout_marginTop="6dp"/>
+
+        <Button android:id="@+id/btn_save" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="保存" android:layout_marginTop="16dp"/>
+
+        <Button android:id="@+id/btn_reset" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="重置为默认（模拟器）" style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+</LinearLayout>

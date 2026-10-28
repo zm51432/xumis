@@ -57,6 +57,18 @@ public class MobileApiController {
         return acceptLang != null && acceptLang.toLowerCase().contains("en");
     }
 
+    /** 健康检查探针：App 启动/切后台时用于确认后端可达 */
+    @GetMapping("/ping")
+    public ResponseEntity<?> ping(
+            @RequestHeader(value = "X-API-KEY", required = false) String key) {
+        if (!authorized(key)) return unauthorized();
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("ok", true);
+        body.put("service", "shine-xumis");
+        body.put("ts", System.currentTimeMillis());
+        return ResponseEntity.ok(body);
+    }
+
     @GetMapping("/products")
     public ResponseEntity<?> products(@RequestHeader(value = "X-API-KEY", required = false) String key,
                                      @RequestHeader(value = "Accept-Language", required = false) String acceptLang,

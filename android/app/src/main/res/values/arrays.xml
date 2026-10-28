@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="sort_entries">
+        <item>默认排序</item>
+        <item>价格升序</item>
+        <item>价格降序</item>
+    </string-array>
+</resources>

@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.ShineApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/shine_pink</item>
+        <item name="colorPrimaryVariant">@color/shine_pink_dark</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSecondary">@color/shine_mint</item>
+        <item name="android:colorBackground">@color/shine_bg</item>
+        <item name="android:statusBarColor">@color/shine_pink</item>
+        <item name="android:navigationBarColor">@color/shine_pink</item>
+    </style>
+</resources>
