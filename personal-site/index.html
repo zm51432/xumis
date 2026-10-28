@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<!--
+================================================================
+  个人主页 / 作品集 模板（单文件版）
+  -----------------------------------------------------------------
+  · 双击本文件即可在浏览器打开，无需服务器、无需构建。
+  · 所有样式(CSS)与逻辑(JS)都写在文件里，方便你边看边学。
+  · 想改内容？搜索下面带「★ 自定义」注释的地方即可。
+  · 想深入了解？每个区块上方都有中文讲解注释。
+================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>我的主页 | 个人作品集</title>
+
+<!-- ============================================================
+     【样式】全部内联，零外部依赖（断网也能用）
+     主题色、背景、文字等都用 CSS 变量定义，改一处即可全局生效。
+     ============================================================ -->
+<style>
+  /* ★ 自定义：改这里换肤。:root 是“暗色默认”，下方 [data-theme="light"] 是亮色。 */
+  :root {
+    --bg: #0f1115;        /* 页面背景 */
+    --fg: #e8eaed;        /* 主文字 */
+    --muted: #9aa0a6;     /* 次要文字 */
+    --accent: #5b8cff;    /* 主题色（按钮、链接高亮） */
+    --accent2: #9b6bff;   /* 辅助渐变色 */
+    --card: #171a21;      /* 卡片背景 */
+    --border: #262b33;    /* 边框 */
+    --shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+  [data-theme="light"] {
+    --bg: #ffffff; --fg: #1a1d21; --muted: #5f6368;
+    --card: #f6f7f9; --border: #e3e6ea; --shadow: 0 8px 30px rgba(0,0,0,.08);
+  }
+
+  /* 基础重置：让所有元素用同款盒模型，避免宽度计算坑 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }   /* 点导航平滑滚动 */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--fg);
+    line-height: 1.65; transition: background .3s, color .3s;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- 顶部导航 ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .brand { font-weight: 700; letter-spacing: .5px; }
+  nav .links { display: flex; gap: 18px; align-items: center; }
+  nav .links a { color: var(--muted); font-size: 14px; transition: color .2s; }
+  nav .links a:hover { color: var(--accent); }
+  .theme-btn {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--fg); width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; display: grid; place-items: center;
+  }
+  .theme-btn:hover { border-color: var(--accent); }
+
+  /* ---------- 通用容器与区块标题 ---------- */
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 72px 0; }
+  .section-title {
+    font-size: 28px; font-weight: 700; margin-bottom: 6px;
+  }
+  .section-sub { color: var(--muted); margin-bottom: 32px; }
+
+  /* ---------- Hero 首屏 ---------- */
+  .hero { text-align: center; padding: 96px 0 72px; }
+  .avatar {
+    width: 110px; height: 110px; border-radius: 50%;
+    margin: 0 auto 22px; display: grid; place-items: center;
+    font-size: 40px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .hero h1 { font-size: 40px; line-height: 1.2; }
+  .hero .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { color: var(--muted); margin: 14px 0 28px; font-size: 17px; }
+  .btn {
+    display: inline-block; padding: 11px 22px; border-radius: 10px;
+    font-weight: 600; font-size: 15px; transition: transform .15s, opacity .2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn-ghost { border: 1px solid var(--border); color: var(--fg); margin-left: 12px; }
+  .btn:hover { transform: translateY(-2px); opacity: .92; }
+  .socials { margin-top: 26px; display: flex; gap: 16px; justify-content: center; }
+  .socials a { color: var(--muted); transition: color .2s; }
+  .socials a:hover { color: var(--accent); }
+
+  /* ---------- 关于 ---------- */
+  .about-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px; text-align: center;
+  }
+  .stat .num { font-size: 26px; font-weight: 700; color: var(--accent); }
+  .stat .label { color: var(--muted); font-size: 13px; }
+
+  /* ---------- 作品（由 JS 渲染） ---------- */
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+  .chip {
+    padding: 6px 14px; border-radius: 999px; font-size: 13px; cursor: pointer;
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    transition: all .2s;
+  }
+  .chip.active, .chip:hover { color: #fff; border-color: var(--accent); background: var(--accent); }
+  .projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px; transition: transform .2s, border-color .2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .card h3 { font-size: 18px; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 14px; min-height: 42px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .tag { font-size: 12px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); padding: 3px 9px; border-radius: 6px; }
+  .card a.more { font-size: 14px; font-weight: 600; color: var(--accent); }
+
+  /* ---------- 技能 ---------- */
+  .skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .skill { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .skill .name { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+  .bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  /* ---------- 联系 ---------- */
+  .contact-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 36px; text-align: center;
+  }
+  .contact-card a { color: var(--accent); font-weight: 600; }
+
+  footer { text-align: center; color: var(--muted); padding: 30px 0; border-top: 1px solid var(--border); font-size: 13px; }
+
+  /* 窄屏适配 */
+  @media (max-width: 720px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 30px; }
+    nav .links a:not(.theme-btn) { display: none; }
+  }
+</style>
+</head>
+
+<body>
+<!-- ============================================================
+     导航栏：点击链接会平滑滚动到对应 id 的区块
+     ============================================================ -->
+<nav>
+  <div class="brand">我的主页</div>
+  <div class="links">
+    <a href="#about">关于</a>
+    <a href="#projects">作品</a>
+    <a href="#skills">技能</a>
+    <a href="#contact">联系</a>
+    <button class="theme-btn" id="themeBtn" title="切换明暗主题" aria-label="切换主题">
+      <!-- 月亮图标（亮色时切换为太阳，由 JS 控制） -->
+      <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     Hero 首屏：头像 + 名字 + 一句话介绍 + 按钮 + 社交图标
+     ★ 自定义：把“你的名字”“一句话介绍”改成你自己的
+     ============================================================ -->
+<header class="hero wrap">
+  <div class="avatar">XM</div>            <!-- ★ 头像：这里用首字母，可换成 <img> -->
+  <h1>你好，我是 <span class="grad">你的名字</span></h1>
+  <p>一句话介绍你自己 —— 比如：嵌入式工程师 / 开发者 / 创作者</p>
+  <div>
+    <a class="btn btn-primary" href="#projects">查看作品</a>
+    <a class="btn btn-ghost" href="#contact">联系我</a>
+  </div>
+  <div class="socials">
+    <!-- GitHub 图标 -->
+    <a href="https://github.com/你的用户名" title="GitHub" target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+    </a>
+    <!-- 邮件图标 -->
+    <a href="mailto:you@example.com" title="Email">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+    </a>
+  </div>
+</header>
+
+<!-- ============================================================
+     关于：左侧自我介绍，右侧几个数据卡片
+     ============================================================ -->
+<section id="about" class="wrap">
+  <h2 class="section-title">关于我</h2>
+  <p class="section-sub">这里写一段你的故事 / 经历 / 兴趣。</p>
+  <div class="about-grid">
+    <div>
+      <p>★ 自定义：在这里用几段话介绍你自己。可以写你做过什么项目、擅长什么、最近在学什么。</p>
+      <p style="margin-top:14px;color:var(--muted)">例如：我专注于嵌入式 Linux 与本地 AI 应用落地，喜欢把硬件和软件打通，也爱折腾 NAS 与自建服务。</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">5+</div><div class="label">年经验</div></div>
+      <div class="stat"><div class="num">20+</div><div class="label">项目</div></div>
+      <div class="stat"><div class="num">10+</div><div class="label">技术栈</div></div>
+      <div class="stat"><div class="num">∞</div><div class="label">好奇心</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     作品：下面的卡片由 <script> 里的 projects 数组自动生成
+     ★ 自定义：改 JS 里的 projects 数组即可增删作品；顶部筛选标签也会自动更新
+     ============================================================ -->
+<section id="projects" class="wrap">
+  <h2 class="section-title">作品集</h2>
+  <p class="section-sub">点击标签可筛选；卡片数据在文件底部 <code>projects</code> 数组里。</p>
+  <div class="filters" id="filters"></div>
+  <div class="projects" id="projectList"></div>
+</section>
+
+<!-- ============================================================
+     技能：进度条由 skills 数组生成
+     ============================================================ -->
+<section id="skills" class="wrap">
+  <h2 class="section-title">技能</h2>
+  <p class="section-sub">把“level”改成 0–100 即可调整进度。</p>
+  <div class="skills" id="skillList"></div>
+</section>
+
+<!-- ============================================================
+     联系
+     ============================================================ -->
+<section id="contact" class="wrap">
+  <div class="contact-card">
+    <h2 class="section-title">一起聊聊？</h2>
+    <p class="section-sub" style="margin-bottom:18px">有合作、项目或单纯想交流，欢迎联系我。</p>
+    <p>邮箱：<a href="mailto:you@example.com">you@example.com</a></p>
+    <p style="margin-top:8px">GitHub：<a href="https://github.com/你的用户名" target="_blank" rel="noopener">github.com/你的用户名</a></p>
+  </div>
+</section>
+
+<footer>
+  © <span id="year"></span> 你的名字 · 用单文件模板搭建
+</footer>
+
+<!-- ============================================================
+     【脚本】所有交互逻辑都在这里
+     学习重点：
+       1) 主题切换 + 本地记忆（localStorage）
+       2) 用数组数据渲染列表（数据 → 页面 的经典模式）
+       3) 标签筛选
+     ============================================================ -->
+<script>
+  /* ---------- 1. 主题切换 ---------- */
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  const MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+  // 初始主题：优先用上次选择，否则跟随系统
+  const saved = localStorage.getItem('theme');
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  const initial = saved || (prefersLight ? 'light' : 'dark');
+  applyTheme(initial);
+
+  themeBtn.addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    localStorage.setItem('theme', next);   // 记住选择，下次打开还是这个
+  });
+
+  function applyTheme(mode) {
+    html.setAttribute('data-theme', mode);
+    themeIcon.innerHTML = mode === 'light' ? MOON : SUN; // 亮色显示月亮(可切暗)，暗色显示太阳
+  }
+
+  /* ---------- 2. 作品数据（★ 自定义：改这里） ---------- */
+  // 每条：title 标题，desc 描述，tags 标签数组，link 链接
+  const projects = [
+    { title: '飞牛 NAS 镜像定制', desc: '为 RK3568 平台定制系统镜像，含电源/风扇/硬盘灯逻辑。', tags: ['嵌入式', 'Linux'], link: '#' },
+    { title: '本地 AI 视频工作流', desc: '基于 RTX 5070 + ComfyUI 的文字生成视频流水线。', tags: ['AI', 'ComfyUI'], link: '#' },
+    { title: '板级硬件控制固件', desc: 's9 kernel 下的守护进程与 DTB 适配工具链。', tags: ['嵌入式', '固件'], link: '#' },
+    { title: '个人主页模板', desc: '你正在看的这个单文件作品集模板。', tags: ['前端', '模板'], link: '#' },
+  ];
+
+  // 技能数据（level 为 0–100 的进度）
+  const skills = [
+    { name: '嵌入式 Linux', level: 90 },
+    { name: 'Python', level: 85 },
+    { name: '前端 / HTML+CSS', level: 70 },
+    { name: 'AI 应用落地', level: 75 },
+    { name: '固件 / DTB 适配', level: 80 },
+  ];
+
+  /* ---------- 3. 渲染作品 + 筛选 ---------- */
+  const listEl = document.getElementById('projectList');
+  const filtersEl = document.getElementById('filters');
+
+  // 收集所有出现过的标签，生成筛选按钮
+  const allTags = [...new Set(projects.flatMap(p => p.tags))];
+  let activeTag = '全部';
+  renderFilters();
+
+  function renderFilters() {
+    const tags = ['全部', ...allTags];
+    filtersEl.innerHTML = tags.map(t =>
+      `<span class="chip ${t === activeTag ? 'active' : ''}" data-tag="${t}">${t}</span>`
+    ).join('');
+    filtersEl.querySelectorAll('.chip').forEach(c =>
+      c.addEventListener('click', () => { activeTag = c.dataset.tag; renderFilters(); renderProjects(); })
+    );
+  }
+
+  function renderProjects() {
+    const data = activeTag === '全部' ? projects : projects.filter(p => p.tags.includes(activeTag));
+    listEl.innerHTML = data.map(p => `
+      <div class="card">
+        <h3>${p.title}</h3>
+        <p>${p.desc}</p>
+        <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <a class="more" href="${p.link}" target="_blank" rel="noopener">查看详情 →</a>
+      </div>
+    `).join('');
+  }
+  renderProjects();
+
+  /* ---------- 4. 渲染技能 ---------- */
+  document.getElementById('skillList').innerHTML = skills.map(s => `
+    <div class="skill">
+      <div class="name"><span>${s.name}</span><span>${s.level}%</span></div>
+      <div class="bar"><span style="width:${s.level}%"></span></div>
+    </div>
+  `).join('');
+
+  /* ---------- 5. 页脚年份（自动更新，不用手改） ---------- */
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
