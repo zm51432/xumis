@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+  后台管理界面：登录后可编辑 站点信息 / 关于 / 作品 / 技能，保存即写回后台 data.json。
+  访问：启动后台后打开 http://localhost:8080/admin
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>后台管理 | 作品集</title>
+<style>
+  :root { --bg:#0f1115; --fg:#e8eaed; --muted:#9aa0a6; --accent:#5b8cff; --card:#171a21; --border:#262b33; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--fg); line-height:1.6; padding:32px; }
+  .wrap { max-width:880px; margin:0 auto; }
+  h1 { font-size:22px; margin-bottom:18px; }
+  h2 { font-size:16px; margin:24px 0 12px; color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  input, textarea { width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--fg); font-size:14px; font-family:inherit; }
+  textarea { min-height:80px; resize:vertical; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; align-items:start; }
+  button { cursor:pointer; border:none; border-radius:8px; padding:9px 16px; font-size:14px; font-weight:600; }
+  .primary { background:linear-gradient(135deg,var(--accent),#9b6bff); color:#fff; }
+  .ghost { background:var(--card); border:1px solid var(--border); color:var(--fg); }
+  .danger { background:transparent; border:1px solid #e5534b; color:#e5534b; padding:6px 10px; font-size:12px; }
+  .item { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; background:var(--bg); }
+  .login { max-width:360px; margin:80px auto; }
+  .msg { font-size:13px; margin-top:10px; min-height:18px; }
+  .ok { color:#3fb950; } .err { color:#e5534b; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .hidden { display:none; }
+  .taginput { font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 登录 -->
+  <div id="loginBox" class="login card">
+    <h1>后台登录</h1>
+    <label>用户名</label><input id="user" value="admin" />
+    <label>密码</label><input id="pass" type="password" value="admin123" />
+    <div style="margin-top:16px"><button class="primary" onclick="doLogin()">登录</button></div>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <!-- 主面板 -->
+  <div id="panel" class="hidden">
+    <div class="topbar">
+      <h1>作品集管理</h1>
+      <div><button class="ghost" onclick="doLogout()">退出</button> <button class="primary" onclick="save()">保存全部</button></div>
+    </div>
+    <div class="msg" id="msg"></div>
+
+    <div class="card">
+      <h2>站点信息</h2>
+      <div class="row">
+        <div><label>站点标题</label><input id="s_title" /></div>
+        <div><label>姓名</label><input id="s_name" /></div>
+        <div><label>头像文字</label><input id="s_avatar" /></div>
+      </div>
+      <label>一句话介绍</label><input id="s_subtitle" />
+      <div class="row">
+        <div><label>邮箱</label><input id="s_email" /></div>
+        <div><label>GitHub 地址</label><input id="s_github" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>关于我</h2>
+      <textarea id="about"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>作品</h2>
+      <div id="projects"></div>
+      <button class="ghost" onclick="addProject()">+ 添加作品</button>
+    </div>
+
+    <div class="card">
+      <h2>技能</h2>
+      <div id="skills"></div>
+      <button class="ghost" onclick="addSkill()">+ 添加技能</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = '/api/data';
+  let TOKEN = localStorage.getItem('pf_token') || '';
+  let DATA = null;
+
+  if (TOKEN) showPanel();
+
+  async function doLogin(){
+    const u = document.getElementById('user').value;
+    const p = document.getElementById('pass').value;
+    const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user:u, pass:p}) });
+    const j = await r.json();
+    if (r.ok && j.token){ TOKEN = j.token; localStorage.setItem('pf_token', TOKEN); showPanel(); }
+    else document.getElementById('loginMsg').innerHTML = '<span class="err">登录失败：账号或密码错误</span>';
+  }
+
+  function doLogout(){ TOKEN=''; localStorage.removeItem('pf_token'); location.reload(); }
+
+  function showPanel(){
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    load();
+  }
+
+  async function load(){
+    const r = await fetch(API);
+    DATA = await r.json();
+    const s = DATA.site || {};
+    document.getElementById('s_title').value = s.title || '';
+    document.getElementById('s_name').value = s.name || '';
+    document.getElementById('s_avatar').value = s.avatar || '';
+    document.getElementById('s_subtitle').value = s.subtitle || '';
+    document.getElementById('s_email').value = s.email || '';
+    document.getElementById('s_github').value = s.github || '';
+    document.getElementById('about').value = DATA.about || '';
+    renderProjects(); renderSkills();
+  }
+
+  function renderProjects(){
+    const box = document.getElementById('projects');
+    box.innerHTML = '';
+    (DATA.projects||[]).forEach((p, i) => {
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML = `
+        <div class="row">
+          <div><label>标题</label><input data-i="${i}" data-k="title" value="${esc(p.title||'')}" /></div>
+          <div><label>链接</label><input data-i="${i}" data-k="link" value="${esc(p.link||'')}" /></div>
+        </div>
+        <label>描述</label><input data-i="${i}" data-k="desc" value="${esc(p.desc||'')}" />
+        <label>标签（逗号分隔）</label><input class="taginput" data-i="${i}" data-k="tags" value="${(p.tags||[]).join(',')}" />
+        <div style="margin-top:8px"><button class="danger" onclick="delProject(${i})">删除</button></div>`;
+      box.appendChild(el);
+    });
+    box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', e => {
+      const i = +e.target.dataset.i, k = e.target.dataset.k;
+      if (k === 'tags') DATA.projects[i].tags = e.target.value.split(',').map(x=>x.trim()).filter(Boolean);
+      else DATA.projects[i][k] = e.target.value;
+    }));
+  }
+
+  function renderSkills(){
+    const box = document.getElementById('skills');
+    box.innerHTML = '';
+    (DATA.skills||[]).forEach((sk, i) => {
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML = `
+        <div class="row">
+          <div><label>名称</label><input data-i="${i}" data-k="name" value="${esc(sk.name||'')}" /></div>
+          <div><label>熟练度(0-100)</label><input type="number" min="0" max="100" data-i="${i}" data-k="level" value="${esc(sk.level||0)}" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="danger" onclick="delSkill(${i})">删除</button></div>`;
+      box.appendChild(el);
+    });
+    box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', e => {
+      const i = +e.target.dataset.i, k = e.target.dataset.k;
+      DATA.skills[i][k] = (k === 'level') ? Number(e.target.value) : e.target.value;
+    }));
+  }
+
+  function addProject(){ DATA.projects = DATA.projects || []; DATA.projects.push({title:'新作品', desc:'描述', tags:[], link:'#'}); renderProjects(); }
+  function delProject(i){ DATA.projects.splice(i,1); renderProjects(); }
+  function addSkill(){ DATA.skills = DATA.skills || []; DATA.skills.push({name:'新技能', level:50}); renderSkills(); }
+  function delSkill(i){ DATA.skills.splice(i,1); renderSkills(); }
+
+  async function save(){
+    const s = DATA.site || {};
+    s.title = document.getElementById('s_title').value;
+    s.name = document.getElementById('s_name').value;
+    s.avatar = document.getElementById('s_avatar').value;
+    s.subtitle = document.getElementById('s_subtitle').value;
+    s.email = document.getElementById('s_email').value;
+    s.github = document.getElementById('s_github').value;
+    DATA.about = document.getElementById('about').value;
+    const r = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body: JSON.stringify(DATA) });
+    const m = document.getElementById('msg');
+    if (r.ok) m.innerHTML = '<span class="ok">已保存 ✓ 公开页刷新即可看到更新</span>';
+    else m.innerHTML = '<span class="err">保存失败：'+(r.status===401?'未登录':'服务端错误')+'</span>';
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+</script>
+</body>
+</html>

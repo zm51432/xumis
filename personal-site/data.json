@@ -1,0 +1,24 @@
+{
+  "site": {
+    "title": "我的主页 | 个人作品集",
+    "name": "你的名字",
+    "subtitle": "一句话介绍你自己 —— 比如：嵌入式工程师 / 开发者 / 创作者",
+    "avatar": "XM",
+    "email": "you@example.com",
+    "github": "https://github.com/你的用户名"
+  },
+  "about": "在这里用几段话介绍你自己。可以写你做过什么项目、擅长什么、最近在学什么。例如：我专注于嵌入式 Linux 与本地 AI 应用落地，喜欢把硬件和软件打通，也爱折腾 NAS 与自建服务。",
+  "projects": [
+    { "title": "飞牛 NAS 镜像定制", "desc": "为 RK3568 平台定制系统镜像，含电源/风扇/硬盘灯逻辑。", "tags": ["嵌入式", "Linux"], "link": "#" },
+    { "title": "本地 AI 视频工作流", "desc": "基于 RTX 5070 + ComfyUI 的文字生成视频流水线。", "tags": ["AI", "ComfyUI"], "link": "#" },
+    { "title": "板级硬件控制固件", "desc": "s9 kernel 下的守护进程与 DTB 适配工具链。", "tags": ["嵌入式", "固件"], "link": "#" },
+    { "title": "个人主页模板", "desc": "你正在看的这个单文件作品集模板。", "tags": ["前端", "模板"], "link": "#" }
+  ],
+  "skills": [
+    { "name": "嵌入式 Linux", "level": 90 },
+    { "name": "Python", "level": 85 },
+    { "name": "前端 / HTML+CSS", "level": 70 },
+    { "name": "AI 应用落地", "level": 75 },
+    { "name": "固件 / DTB 适配", "level": 80 }
+  ]
+}
