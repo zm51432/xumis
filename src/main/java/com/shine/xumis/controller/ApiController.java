@@ -1,7 +1,9 @@
 package com.shine.xumis.controller;
 
+import com.shine.xumis.config.AppProperties;
 import com.shine.xumis.dto.CustomIdeaRequest;
 import com.shine.xumis.dto.InquiryRequest;
+import com.shine.xumis.dto.ProductSearchResult;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.CustomIdea;
 import com.shine.xumis.model.Inquiry;
@@ -25,13 +27,16 @@ public class ApiController {
     private final CustomIdeaService ideaService;
     private final InquiryService inquiryService;
     private final FileStorageService fileStorageService;
+    private final CurrencyService currencyService;
 
     public ApiController(ProductService productService, CustomIdeaService ideaService,
-                         InquiryService inquiryService, FileStorageService fileStorageService) {
+                         InquiryService inquiryService, FileStorageService fileStorageService,
+                         CurrencyService currencyService) {
         this.productService = productService;
         this.ideaService = ideaService;
         this.inquiryService = inquiryService;
         this.fileStorageService = fileStorageService;
+        this.currencyService = currencyService;
     }
 
     @GetMapping("/products")
@@ -76,5 +81,20 @@ public class ApiController {
         inquiry.setSubject(form.getSubject());
         inquiry.setMessage(form.getMessage());
         return ResponseEntity.ok(inquiryService.save(inquiry));
+    }
+
+    /** 支持的展示币种列表 */
+    @GetMapping("/currencies")
+    public List<AppProperties.Currency> currencies() {
+        return currencyService.enabled();
+    }
+
+    /** 商品搜索 / 分类 / 排序 / 分页 */
+    @GetMapping("/products/search")
+    public ProductSearchResult search(@RequestParam(value = "q", required = false) String q,
+                                      @RequestParam(value = "cat", required = false) Category cat,
+                                      @RequestParam(value = "sort", defaultValue = "default") String sort,
+                                      @RequestParam(value = "page", defaultValue = "0") int page) {
+        return productService.search(q, cat, sort, page, 12);
     }
 }

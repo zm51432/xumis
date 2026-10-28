@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{order.success}">下单成功</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
+
+<div class="container section success-box">
+    <div class="success-icon">✅</div>
+    <h2 th:text="#{order.success}">下单成功！</h2>
+    <p th:text="#{order.successDesc}">感谢你的订单</p>
+    <p class="order-no" th:if="${orderNo != null}">
+        <span th:text="#{order.no}">订单号</span>：<strong th:text="${orderNo}">SH...</strong>
+    </p>
+    <a class="btn" th:href="@{/products}" th:text="#{cart.continue}">继续购物</a>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

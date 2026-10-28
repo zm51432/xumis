@@ -4,10 +4,15 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · ' + #{nav.home}">shine星心</title>
+    <meta name="description" th:content="${storeName} + ' · ' + #{home.subtitle}"/>
+    <meta name="keywords" content="饰品,手工品,来图定制,外贸独立站,jewelry,handmade,custom"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#f06b87"/>
+    <meta property="og:title" th:content="${storeName}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:description" th:content="#{home.subtitle}"/>
 </head>
 <body>
 
@@ -24,6 +29,10 @@
             <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
             <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
         </div>
+        <form class="hero-search" action="/products" method="get">
+            <input type="text" name="q" th:placeholder="#{search.placeholder}"/>
+            <button type="submit" th:text="#{search.button}">搜索</button>
+        </form>
     </div>
 </section>
 
@@ -41,7 +50,7 @@
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
                 <span class="tag custom" th:if="${p.customizable}" th:text="#{home.customizable}">支持来图定制</span>
-                <div class="price" th:text="'$' + ${#numbers.formatDecimal(p.price,1,2)}">$0.00</div>
+                <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
             </div>
         </div>
     </div>

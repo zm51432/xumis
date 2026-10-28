@@ -22,6 +22,19 @@
         <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
         <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
         <a th:href="@{/admin}" th:text="#{nav.admin}">后台</a>
+        <form class="nav-search" action="/products" method="get">
+            <input type="text" name="q" th:placeholder="#{search.placeholder}" aria-label="search"/>
+            <button type="submit" aria-label="search">🔍</button>
+        </form>
+        <select class="currency-select" onchange="setCurrency(this.value)" aria-label="currency">
+            <option th:each="c : ${currencies}"
+                    th:value="${c.code}"
+                    th:text="${c.code + ' ' + c.symbol}"
+                    th:selected="${c.code == currencyCode}">USD $</option>
+        </select>
+        <a class="cart-link" th:href="@{/cart}">🛒
+            <span class="badge" th:text="${cartCount}">0</span>
+        </a>
         <button class="lang-btn" onclick="toggleLang()" th:text="#{lang.toggle}">EN</button>
     </div>
 </nav>
@@ -30,13 +43,28 @@
 <nav class="mobile-nav" th:fragment="mobilenav">
     <a th:href="@{/}"><span class="mi">🏠</span><span th:text="#{nav.home}">首页</span></a>
     <a th:href="@{/products}"><span class="mi">🛍️</span><span th:text="#{nav.products}">商品</span></a>
+    <a th:href="@{/cart}"><span class="mi">🛒</span><span th:text="#{nav.cart}">购物车</span></a>
     <a th:href="@{/custom}"><span class="mi">🎨</span><span th:text="#{nav.custom}">定制</span></a>
     <a th:href="@{/inquiry}"><span class="mi">✉️</span><span th:text="#{nav.inquiry}">联系</span></a>
 </nav>
 
 <!-- 页脚 -->
 <footer class="footer" th:fragment="footer">
-    <span th:text="#{footer.text}">© shine星心</span>
+    <div class="footer-grid">
+        <div>
+            <h4 th:text="${storeName}">shine星心</h4>
+            <p th:text="#{footer.text}">© shine星心</p>
+        </div>
+        <div>
+            <h4 th:text="#{subscribe.title}">订阅优惠</h4>
+            <p class="muted" th:text="#{subscribe.desc}">订阅后获取新品与优惠</p>
+            <form class="subscribe" action="/subscribe" method="post">
+                <input type="email" name="email" required th:placeholder="#{subscribe.placeholder}"/>
+                <button type="submit" th:text="#{subscribe.button}">订阅</button>
+            </form>
+            <p class="ok-msg" th:if="${param.subscribed != null}" th:text="#{subscribe.success}">订阅成功</p>
+        </div>
+    </div>
 </footer>
 
 </body>

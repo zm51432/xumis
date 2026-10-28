@@ -23,6 +23,10 @@ public class InquiryService {
         return repository.findAll();
     }
 
+    public long countAll() {
+        return repository.count();
+    }
+
     public void delete(Long id) {
         repository.deleteById(id);
     }

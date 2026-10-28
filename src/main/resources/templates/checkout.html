@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{checkout.title}">结算</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
+    <meta name="theme-color" content="#f06b87"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
+
+<div class="container section">
+    <h2 class="section-title" th:text="#{checkout.title}">结算</h2>
+
+    <div class="checkout-grid">
+        <!-- 订单摘要 -->
+        <div class="checkout-summary">
+            <h4 th:text="#{cart.title}">购物车</h4>
+            <div class="sum-line" th:each="line : ${lines}">
+                <span th:text="${#locale.language == 'en' ? line.product.nameEn : line.product.name} + ' ×' + ${line.quantity}">商品</span>
+                <span class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(line.lineTotal.multiply(fxRate),1,2)}">$0.00</span>
+            </div>
+            <div class="sum-total price" th:text="#{cart.total} + '：' + ${currencySymbol} + ${#numbers.formatDecimal(total.multiply(fxRate),1,2)}">合计</div>
+        </div>
+
+        <!-- 收货与下单 -->
+        <form class="checkout-form" action="/cart/place" method="post">
+            <label th:text="#{checkout.name}">收货人</label>
+            <input type="text" name="customerName" required/>
+
+            <label th:text="#{checkout.email}">邮箱</label>
+            <input type="email" name="email" required/>
+
+            <label th:text="#{checkout.phone}">电话</label>
+            <input type="text" name="phone"/>
+
+            <label th:text="#{checkout.country}">国家/地区</label>
+            <input type="text" name="country"/>
+
+            <label th:text="#{checkout.address}">收货地址</label>
+            <textarea name="address" rows="2"></textarea>
+
+            <label th:text="#{checkout.note}">留言</label>
+            <textarea name="note" rows="2"></textarea>
+
+            <label th:text="#{checkout.currency}">结算币种</label>
+            <select name="currency">
+                <option th:each="c : ${currencies}" th:value="${c.code}"
+                        th:text="${c.code + ' ' + c.symbol}"
+                        th:selected="${c.code == currencyCode}">USD</option>
+            </select>
+
+            <button class="btn btn-block" type="submit" th:text="#{checkout.place}">提交订单</button>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

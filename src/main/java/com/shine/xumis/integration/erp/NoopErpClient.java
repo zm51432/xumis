@@ -27,6 +27,11 @@ public class NoopErpClient implements ErpClient {
     }
 
     @Override
+    public void pushOrder(ErpOrderDto order) {
+        log.info("[ERP:noop] pushOrder no={} total={} {}", order.orderNo, order.totalAmount, order.currency);
+    }
+
+    @Override
     public void syncInventory() {
         log.info("[ERP:noop] syncInventory (no-op)");
     }

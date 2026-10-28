@@ -7,6 +7,13 @@ target/
 # 上传文件目录（运行时生成）
 uploads/
 
+# 一键部署：自动下载的 JDK / Maven（仅本目录内，不入库）
+.tools/
+# 运行时数据（H2 数据库文件、日志、PID）
+runtime/
+data/
+*.log
+
 # IDE
 .idea/
 *.iml

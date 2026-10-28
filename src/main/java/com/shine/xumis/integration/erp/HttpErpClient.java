@@ -66,6 +66,11 @@ public class HttpErpClient implements ErpClient {
     }
 
     @Override
+    public void pushOrder(ErpOrderDto order) {
+        post("/orders", order);
+    }
+
+    @Override
     public void syncInventory() {
         post("/inventory/sync", Collections.emptyMap());
     }

@@ -94,6 +94,27 @@ public class MobileApiController {
                 .map(c -> Map.of("code", c.name(), "label", c.getLabel())).collect(Collectors.toList()));
     }
 
+    /** 手机端搜索 / 分类 / 排序 / 分页 */
+    @GetMapping("/search")
+    public ResponseEntity<?> search(@RequestHeader(value = "X-API-KEY", required = false) String key,
+                                    @RequestHeader(value = "Accept-Language", required = false) String acceptLang,
+                                    @RequestParam(value = "q", required = false) String q,
+                                    @RequestParam(value = "cat", required = false) Category cat,
+                                    @RequestParam(value = "sort", defaultValue = "default") String sort,
+                                    @RequestParam(value = "page", defaultValue = "0") int page,
+                                    @RequestParam(value = "size", defaultValue = "12") int size) {
+        if (!authorized(key)) return unauthorized();
+        var result = productService.search(q, cat, sort, page, size);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("content", result.getItems().stream()
+                .map(p -> MobileProductDto.from(p, isEnglish(acceptLang))).collect(Collectors.toList()));
+        body.put("page", result.getPage());
+        body.put("size", size);
+        body.put("totalElements", result.getTotalItems());
+        body.put("totalPages", result.getTotalPages());
+        return ResponseEntity.ok(body);
+    }
+
     @PostMapping("/custom-ideas")
     public ResponseEntity<?> postIdea(@RequestHeader(value = "X-API-KEY", required = false) String key,
                                      @Valid @ModelAttribute CustomIdeaRequest form,

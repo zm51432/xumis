@@ -1,15 +1,15 @@
 package com.shine.xumis.controller;
 
+import com.shine.xumis.dto.ProductSearchResult;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
 import com.shine.xumis.service.ProductService;
+import com.shine.xumis.service.ReviewService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 /**
  * 店铺前台页面（Thymeleaf 视图）
@@ -18,9 +18,11 @@ import java.util.List;
 public class StorefrontController {
 
     private final ProductService productService;
+    private final ReviewService reviewService;
 
-    public StorefrontController(ProductService productService) {
+    public StorefrontController(ProductService productService, ReviewService reviewService) {
         this.productService = productService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping("/")
@@ -31,15 +33,20 @@ public class StorefrontController {
     }
 
     @GetMapping("/products")
-    public String products(@RequestParam(value = "cat", required = false) Category cat, Model model) {
-        List<Product> list;
-        if (cat != null) {
-            list = productService.findByCategory(cat);
-            model.addAttribute("activeCat", cat);
-        } else {
-            list = productService.findAll();
-        }
-        model.addAttribute("products", list);
+    public String products(@RequestParam(value = "cat", required = false) Category cat,
+                           @RequestParam(value = "q", required = false) String q,
+                           @RequestParam(value = "sort", defaultValue = "default") String sort,
+                           @RequestParam(value = "page", defaultValue = "0") int page,
+                           Model model) {
+        int size = 12;
+        ProductSearchResult result = productService.search(q, cat, sort, page, size);
+        model.addAttribute("products", result.getItems());
+        model.addAttribute("activeCat", cat);
+        model.addAttribute("q", q == null ? "" : q);
+        model.addAttribute("sort", sort);
+        model.addAttribute("page", result.getPage());
+        model.addAttribute("totalPages", result.getTotalPages());
+        model.addAttribute("totalItems", result.getTotalItems());
         return "products";
     }
 
@@ -50,6 +57,15 @@ public class StorefrontController {
             return "redirect:/products";
         }
         model.addAttribute("product", p);
+        model.addAttribute("reviews", reviewService.approvedFor(p));
+        model.addAttribute("avgRating", reviewService.avgRating(p));
+        model.addAttribute("reviewCount", reviewService.approvedFor(p).size());
         return "product-detail";
+    }
+
+    @GetMapping("/order-success")
+    public String orderSuccess(@RequestParam(value = "no", required = false) String orderNo, Model model) {
+        model.addAttribute("orderNo", orderNo);
+        return "order-success";
     }
 }

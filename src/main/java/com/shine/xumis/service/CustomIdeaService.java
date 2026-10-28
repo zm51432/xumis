@@ -23,6 +23,10 @@ public class CustomIdeaService {
         return repository.findAll();
     }
 
+    public long countAll() {
+        return repository.count();
+    }
+
     public CustomIdea findById(Long id) {
         return repository.findById(id).orElse(null);
     }

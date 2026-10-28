@@ -3,68 +3,118 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${storeName} + ' · ' + #{nav.admin}">后台</title>
+    <title th:text="${storeName} + ' · Admin'">后台</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
-    <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#f06b87"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
-<div th:replace="~{fragments :: mobilenav}"></div>
 
-<div class="container section" th:if="${denied}">
-    <div class="denied">
-        <h2>🔒 Admin Access</h2>
-        <p>请通过 <code>/admin?key=YOUR_KEY</code> 访问（演示密钥见 application.yml 的 app.admin-key）。</p>
-        <p class="hint">⚠️ 生产环境务必接入正式鉴权（Spring Security / OAuth），勿暴露此入口。</p>
+<div class="container section">
+    <!-- 未授权 -->
+    <div th:if="${denied}" class="admin-denied">
+        <h2>🔒 Admin</h2>
+        <p>请输入正确的后台密钥（URL 参数 ?key=...）。</p>
     </div>
-</div>
 
-<div class="container section" th:if="${!denied}">
-    <h2 th:text="#{nav.admin}">后台</h2>
-    <p class="sub">客户自定义想法 & 询盘</p>
+    <div th:if="${!denied}">
+        <h2 class="section-title">仪表盘 Dashboard</h2>
 
-    <h3>📥 客户自定义想法</h3>
-    <table>
-        <thead>
-        <tr><th>ID</th><th>称呼</th><th>邮箱</th><th>国家</th><th>分类</th><th>想法</th><th>参考图</th><th>状态</th><th>时间</th></tr>
-        </thead>
-        <tbody>
-        <tr th:each="i : ${ideas}">
-            <td th:text="${i.id}"></td>
-            <td th:text="${i.customerName}"></td>
-            <td th:text="${i.email}"></td>
-            <td th:text="${i.country}"></td>
-            <td th:text="${i.expectCategory != null ? i.expectCategory.label : '-'}"></td>
-            <td th:text="${#strings.abbreviate(i.ideaDescription, 40)}"></td>
-            <td><a th:if="${i.referenceImageUrl != null}" th:href="${i.referenceImageUrl}" target="_blank">查看</a></td>
-            <td th:text="${i.status}"></td>
-            <td th:text="${i.createdAt}"></td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(ideas)}"><td colspan="9">暂无数据</td></tr>
-        </tbody>
-    </table>
+        <div class="stat-grid">
+            <div class="stat"><span class="stat-num" th:text="${countProducts}">0</span><span th:text="#{nav.products}">商品</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countOrders}">0</span><span>订单 Orders</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countIdeas}">0</span><span>定制 Custom</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countInquiries}">0</span><span>询盘 Inquiries</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countSubs}">0</span><span>订阅 Subs</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countPendingReviews}">0</span><span>待审评价</span></div>
+        </div>
 
-    <h3 style="margin-top:36px;">✉️ 询盘留言</h3>
-    <table>
-        <thead>
-        <tr><th>ID</th><th>姓名</th><th>邮箱</th><th>主题</th><th>留言</th><th>状态</th><th>时间</th></tr>
-        </thead>
-        <tbody>
-        <tr th:each="m : ${inquiries}">
-            <td th:text="${m.id}"></td>
-            <td th:text="${m.name}"></td>
-            <td th:text="${m.email}"></td>
-            <td th:text="${m.subject}"></td>
-            <td th:text="${#strings.abbreviate(m.message, 40)}"></td>
-            <td th:text="${m.status}"></td>
-            <td th:text="${m.createdAt}"></td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(inquiries)}"><td colspan="7">暂无数据</td></tr>
-        </tbody>
-    </table>
+        <!-- 订单 -->
+        <h3 class="block-title">订单 Orders</h3>
+        <table class="admin-table">
+            <thead><tr><th>订单号</th><th>客户</th><th>邮箱</th><th>金额(USD)</th><th>状态</th><th>时间</th></tr></thead>
+            <tbody>
+                <tr th:each="o : ${orders}">
+                    <td th:text="${o.orderNo}">SH...</td>
+                    <td th:text="${o.customerName}">-</td>
+                    <td th:text="${o.email}">-</td>
+                    <td th:text="${o.totalAmount}">0</td>
+                    <td th:text="${o.status}">PENDING</td>
+                    <td th:text="${o.createdAt}">-</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(orders)}"><td colspan="6">暂无订单</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 待审评价 -->
+        <h3 class="block-title">待审核评价 Pending Reviews</h3>
+        <table class="admin-table">
+            <thead><tr><th>商品</th><th>作者</th><th>评分</th><th>评论</th><th>操作</th></tr></thead>
+            <tbody>
+                <tr th:each="r : ${pendingReviews}">
+                    <td th:text="${r.product != null ? r.product.name : '-'}">-</td>
+                    <td th:text="${r.author}">-</td>
+                    <td th:text="${r.rating} + ' ★'">-</td>
+                    <td th:text="${r.comment}">-</td>
+                    <td>
+                        <form action="/admin/review/approve" method="post" class="inline-form">
+                            <input type="hidden" name="key" th:value="${param.key}"/>
+                            <input type="hidden" name="id" th:value="${r.id}"/>
+                            <button class="btn btn-ghost btn-sm" type="submit">通过</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pendingReviews)}"><td colspan="5">暂无待审评价</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 定制想法 -->
+        <h3 class="block-title">定制想法 Custom Ideas</h3>
+        <table class="admin-table">
+            <thead><tr><th>客户</th><th>邮箱</th><th>描述</th><th>状态</th><th>时间</th></tr></thead>
+            <tbody>
+                <tr th:each="i : ${ideas}">
+                    <td th:text="${i.customerName}">-</td>
+                    <td th:text="${i.email}">-</td>
+                    <td th:text="${i.ideaDescription}">-</td>
+                    <td th:text="${i.status}">NEW</td>
+                    <td th:text="${i.createdAt}">-</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(ideas)}"><td colspan="5">暂无</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 询盘 -->
+        <h3 class="block-title">询盘 Inquiries</h3>
+        <table class="admin-table">
+            <thead><tr><th>姓名</th><th>邮箱</th><th>主题</th><th>留言</th><th>时间</th></tr></thead>
+            <tbody>
+                <tr th:each="m : ${inquiries}">
+                    <td th:text="${m.name}">-</td>
+                    <td th:text="${m.email}">-</td>
+                    <td th:text="${m.subject}">-</td>
+                    <td th:text="${m.message}">-</td>
+                    <td th:text="${m.createdAt}">-</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(inquiries)}"><td colspan="5">暂无</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 订阅 -->
+        <h3 class="block-title">订阅 Subscriptions</h3>
+        <table class="admin-table">
+            <thead><tr><th>#</th><th>邮箱</th><th>时间</th></tr></thead>
+            <tbody>
+                <tr th:each="s,iter : ${subscriptions}">
+                    <td th:text="${iter.index + 1}">1</td>
+                    <td th:text="${s.email}">-</td>
+                    <td th:text="${s.createdAt}">-</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(subscriptions)}"><td colspan="3">暂无</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <footer th:replace="~{fragments :: footer}"></footer>

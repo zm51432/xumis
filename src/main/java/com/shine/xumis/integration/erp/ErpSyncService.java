@@ -3,6 +3,7 @@ package com.shine.xumis.integration.erp;
 import com.shine.xumis.integration.erp.dto.*;
 import com.shine.xumis.model.CustomIdea;
 import com.shine.xumis.model.Inquiry;
+import com.shine.xumis.model.Order;
 import com.shine.xumis.model.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,5 +50,11 @@ public class ErpSyncService {
         if (!props.isEnabled()) return;
         log.info("[ERP] 全量同步商品，共 {} 条", products.size());
         products.forEach(this::syncProduct);
+    }
+
+    public void syncOrder(Order o) {
+        if (!props.isEnabled() || o == null) return;
+        try { client.pushOrder(ErpOrderDto.from(o)); }
+        catch (Exception e) { log.warn("[ERP] syncOrder 失败: {}", e.getMessage()); }
     }
 }

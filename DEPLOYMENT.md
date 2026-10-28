@@ -19,7 +19,30 @@
 
 ---
 
-## 2. 本地构建与运行
+## 2. 一键部署（推荐：目录内零手工安装）
+
+脚本会自动准备 JDK 17 与 Maven（下载到项目内 `.tools/`），编译并启动，数据库与上传文件也全部落在项目目录。
+
+```bash
+# Linux / macOS
+chmod +x start.sh && ./start.sh
+
+# Windows：双击 start.bat，或
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Start
+```
+
+| 脚本 | 平台 | 说明 |
+|------|------|------|
+| `start.sh` | Linux / macOS | 支持 `--port=`、`--skip-build`、`--prod`、`--stop`、`--help` |
+| `start.bat` | Windows | 双击运行，可传端口：`start.bat 9090` |
+| `install.ps1` | Windows (PowerShell) | `-Start` / `-Stop` / `-SkipBuild` / `-Port` |
+| `docker-compose.yml` | 任意（需 Docker） | 应用 + MySQL 8，一条命令起全套 |
+
+> **每一步在做什么、失败如何排查**，见 **ONECLICK.md**。
+
+---
+
+## 2.1 手动构建与运行
 
 ```bash
 # 进入项目根目录（含 pom.xml）

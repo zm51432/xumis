@@ -8,6 +8,9 @@
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#f06b87"/>
+    <meta property="og:title" th:content="${product.name}"/>
+    <meta property="og:type" content="product"/>
+    <meta property="og:image" th:content="${product.imageUrl}"/>
 </head>
 <body>
 
@@ -19,6 +22,10 @@
         <img th:src="${product.imageUrl}" alt="product"/>
         <div>
             <h1 th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</h1>
+            <div class="rating-row" th:if="${reviewCount > 0}">
+                <span class="stars" th:text="${#numbers.formatDecimal(avgRating,1,1)} + ' ★'">5.0 ★</span>
+                <span class="muted" th:text="${reviewCount} + ' ' + #{product.reviews}">0 评价</span>
+            </div>
             <ul class="meta">
                 <li><strong th:text="#{product.category}">分类</strong>：
                     <span th:text="${product.category.label}">饰品</span></li>
@@ -31,9 +38,17 @@
             </ul>
             <p th:text="${#locale.language == 'en' ? product.descriptionEn : product.description}">描述</p>
             <div class="price" style="font-size:24px;margin:14px 0;"
-                 th:text="'$' + ${#numbers.formatDecimal(product.price,1,2)}">$0.00</div>
-            <div class="btn-row" style="justify-content:flex-start;">
-                <a class="btn" th:if="${product.customizable}" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+                 th:text="${currencySymbol} + ${#numbers.formatDecimal(product.price.multiply(fxRate),1,2)}">$0.00</div>
+
+            <!-- 加入购物车 -->
+            <form class="buy-row" action="/cart/add" method="post">
+                <input type="hidden" name="productId" th:value="${product.id}"/>
+                <input class="qty-input" type="number" name="quantity" value="1" min="1" th:attr="max=${product.stock}"/>
+                <button class="btn" type="submit" th:text="#{cart.add}">加入购物车</button>
+            </form>
+
+            <div class="btn-row" style="justify-content:flex-start;margin-top:10px;">
+                <a class="btn btn-ghost" th:if="${product.customizable}" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
                 <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
             </div>
         </div>
@@ -42,7 +57,54 @@
         <p>商品不存在。</p>
         <a class="btn" th:href="@{/products}" th:text="#{nav.products}">返回商品</a>
     </div>
+
+    <!-- 评价区 -->
+    <div class="reviews reveal" th:if="${product != null}">
+        <h3 th:text="#{product.reviews}">商品评价</h3>
+        <div class="review-list" th:if="${not #lists.isEmpty(reviews)}">
+            <div class="review-item" th:each="r : ${reviews}">
+                <div class="stars" th:text="${r.rating} + ' ★'">5 ★</div>
+                <p th:text="${r.comment}">好评</p>
+                <small class="muted" th:text="${r.author}">匿名</small>
+            </div>
+        </div>
+        <p class="muted" th:if="${#lists.isEmpty(reviews)}" th:text="#{review.empty}">暂无评价</p>
+
+        <div class="review-form">
+            <h4 th:text="#{product.writeReview}">写评价</h4>
+            <form action="#" th:action="@{/product/{id}/review(id=${product.id})}" method="post">
+                <input type="text" name="author" th:placeholder="#{review.author}"/>
+                <select name="rating">
+                    <option value="5">5 ★</option>
+                    <option value="4">4 ★</option>
+                    <option value="3">3 ★</option>
+                    <option value="2">2 ★</option>
+                    <option value="1">1 ★</option>
+                </select>
+                <textarea name="comment" rows="3" required th:placeholder="#{review.comment}"></textarea>
+                <button class="btn" type="submit" th:text="#{review.submit}">提交评价</button>
+            </form>
+            <p class="ok-msg" th:if="${param.review != null}" th:text="#{review.pending}">已提交</p>
+        </div>
+    </div>
 </div>
+
+<!-- SEO 结构化数据 -->
+<script type="application/ld+json" th:if="${product != null}">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "[[${product.name}]]",
+  "image": "[[${product.imageUrl}]]",
+  "description": "[[${product.description}]]",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "[[${product.price}]]",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
 
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/store.js}"></script>

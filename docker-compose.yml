@@ -1,0 +1,56 @@
+# ============================================================================
+#  shine星心 外贸独立站 · Docker Compose（应用 + MySQL 8）
+#  启动： docker compose up -d --build
+#  停止： docker compose down
+#  日志： docker compose logs -f app
+# ============================================================================
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: shine-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-Shine@123456}"
+      MYSQL_DATABASE: shine
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-Shine@123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    container_name: shine-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: shine
+      DB_USER: root
+      DB_PASSWORD: "${MYSQL_ROOT_PASSWORD:-Shine@123456}"
+      UPLOAD_DIR: /app/uploads
+      ADMIN_KEY: "${ADMIN_KEY:-change-me}"
+      MOBILE_API_KEY: "${MOBILE_API_KEY:-}"
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    volumes:
+      - shine-uploads:/app/uploads
+      - shine-logs:/app/logs
+
+volumes:
+  mysql-data:
+  shine-uploads:
+  shine-logs:

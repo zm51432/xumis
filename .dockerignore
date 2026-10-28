@@ -1,0 +1,10 @@
+.git
+.gitignore
+target
+.tools
+runtime
+data
+uploads
+*.log
+*.md
+!README.md

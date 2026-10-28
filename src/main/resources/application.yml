@@ -15,9 +15,9 @@ spring:
     basename: messages
   jackson:
     default-property-inclusion: non_null
-  # 开发期使用 H2 内存库，零配置即可启动
+  # 开发期使用 H2 文件库（数据落在本目录 ./data 下，重启不丢失，符合"目录内安装"）
   datasource:
-    url: jdbc:h2:mem:shinedb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    url: jdbc:h2:file:./data/shinedb;DB_CLOSE_DELAY=-1;MODE=MySQL
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
@@ -42,6 +42,23 @@ app:
   upload-url: /files/
   admin-key: admin        # 演示用后台密钥，生产务必修改并接入正式鉴权
   mobile-api-key: ""       # 手机端 /api/m/** 访问密钥；留空=开发期免校验，生产务必设置
+  # 多币种展示（基准币种为 USD，price 字段以 USD 存储；展示价 = price × rate）
+  currencies:
+    - code: USD
+      symbol: "$"
+      rate: 1.0
+      enabled: true
+      default-currency: true
+    - code: CNY
+      symbol: "¥"
+      rate: 7.2
+      enabled: true
+      default-currency: false
+    - code: EUR
+      symbol: "€"
+      rate: 0.92
+      enabled: true
+      default-currency: false
   erp:
     enabled: false        # 总开关：true 时业务数据才会同步到 ERP
     type: noop            # noop(仅日志) | http(调用外部接口)
@@ -71,10 +88,26 @@ spring:
       enabled: false
 
 app:
-  upload-dir: ${UPLOAD_DIR:/var/lib/shine/uploads}
+  upload-dir: ${UPLOAD_DIR:./uploads}
   upload-url: /files/
   admin-key: ${ADMIN_KEY:change-me}
   mobile-api-key: ${MOBILE_API_KEY:}
+  currencies:
+    - code: USD
+      symbol: "$"
+      rate: 1.0
+      enabled: true
+      default-currency: true
+    - code: CNY
+      symbol: "¥"
+      rate: 7.2
+      enabled: true
+      default-currency: false
+    - code: EUR
+      symbol: "€"
+      rate: 0.92
+      enabled: true
+      default-currency: false
   erp:
     enabled: ${ERP_ENABLED:false}
     type: ${ERP_TYPE:noop}
