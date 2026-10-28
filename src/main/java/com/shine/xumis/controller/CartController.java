@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,34 @@ public class CartController {
         return "redirect:/cart";
     }
 
+    /**
+     * 无刷新加购（C 端体验）：返回 JSON，前端据此更新角标并弹 Toast，不再整页跳转。
+     */
+    @PostMapping(value = "/add-json", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> addJson(@RequestParam Long productId,
+                                       @RequestParam(defaultValue = "1") int quantity,
+                                       HttpSession session) {
+        Map<String, Object> res = new LinkedHashMap<>();
+        Product p = productService.findById(productId);
+        if (p == null) {
+            res.put("ok", false);
+            res.put("message", "商品不存在");
+            return res;
+        }
+        if (p.getStock() != null && p.getStock() <= 0) {
+            res.put("ok", false);
+            res.put("message", "该商品暂时缺货");
+            return res;
+        }
+        int q = Math.max(1, Math.min(quantity, 99));
+        cartService.add(session, productId, q);
+        res.put("ok", true);
+        res.put("count", cartService.count(session));
+        res.put("name", p.getName());
+        return res;
+    }
+
     @PostMapping("/update")
     public String update(@RequestParam Long productId,
                          @RequestParam int quantity,
@@ -75,6 +104,11 @@ public class CartController {
             return "redirect:/cart";
         }
         buildCart(session, model);
+        // 已登录客户：结算页自动带出收货资料
+        var user = AccountController.currentUser(session);
+        if (user != null) {
+            model.addAttribute("user", user);
+        }
         return "checkout";
     }
 
@@ -102,6 +136,11 @@ public class CartController {
         order.setNote(note);
         order.setCurrency(currency);
         order.setStatus("PENDING");
+        // 登录用户下单：订单归属账号，便于在「我的账户」回看
+        var user = AccountController.currentUser(session);
+        if (user != null) {
+            order.setUserId(user.getId());
+        }
 
         BigDecimal total = BigDecimal.ZERO;
         for (Map.Entry<Long, Integer> entry : cart.entrySet()) {

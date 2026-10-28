@@ -334,6 +334,79 @@ tr:hover td { background: #fbfefc; }
 .switch input { width: 18px; height: 18px; accent-color: var(--mint-deep); cursor: pointer; }
 .form-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
 
+/* ===== 订单查询：状态徽章 / 进度时间线 ===== */
+.track-result { margin-top: 26px; }
+.track-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.track-head .order-no { margin: 2px 0 0; font-size: 20px; letter-spacing: .5px; }
+.status-badge { border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 800; background: var(--bg-2); color: var(--ink-soft); border: 1px solid var(--line); white-space: nowrap; }
+.status-badge.st-pending { background: #fff6e6; color: #b07d2b; border-color: #f5e3c2; }
+.status-badge.st-paid { background: var(--mint-soft); color: var(--mint-deep); border-color: #cfe8dd; }
+.status-badge.st-shipped { background: var(--sky-soft); color: #3f7fa0; border-color: #cfe6f2; }
+.status-badge.st-done { background: var(--mint-soft); color: #37745e; border-color: #cfe8dd; }
+.status-badge.st-cancelled { background: var(--blush-soft); color: #a54a63; border-color: #f4d3dd; }
+
+.timeline { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.timeline li { position: relative; padding-top: 26px; text-align: center; font-size: 13px; color: var(--muted); }
+.timeline li .dot { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 13px; height: 13px; border-radius: 50%; background: #fff; border: 2px solid var(--line); z-index: 2; }
+.timeline li::before { content: ""; position: absolute; top: 14px; left: 0; right: 50%; height: 2px; background: var(--line); }
+.timeline li::after { content: ""; position: absolute; top: 14px; left: 50%; right: 0; height: 2px; background: var(--line); }
+.timeline li:first-child::before, .timeline li:last-child::after { display: none; }
+.timeline li.done { color: var(--mint-deep); font-weight: 700; }
+.timeline li.done .dot { background: var(--mint); border-color: var(--mint); }
+.timeline li.done::before, .timeline li.done::after { background: var(--mint); }
+.timeline li.done::after { background: var(--line); }
+.timeline .t-title { display: block; }
+
+.next-steps { margin-top: 20px; }
+.footer-links a { display: block; font-size: 13.5px; margin: 4px 0; }
+.footer-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+.admin-me { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; background: var(--bg-2); border-radius: 999px; font-size: 13px; }
+.status-badge.r-owner { background: var(--blush-soft); color: #a54a63; border-color: #f4d3dd; }
+.status-badge.r-operator { background: var(--mint-soft); color: var(--mint-deep); border-color: #cfe8dd; }
+.status-badge.r-viewer { background: var(--sky-soft); color: #3f7fa0; border-color: #cfe6f2; }
+.login-head { text-align: center; margin-bottom: 8px; }
+
+.account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; margin-bottom: 6px; }
+.login-tip { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--sky-soft); border: 1px solid #cfe6f2; color: #3f7fa0; border-radius: 12px; padding: 10px 14px; font-size: 13.5px; font-weight: 700; margin-bottom: 8px; }
+.login-tip a { color: #2f6d8a; text-decoration: underline; }
+@media (max-width: 900px) { .account-grid { grid-template-columns: 1fr; } }
+
+/* ===== Toast 轻提示（加购等反馈，不打断浏览）===== */
+.toast-box { position: fixed; right: 18px; bottom: 78px; z-index: 200; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.toast {
+  background: rgba(255,255,255,.98); border: 1px solid var(--line);
+  box-shadow: var(--shadow); border-radius: 999px; padding: 11px 20px;
+  font-size: 14px; font-weight: 700; color: var(--mint-deep);
+  opacity: 0; transform: translateY(10px) scale(.96);
+  transition: opacity .22s ease, transform .22s ease;
+  display: flex; align-items: center; gap: 8px; max-width: 80vw;
+}
+.toast::before { content: "✓"; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--mint-soft); font-size: 12px; }
+.toast.show { opacity: 1; transform: none; }
+.toast-error { color: #a54a63; }
+.toast-error::before { content: "!"; background: var(--blush-soft); }
+
+/* ===== 角标弹跳 ===== */
+@keyframes badgePop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.cart-link .badge.pop { animation: badgePop .45s ease; }
+
+/* ===== 数量步进器 / 大按钮 ===== */
+.qty-stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; overflow: hidden; }
+.qty-btn { width: 38px; height: 40px; border: none; background: transparent; font-size: 18px; color: var(--ink); cursor: pointer; transition: .15s; }
+.qty-btn:hover { background: var(--mint-soft); color: var(--mint-deep); }
+.qty-stepper .qty-input { width: 52px; border: none; text-align: center; border-radius: 0; background: transparent; }
+.btn-lg { padding: 13px 30px; font-size: 15.5px; }
+.btn-disabled, .btn-disabled:hover { background: #eef2ef; color: #a9b8b0; box-shadow: none; cursor: not-allowed; transform: none; }
+
+/* ===== 卡片操作区 / 空态 ===== */
+.card-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+.card-actions .btn-add { flex: 1; justify-content: center; }
+.empty-state, .empty-cart { text-align: center; padding: 46px 20px; }
+.empty-icon { font-size: 44px; line-height: 1; margin-bottom: 10px; opacity: .85; }
+.empty-state .btn, .empty-cart .btn { margin-top: 16px; }
+.detail-img { background: var(--bg-2); }
+
 /* ===== Cookie 同意横幅 ===== */
 .cookie-banner { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 120; display: flex; gap: 14px; align-items: center; justify-content: space-between; background: rgba(255,255,255,.97); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; box-shadow: var(--shadow); }
 .cookie-text { font-size: 13px; color: var(--ink); }

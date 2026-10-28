@@ -35,6 +35,8 @@
         <a class="cart-link" th:href="@{/cart}">🛒
             <span class="badge" th:text="${cartCount}">0</span>
         </a>
+        <a th:if="${user == null}" th:href="@{/login}" th:text="#{account.login}">登录</a>
+        <a th:if="${user != null}" th:href="@{/account}" th:text="#{account.my}">我的账户</a>
         <button class="lang-btn" th:data-lang="${#locale.language}" onclick="toggleLang(this)"
                 th:text="${#locale.language == 'en'} ? '中文' : 'EN'">EN</button>
     </div>
@@ -55,6 +57,12 @@
         <div>
             <h4 th:text="${storeName}">shine星心</h4>
             <p th:text="#{footer.text}">© shine星心</p>
+        </div>
+        <div class="footer-links">
+            <h4 th:text="#{nav.help}">帮助</h4>
+            <a th:href="@{/order/track}" th:text="#{nav.track}">订单查询</a>
+            <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
+            <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
         </div>
         <div>
             <h4 th:text="#{subscribe.title}">订阅优惠</h4>

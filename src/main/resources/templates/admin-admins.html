@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{admin.admins}">管理员账号</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title" th:text="#{admin.admins}">管理员账号</h2>
+            <p class="sub" th:text="#{admin.adminsDesc}">创建账号、分配角色（站长 / 运营 / 只读）</p>
+        </div>
+        <div class="admin-head-actions">
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
+            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${saved == 'created'}" th:text="#{admin.adminCreated}">账号已创建</div>
+    <div class="alert-success" th:if="${saved == 'updated'}" th:text="#{admin.adminUpdated}">已更新</div>
+    <div class="alert-success" th:if="${saved == 'pwd'}" th:text="#{admin.pwdChanged}">密码已修改</div>
+    <div class="alert-error" th:if="${saved == 'dup'}" th:text="#{admin.adminDup}">用户名已存在</div>
+    <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
+
+    <div th:if="${forbidden}" class="admin-denied">
+        <div class="lock">🔒</div>
+        <p th:text="#{admin.forbidden}">只有站长可以管理管理员账号</p>
+    </div>
+
+    <div th:if="${!forbidden}">
+        <!-- 新增账号 -->
+        <div class="panel">
+            <h3 class="block-title" th:text="#{admin.newAdmin}">新增管理员</h3>
+            <form class="admin-form" method="post" th:action="@{/admin/admins/create}">
+                <div class="form-grid">
+                    <div class="field">
+                        <label th:text="#{admin.username}">用户名</label>
+                        <input type="text" name="username" required maxlength="64" placeholder="如：ops01"/>
+                    </div>
+                    <div class="field">
+                        <label th:text="#{admin.displayName}">显示名</label>
+                        <input type="text" name="displayName" maxlength="64" placeholder="如：小王"/>
+                    </div>
+                    <div class="field">
+                        <label th:text="#{admin.password}">初始密码</label>
+                        <input type="password" name="password" required minlength="8" autocomplete="new-password"/>
+                        <p class="hint" th:text="#{admin.passwordHint}">至少 8 位，创建后请告知对方尽快修改</p>
+                    </div>
+                    <div class="field">
+                        <label th:text="#{admin.role}">角色</label>
+                        <select name="role">
+                            <option th:each="r : ${roles}" th:value="${r.name()}"
+                                    th:text="${r.label + ' / ' + r.name()}">OPERATOR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" type="submit" th:text="#{admin.create}">创建账号</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 账号列表 -->
+        <h3 class="block-title" th:text="#{admin.admins}">管理员账号</h3>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>#</th><th th:text="#{admin.username}">用户名</th><th th:text="#{admin.displayName}">显示名</th>
+                    <th th:text="#{admin.role}">角色</th><th th:text="#{admin.status}">状态</th>
+                    <th th:text="#{admin.lastLogin}">最后登录</th><th th:text="#{admin.ops}">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a,iter : ${admins}">
+                    <td th:text="${iter.index + 1}">1</td>
+                    <td><span class="strong" th:text="${a.username}">admin</span></td>
+                    <td th:text="${a.displayName}">—</td>
+                    <td>
+                        <form class="inline-form" method="post" th:action="@{/admin/admins/role}">
+                            <input type="hidden" name="id" th:value="${a.id}"/>
+                            <select name="role" onchange="this.form.submit()" th:attr="disabled=${a.id == me.id}">
+                                <option th:each="r : ${roles}" th:value="${r.name()}"
+                                        th:selected="${a.role.name() == r.name()}"
+                                        th:text="${r.label}">运营</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <span class="chip" th:classappend="${a.enabled} ? 'chip-on' : ''"
+                              th:text="${a.enabled} ? #{admin.enabled} : #{admin.disabled}">启用</span>
+                    </td>
+                    <td class="muted small" th:text="${a.lastLoginAt != null ? a.lastLoginAt : '-'}">—</td>
+                    <td class="nowrap">
+                        <form class="inline-form" method="post" th:action="@{/admin/admins/enabled}"
+                              th:if="${a.id != me.id}">
+                            <input type="hidden" name="id" th:value="${a.id}"/>
+                            <input type="hidden" name="enabled" th:value="${!a.enabled}"/>
+                            <button class="btn btn-ghost btn-sm" type="submit"
+                                    th:text="${a.enabled} ? #{admin.disable} : #{admin.enable}">停用</button>
+                        </form>
+                        <span class="muted small" th:if="${a.id == me.id}" th:text="#{admin.self}">（当前登录）</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 修改自己的密码 -->
+        <div class="panel">
+            <h3 class="block-title" th:text="#{admin.changePwd}">修改我的密码</h3>
+            <form class="admin-form" method="post" th:action="@{/admin/password}">
+                <div class="form-grid">
+                    <div class="field">
+                        <label th:text="#{admin.oldPassword}">当前密码</label>
+                        <input type="password" name="oldPassword" required autocomplete="current-password"/>
+                    </div>
+                    <div class="field">
+                        <label th:text="#{admin.newPassword}">新密码</label>
+                        <input type="password" name="newPassword" required minlength="8" autocomplete="new-password"/>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" type="submit" th:text="#{admin.save}">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

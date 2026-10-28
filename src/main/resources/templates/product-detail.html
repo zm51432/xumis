@@ -19,7 +19,8 @@
 
 <div class="container section">
     <div class="detail" th:if="${product != null}">
-        <img th:src="${product.imageUrl}" alt="product"/>
+        <img class="detail-img" th:src="${product.imageUrl}" alt="product" loading="lazy"
+             onerror="imgFallback(this)"/>
         <div>
             <h1 th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</h1>
             <div class="rating-row" th:if="${reviewCount > 0}">
@@ -40,12 +41,29 @@
             <div class="price" style="font-size:24px;margin:14px 0;"
                  th:text="${currencySymbol} + ${#numbers.formatDecimal(product.price.multiply(fxRate),1,2)}">$0.00</div>
 
-            <!-- 加入购物车 -->
-            <form class="buy-row" action="/cart/add" method="post">
-                <input type="hidden" name="productId" th:value="${product.id}"/>
-                <input class="qty-input" type="number" name="quantity" value="1" min="1" th:attr="max=${product.stock}"/>
-                <button class="btn" type="submit" th:text="#{cart.add}">加入购物车</button>
-            </form>
+            <!-- 加入购物车：无刷新加购（JS 可用时），无 JS 时仍可整页提交 -->
+            <div class="buy-row">
+                <div class="qty-stepper">
+                    <button type="button" class="qty-btn" onclick="stepQty(-1)" aria-label="minus">−</button>
+                    <input class="qty-input" id="qtyInput" type="number" value="1" min="1" th:attr="max=${product.stock}"/>
+                    <button type="button" class="qty-btn" onclick="stepQty(1)" aria-label="plus">+</button>
+                </div>
+                <button class="btn btn-lg" type="button"
+                        th:attr="data-out=${product.stock != null and product.stock <= 0}"
+                        th:classappend="${product.stock != null and product.stock <= 0} ? 'btn-disabled' : ''"
+                        th:text="${product.stock != null and product.stock <= 0} ? '暂时缺货' : #{cart.add}"
+                        th:onclick="${product.stock != null and product.stock <= 0} ? '' : 'addToCart(' + ${product.id} + ', document.getElementById(\'qtyInput\').value)'">
+                    加入购物车
+                </button>
+                <a class="btn btn-ghost btn-lg" th:href="@{/cart}" th:text="#{nav.cart}">购物车</a>
+            </div>
+            <noscript>
+                <form class="buy-row" action="/cart/add" method="post">
+                    <input type="hidden" name="productId" th:value="${product.id}"/>
+                    <input class="qty-input" type="number" name="quantity" value="1" min="1"/>
+                    <button class="btn" type="submit" th:text="#{cart.add}">加入购物车</button>
+                </form>
+            </noscript>
 
             <div class="btn-row" style="justify-content:flex-start;margin-top:10px;">
                 <a class="btn btn-ghost" th:if="${product.customizable}" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>

@@ -18,11 +18,17 @@ import java.nio.file.Paths;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private final AdminAuthInterceptor adminAuthInterceptor;
+
     @Value("${app.upload-dir:./uploads}")
     private String uploadDir;
 
     @Value("${app.upload-url:/files/}")
     private String uploadUrl;
+
+    public WebConfig(AdminAuthInterceptor adminAuthInterceptor) {
+        this.adminAuthInterceptor = adminAuthInterceptor;
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -37,5 +43,10 @@ public class WebConfig implements WebMvcConfigurer {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("lang");
         registry.addInterceptor(interceptor);
+
+        // 后台必须登录（登录/登出页自身放行）
+        registry.addInterceptor(adminAuthInterceptor)
+                .addPathPatterns("/admin/**")
+                .excludePathPatterns("/admin/login", "/admin/logout");
     }
 }

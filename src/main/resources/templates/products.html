@@ -48,17 +48,31 @@
     <div class="grid">
         <div class="card reveal" th:each="p : ${products}">
             <a th:href="@{/product/{id}(id=${p.id})}">
-                <img th:src="${p.imageUrl}" alt="product"/>
+                <img th:src="${p.imageUrl}" alt="product" loading="lazy" onerror="imgFallback(this)"/>
             </a>
             <div class="card-body">
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
                 <span class="tag custom" th:if="${p.customizable}" th:text="#{home.customizable}">支持来图定制</span>
                 <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
-                <a class="btn btn-ghost" style="margin-top:10px;padding:8px 18px;font-size:13px;"
-                   th:href="@{/product/{id}(id=${p.id})}" th:text="#{product.viewDetail}">查看详情</a>
+                <div class="card-actions">
+                    <a class="btn btn-ghost btn-sm" th:href="@{/product/{id}(id=${p.id})}" th:text="#{product.viewDetail}">查看详情</a>
+                    <button class="btn btn-sm btn-add" type="button"
+                            th:attr="title=#{cart.add}"
+                            th:classappend="${p.stock != null and p.stock <= 0} ? 'btn-disabled' : ''"
+                            th:onclick="${p.stock != null and p.stock <= 0} ? '' : 'addToCart(' + ${p.id} + ', 1)'"
+                            th:text="${p.stock != null and p.stock <= 0} ? '缺货' : '🛒 加入'">🛒 加入</button>
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- 搜索/筛选无结果 -->
+    <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+        <div class="empty-icon">🔍</div>
+        <p class="strong" th:text="#{search.empty}">没有找到相关商品</p>
+        <p class="muted" th:text="#{search.emptyHint}">换个关键词，或浏览全部商品</p>
+        <a class="btn btn-ghost" th:href="@{/products}" th:text="#{nav.products}">全部商品</a>
     </div>
 
     <!-- 分页 -->

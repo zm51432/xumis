@@ -30,23 +30,38 @@
 
         <!-- 收货与下单 -->
         <form class="checkout-form" action="/cart/place" method="post">
-            <label th:text="#{checkout.name}">收货人</label>
-            <input type="text" name="customerName" required/>
+            <div class="login-tip" th:if="${user == null}">
+                <span th:text="#{account.loginTip}">注册/登录后，收货信息会自动带出</span>
+                <a th:href="@{/login(redirect='/cart/checkout')}" th:text="#{account.login}">登录</a>
+            </div>
 
-            <label th:text="#{checkout.email}">邮箱</label>
-            <input type="email" name="email" required/>
+            <label><span th:text="#{checkout.name}">收货人</span> <span class="req">*</span></label>
+            <input type="text" name="customerName" required autocomplete="name"
+                   th:value="${user != null} ? ${user.name} : ''"/>
+
+            <label><span th:text="#{checkout.email}">邮箱</span> <span class="req">*</span></label>
+            <input type="email" name="email" required autocomplete="email"
+                   th:value="${user != null} ? ${user.email} : ''"/>
+            <p class="hint" th:text="#{checkout.emailHint}">订单进度会通过这个邮箱通知你</p>
 
             <label th:text="#{checkout.phone}">电话</label>
-            <input type="text" name="phone"/>
+            <input type="tel" name="phone" autocomplete="tel" th:value="${user != null} ? ${user.phone} : ''"/>
+            <p class="hint" th:text="#{checkout.phoneHint}">选填，便于物流联系</p>
 
-            <label th:text="#{checkout.country}">国家/地区</label>
-            <input type="text" name="country"/>
+            <label><span th:text="#{checkout.country}">国家/地区</span> <span class="req">*</span></label>
+            <select name="country" required>
+                <option value="" th:text="#{checkout.countryHint}">请选择</option>
+                <option th:each="c : ${#strings.arraySplit('United States,Canada,United Kingdom,Germany,France,Italy,Spain,Australia,Japan,South Korea,Singapore,中国大陆,中国香港,中国台湾,Other', ',')}"
+                        th:value="${c}" th:text="${c}"
+                        th:selected="${user != null and user.country != null and c == user.country}">US</option>
+            </select>
 
-            <label th:text="#{checkout.address}">收货地址</label>
-            <textarea name="address" rows="2"></textarea>
+            <label><span th:text="#{checkout.address}">收货地址</span> <span class="req">*</span></label>
+            <textarea name="address" rows="2" required autocomplete="street-address"
+                      th:text="${user != null} ? ${user.address} : ''"></textarea>
 
             <label th:text="#{checkout.note}">留言</label>
-            <textarea name="note" rows="2"></textarea>
+            <textarea name="note" rows="2" th:placeholder="#{checkout.noteHint}"></textarea>
 
             <label th:text="#{checkout.currency}">结算币种</label>
             <select name="currency">
@@ -56,6 +71,8 @@
             </select>
 
             <button class="btn btn-block" type="submit" th:text="#{checkout.place}">提交订单</button>
+            <a class="muted small" style="text-align:center;margin-top:6px;"
+               th:href="@{/cart}" th:text="#{checkout.back}">返回购物车</a>
         </form>
     </div>
 </div>

@@ -4,6 +4,8 @@ import com.shine.xumis.integration.erp.ErpSyncService;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
 import com.shine.xumis.repository.ProductRepository;
+import com.shine.xumis.service.AdminUserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -19,14 +21,32 @@ public class DataInitializer implements CommandLineRunner {
 
     private final ProductRepository productRepository;
     private final ErpSyncService erpSyncService;
+    private final AdminUserService adminUserService;
 
-    public DataInitializer(ProductRepository productRepository, ErpSyncService erpSyncService) {
+    @Value("${app.admin-username:admin}")
+    private String adminUsername;
+
+    @Value("${app.admin-password:Admin@12345}")
+    private String adminPassword;
+
+    public DataInitializer(ProductRepository productRepository, ErpSyncService erpSyncService,
+                           AdminUserService adminUserService) {
         this.productRepository = productRepository;
         this.erpSyncService = erpSyncService;
+        this.adminUserService = adminUserService;
     }
 
     @Override
     public void run(String... args) {
+        // 没有任何管理员时，创建默认站长账号（口令取自配置，登录后请立即修改）
+        if (adminUserService.count() == 0) {
+            adminUserService.ensureDefaultAdmin(adminUsername, adminPassword, "站长 Owner");
+            System.out.println("============================================================");
+            System.out.println(" 已创建默认站长账号： " + adminUsername + " / " + adminPassword);
+            System.out.println(" 请登录 http://localhost:8080/admin 后立即修改密码！");
+            System.out.println("============================================================");
+        }
+
         if (productRepository.count() > 0) {
             return;
         }

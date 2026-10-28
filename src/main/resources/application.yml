@@ -46,7 +46,10 @@ spring:
 app:
   upload-dir: ./uploads
   upload-url: /files/
-  admin-key: admin        # 演示用后台密钥，生产务必修改并接入正式鉴权
+  admin-key: admin        # 应急钥匙（仅在 app.admin-allow-key=true 时生效）
+  admin-allow-key: false  # 默认关闭：后台必须走账号登录，避免"钥匙挂门上"
+  admin-username: admin   # 首次启动自动创建的站长账号
+  admin-password: Admin@12345   # 默认口令，登录后务必立即修改
   mobile-api-key: ""       # 手机端 /api/m/** 访问密钥；留空=开发期免校验，生产务必设置
   # 多币种展示（基准币种为 USD，price 字段以 USD 存储；展示价 = price × rate）
   currencies:
@@ -88,6 +91,9 @@ spring:
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}
   admin-key: ${ADMIN_KEY:change-me}
+  admin-allow-key: ${ADMIN_ALLOW_KEY:false}
+  admin-username: ${ADMIN_USERNAME:admin}
+  admin-password: ${ADMIN_PASSWORD:change-me-please}
   mobile-api-key: ${MOBILE_API_KEY:}
   erp:
     enabled: ${ERP_ENABLED:false}

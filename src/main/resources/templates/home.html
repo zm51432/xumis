@@ -43,7 +43,7 @@
         <div class="card reveal" th:each="p : ${featured}">
             <div class="thumb">
                 <a th:href="@{/product/{id}(id=${p.id})}">
-                    <img th:src="${p.imageUrl}" alt="product"/>
+                    <img th:src="${p.imageUrl}" alt="product" loading="lazy" onerror="imgFallback(this)"/>
                 </a>
             </div>
             <div class="card-body">

@@ -18,7 +18,8 @@
     <h2 class="section-title" th:text="#{cart.title}">购物车</h2>
 
     <div th:if="${isEmpty}" class="empty-cart">
-        <p th:text="#{cart.empty}">购物车还是空的</p>
+        <div class="empty-icon">🛒</div>
+        <p class="strong" th:text="#{cart.empty}">购物车还是空的</p>
         <p class="muted" th:text="#{cart.emptyHint}">去挑选喜欢的饰品与手工品吧～</p>
         <a class="btn" th:href="@{/products}" th:text="#{cart.continue}">继续购物</a>
     </div>

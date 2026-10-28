@@ -45,5 +45,11 @@ public class GlobalModelAdvice {
 
         // 购物车数量角标
         model.addAttribute("cartCount", cartService.count(session));
+
+        // 当前登录的 C 端客户（导航显示「登录 / 我的账户」）
+        Object u = session.getAttribute(com.shine.xumis.service.UserAccountService.SESSION_KEY);
+        if (u instanceof com.shine.xumis.model.UserAccount user) {
+            model.addAttribute("user", user);
+        }
     }
 }

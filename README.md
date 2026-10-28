@@ -25,7 +25,11 @@
 | 📱 手机端 API | `/api/m/**` 分页接口（预留 App / 小程序接入，支持 X-API-KEY 校验） |
 | 🧩 ERP 预留 | `ErpClient` 抽象层 + 开关，商品/定制/询盘/**订单**均可同步至用友/金蝶/SAP/自研中台 |
 | 📲 PWA | 内置 manifest + 图标，可「添加到主屏幕」当作轻量 App |
-| 📊 后台仪表盘 | `/admin?key=...` 统计卡片 + 订单/定制/询盘/订阅/待审评价管理 |
+| 🔐 后台账号体系 | `/admin/login` 账号登录 + 角色权限（站长 / 运营 / 只读），口令 PBKDF2 哈希存储 |
+| 👥 C 端账号 | `/register` 注册、`/login` 登录、`/account` 我的账户（收货资料 + 我的订单）|
+| 📦 后台商品管理 | `/admin/products` 上传图片 / 填图片链接 / 改信息 / 删除 / 精选开关 |
+| 🚚 订单进度 | `/order/track` 订单号 + 邮箱查询，含状态时间线 |
+| 📊 后台仪表盘 | `/admin` 统计卡片 + 订单/商品/客户/定制/询盘/订阅/评价管理 |
 | 💾 数据存储 | **MySQL 8**（唯一数据源，`DB_*` 环境变量配置，首次启动自动建库建表） |
 | 🚀 一键部署 | `start.sh` / `start.bat` / `install.ps1`，Windows / Linux / macOS 均可在目录内零手工安装完成 |
 
@@ -122,8 +126,21 @@ docker compose up -d --build
 
 启动后访问：
 - 店铺前台： http://localhost:8080/
-- 简易后台： http://localhost:8080/admin?key=admin
-- 商品管理： http://localhost:8080/admin/products?key=admin （上传图片 / 改信息 / 改图片链接 / 删除）
+- 简易后台： http://localhost:8080/admin （首次启动会自动创建站长账号，见下方）
+- 商品管理： http://localhost:8080/admin/products
+- 客户注册： http://localhost:8080/register
+- 订单查询： http://localhost:8080/order/track
+
+### 后台默认账号
+
+首次启动会自动创建站长账号（用户名/口令可在 `application.yml` 的 `app.admin-username` / `app.admin-password` 修改）：
+
+```
+用户名：admin    口令：Admin@12345
+```
+
+登录后请立刻在「👤 账号权限」里修改密码，并可创建运营（OPERATOR，可维护商品与订单）和只读（VIEWER）账号。
+旧的 `?key=admin` 应急入口默认已关闭（`app.admin-allow-key=false`）。
 
 种子数据会在首次启动自动写入演示商品。
 

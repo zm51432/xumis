@@ -12,24 +12,32 @@
 <div th:replace="~{fragments :: nav}"></div>
 
 <div class="container section">
-    <!-- 未授权 -->
-    <div th:if="${denied}" class="admin-denied">
-        <h2>🔒 Admin</h2>
-        <p>请输入正确的后台密钥（URL 参数 ?key=...）。</p>
+    <!-- 权限不足提示 -->
+    <div th:if="${denied}" class="alert-error" th:text="#{admin.forbidden}">当前角色没有操作权限</div>
+
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">仪表盘 Dashboard</h2>
+            <p class="sub">订单 / 定制 / 询盘 / 订阅 / 评价 一览</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me">
+                <span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span>
+                <span class="status-badge" th:if="${me != null}"
+                      th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
+                      th:text="${me.role.label}">站长</span>
+            </span>
+            <a class="btn btn-sm" th:href="@{/admin/products}">📦 商品管理</a>
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin/customers}">👥 客户管理</a>
+            <a class="btn btn-ghost btn-sm" th:if="${me != null and me.canManageAdmins()}"
+               th:href="@{/admin/admins}">👤 账号权限</a>
+            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
+            </form>
+        </div>
     </div>
 
-    <div th:if="${!denied}">
-        <div class="admin-head">
-            <div>
-                <h2 class="section-title">仪表盘 Dashboard</h2>
-                <p class="sub">订单 / 定制 / 询盘 / 订阅 / 评价 一览</p>
-            </div>
-            <div class="admin-head-actions">
-                <a class="btn btn-sm" th:href="@{/admin/products(key=${key})}">📦 商品管理（上传 / 修改）</a>
-            </div>
-        </div>
-
-        <div class="stat-grid">
+    <div class="stat-grid">
             <div class="stat"><span class="stat-num" th:text="${countProducts}">0</span><span th:text="#{nav.products}">商品</span></div>
             <div class="stat"><span class="stat-num" th:text="${countOrders}">0</span><span>订单 Orders</span></div>
             <div class="stat"><span class="stat-num" th:text="${countIdeas}">0</span><span>定制 Custom</span></div>
@@ -41,17 +49,31 @@
         <!-- 订单 -->
         <h3 class="block-title">订单 Orders</h3>
         <table class="admin-table">
-            <thead><tr><th>订单号</th><th>客户</th><th>邮箱</th><th>金额(USD)</th><th>状态</th><th>时间</th></tr></thead>
+            <thead><tr><th>订单号</th><th>客户</th><th>邮箱</th><th>金额(USD)</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
             <tbody>
                 <tr th:each="o : ${orders}">
                     <td th:text="${o.orderNo}">SH...</td>
                     <td th:text="${o.customerName}">-</td>
                     <td th:text="${o.email}">-</td>
                     <td th:text="${o.totalAmount}">0</td>
-                    <td th:text="${o.status}">PENDING</td>
+                    <td>
+                        <span class="status-badge" th:classappend="'st-' + ${#strings.toLowerCase(o.status)}"
+                              th:text="#{status.__${o.status}__}">待处理</span>
+                    </td>
                     <td th:text="${o.createdAt}">-</td>
+                    <td>
+                        <form class="inline-form" method="post" th:action="@{/admin/order/status}"
+                              th:if="${me != null and me.canWrite()}">
+                            <input type="hidden" name="id" th:value="${o.id}"/>
+                            <select name="status" onchange="this.form.submit()">
+                                <option th:each="s : ${orderStatuses}" th:value="${s}"
+                                        th:selected="${o.status == s}"
+                                        th:text="#{status.__${s}__}">状态</option>
+                            </select>
+                        </form>
+                    </td>
                 </tr>
-                <tr th:if="${#lists.isEmpty(orders)}"><td colspan="6">暂无订单</td></tr>
+                <tr th:if="${#lists.isEmpty(orders)}"><td colspan="7">暂无订单</td></tr>
             </tbody>
         </table>
 
@@ -66,8 +88,8 @@
                     <td th:text="${r.rating} + ' ★'">-</td>
                     <td th:text="${r.comment}">-</td>
                     <td>
-                        <form action="/admin/review/approve" method="post" class="inline-form">
-                            <input type="hidden" name="key" th:value="${param.key}"/>
+                        <form action="/admin/review/approve" method="post" class="inline-form"
+                              th:if="${me != null and me.canWrite()}">
                             <input type="hidden" name="id" th:value="${r.id}"/>
                             <button class="btn btn-ghost btn-sm" type="submit">通过</button>
                         </form>
@@ -122,7 +144,6 @@
                 <tr th:if="${#lists.isEmpty(subscriptions)}"><td colspan="3">暂无</td></tr>
             </tbody>
         </table>
-    </div>
 </div>
 
 <footer th:replace="~{fragments :: footer}"></footer>

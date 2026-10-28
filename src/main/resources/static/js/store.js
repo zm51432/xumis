@@ -22,6 +22,93 @@ function setCurrency(code) {
   window.location.href = '/set-currency?c=' + encodeURIComponent(code) + '&redirect=' + encodeURIComponent(back);
 }
 
+// 复制文本（订单号等），带提示
+function copyText(text) {
+  const done = () => showToast(document.documentElement.lang === 'en' ? 'Copied' : '已复制');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+  function fallbackCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { showToast(text); }
+    ta.remove();
+  }
+}
+
+// 商品图片加载失败时的兜底（避免破图/空白影响观感）
+function imgFallback(el) {
+  if (!el || el.dataset.fallback === '1') return;
+  el.dataset.fallback = '1';
+  el.src = '/img/placeholder.svg';
+}
+
+// 轻提示 Toast：加购、操作反馈统一走这里，不打断浏览
+function showToast(msg, type) {
+  let box = document.getElementById('toastBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'toastBox';
+    box.className = 'toast-box';
+    document.body.appendChild(box);
+  }
+  const t = document.createElement('div');
+  t.className = 'toast' + (type === 'error' ? ' toast-error' : '');
+  t.textContent = msg;
+  box.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 2200);
+}
+
+// 加入购物车：无刷新提交，成功后更新角标并弹提示
+function addToCart(productId, qty) {
+  const q = (qty && qty > 0) ? qty : 1;
+  const body = new URLSearchParams();
+  body.set('productId', String(productId));
+  body.set('quantity', String(q));
+  fetch('/cart/add-json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+    body: body
+  }).then(r => r.json())
+    .then(d => {
+      if (d && d.ok) {
+        updateCartBadge(d.count);
+        const txt = document.documentElement.lang === 'en' ? 'Added to cart' : '已加入购物车';
+        showToast(txt);
+      } else {
+        showToast((d && d.message) || '加入购物车失败', 'error');
+      }
+    })
+    .catch(() => showToast('网络异常，请重试', 'error'));
+}
+
+// 更新导航购物车角标（带一次弹跳动画）
+function updateCartBadge(count) {
+  document.querySelectorAll('.cart-link .badge').forEach(b => {
+    b.textContent = count;
+    b.classList.remove('pop');
+    void b.offsetWidth;
+    b.classList.add('pop');
+  });
+}
+
+// 数量步进器
+function stepQty(delta) {
+  const el = document.getElementById('qtyInput');
+  if (!el) return;
+  const max = parseInt(el.getAttribute('max') || '99', 10);
+  let v = parseInt(el.value || '1', 10) + delta;
+  v = Math.max(1, Math.min(isNaN(max) ? 99 : max, v));
+  el.value = v;
+}
+
 // 商品管理：预览上传的图片
 function previewProductImage(input) {
   const preview = document.getElementById('imgPreview');

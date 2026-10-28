@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{admin.customers}">客户管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title" th:text="#{admin.customers}">客户管理</h2>
+            <p class="sub" th:text="#{admin.customersDesc}">注册客户、订单数与累计消费</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me">
+                <span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span>
+                <span class="status-badge" th:if="${me != null}"
+                      th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
+                      th:text="${me.role.label}">站长</span>
+            </span>
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
+            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${saved == 'updated'}" th:text="#{admin.adminUpdated}">已更新</div>
+    <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
+
+    <!-- 搜索 -->
+    <form class="toolbar" method="get" th:action="@{/admin/customers}" style="margin-bottom:14px;">
+        <div class="toolbar-search">
+            <input type="text" name="q" th:value="${q}" th:placeholder="#{admin.searchCustomer}" placeholder="按邮箱/姓名搜索"/>
+            <button type="submit" th:text="#{search.button}">搜索</button>
+        </div>
+        <span class="muted small" th:text="${#lists.size(customers)} + ' ' + #{admin.customerCount}">0 位客户</span>
+    </form>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th>#</th><th th:text="#{checkout.email}">邮箱</th><th th:text="#{account.nickname}">称呼</th>
+                <th th:text="#{checkout.country}">国家</th><th th:text="#{admin.orderCount}">订单数</th>
+                <th th:text="#{admin.totalSpent}">累计消费(USD)</th><th th:text="#{admin.status}">状态</th>
+                <th th:text="#{admin.lastLogin}">最后登录</th><th th:text="#{admin.ops}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c,iter : ${customers}">
+                <td th:text="${iter.index + 1}">1</td>
+                <td><span class="strong" th:text="${c.email}">a@b.com</span></td>
+                <td th:text="${c.name}">—</td>
+                <td th:text="${c.country != null} ? ${c.country} : '-'">—</td>
+                <td th:text="${stat.get(c.email) != null} ? ${stat.get(c.email)[0]} : 0">0</td>
+                <td th:text="${stat.get(c.email) != null} ? ${stat.get(c.email)[1] / 100.0} : 0">0</td>
+                <td>
+                    <span class="chip" th:classappend="${c.enabled} ? 'chip-on' : ''"
+                          th:text="${c.enabled} ? #{admin.enabled} : #{admin.disabled}">启用</span>
+                </td>
+                <td class="muted small" th:text="${c.lastLoginAt != null ? c.lastLoginAt : '-'}">—</td>
+                <td class="nowrap">
+                    <form class="inline-form" method="post" th:action="@{/admin/customers/enabled}"
+                          th:if="${me != null and me.isOwner()}">
+                        <input type="hidden" name="id" th:value="${c.id}"/>
+                        <input type="hidden" name="enabled" th:value="${!c.enabled}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit"
+                                th:text="${c.enabled} ? #{admin.disable} : #{admin.enable}">停用</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(customers)}">
+                <td colspan="9" class="muted" th:text="#{admin.noCustomers}">还没有注册客户</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

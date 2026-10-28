@@ -14,14 +14,24 @@
 
 <div class="container section">
 
-    <!-- 未授权 -->
-    <div th:if="${denied}" class="admin-denied">
-        <div class="lock">🔒</div>
-        <h2>需要后台密钥</h2>
-        <p class="muted">请在网址后加上 <code>?key=你的密钥</code>（默认 <code>admin</code>）。</p>
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">商品管理 Products</h2>
+            <p class="sub">上传商品图片、修改信息与图片链接、上架首页精选</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me">
+                <span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span>
+                <span class="status-badge" th:if="${me != null}"
+                      th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
+                      th:text="${me.role.label}">站长</span>
+            </span>
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
+            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
+            </form>
+        </div>
     </div>
-
-    <div th:if="${!denied}">
 
         <div class="admin-head">
             <div>
@@ -29,8 +39,8 @@
                 <p class="sub">上传商品图片、修改信息与图片链接、上架首页精选</p>
             </div>
             <div class="admin-head-actions">
-                <a class="btn btn-ghost btn-sm" th:href="@{/admin(key=${key})}">← 返回仪表盘</a>
-                <a class="btn btn-sm" th:href="@{/admin/products(key=${key})}">+ 新建商品</a>
+                <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
+                <a class="btn btn-sm" th:href="@{/admin/products}">+ 新建商品</a>
             </div>
         </div>
 
@@ -46,8 +56,7 @@
 
             <form class="admin-form" method="post" enctype="multipart/form-data"
                   th:action="@{/admin/product/save}">
-                <input type="hidden" name="key" th:value="${key}"/>
-                <input type="hidden" name="id" th:if="${edit != null}" th:value="${edit.id}"/>
+                                <input type="hidden" name="id" th:if="${edit != null}" th:value="${edit.id}"/>
 
                 <div class="form-grid">
                     <div class="field">
@@ -140,7 +149,7 @@
                 <div class="form-actions">
                     <button class="btn" type="submit"
                             th:text="${edit != null} ? '保存修改' : '创建商品'">保存</button>
-                    <a class="btn btn-ghost" th:if="${edit != null}" th:href="@{/admin/products(key=${key})}">取消编辑</a>
+                    <a class="btn btn-ghost" th:if="${edit != null}" th:href="@{/admin/products}">取消编辑</a>
                     <a class="btn btn-ghost" th:if="${edit != null}" target="_blank"
                        th:href="@{'/product/' + ${edit.id}}">预览前台页面 ↗</a>
                 </div>
@@ -171,7 +180,6 @@
                     <td th:text="${p.stock}">0</td>
                     <td>
                         <form class="inline-form" method="post" th:action="@{/admin/product/toggle}">
-                            <input type="hidden" name="key" th:value="${key}"/>
                             <input type="hidden" name="id" th:value="${p.id}"/>
                             <input type="hidden" name="field" value="featured"/>
                             <button class="chip" th:classappend="${p.featured} ? 'chip-on' : ''" type="submit"
@@ -180,7 +188,6 @@
                     </td>
                     <td>
                         <form class="inline-form" method="post" th:action="@{/admin/product/toggle}">
-                            <input type="hidden" name="key" th:value="${key}"/>
                             <input type="hidden" name="id" th:value="${p.id}"/>
                             <input type="hidden" name="field" value="customizable"/>
                             <button class="chip" th:classappend="${p.customizable} ? 'chip-on' : ''" type="submit"
@@ -188,10 +195,9 @@
                         </form>
                     </td>
                     <td class="nowrap">
-                        <a class="btn btn-ghost btn-sm" th:href="@{/admin/products(key=${key}, id=${p.id})}">编辑</a>
+                        <a class="btn btn-ghost btn-sm" th:href="@{/admin/products(id=${p.id})}">编辑</a>
                         <form class="inline-form" method="post" th:action="@{/admin/product/delete}"
                               onsubmit="return confirm('确定删除该商品？此操作不可恢复。');">
-                            <input type="hidden" name="key" th:value="${key}"/>
                             <input type="hidden" name="id" th:value="${p.id}"/>
                             <button class="btn btn-danger btn-sm" type="submit">删除</button>
                         </form>
@@ -203,7 +209,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
 </div>
 
 <footer th:replace="~{fragments :: footer}"></footer>

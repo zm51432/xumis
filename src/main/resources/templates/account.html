@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{account.my}">我的账户</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title" th:text="#{account.my}">我的账户</h2>
+            <p class="sub" th:text="${me.email}">you@example.com</p>
+        </div>
+        <div class="admin-head-actions">
+            <a class="btn btn-ghost btn-sm" th:href="@{/products}" th:text="#{cart.continue}">继续购物</a>
+            <a class="btn btn-ghost btn-sm" th:href="@{/logout}" th:text="#{account.logout}">退出登录</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'profile'}" th:text="#{account.profileSaved}">资料已保存</div>
+    <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'pwd'}" th:text="#{account.pwdSaved}">密码已修改</div>
+    <div class="alert-error" th:if="${param.saved != null and param.saved[0] == 'pwdError'}" th:text="#{account.pwdError}">原密码不正确</div>
+
+    <div class="account-grid">
+        <!-- 收货资料 -->
+        <div class="panel">
+            <h3 class="block-title" th:text="#{account.profile}">收货资料</h3>
+            <form method="post" th:action="@{/account/profile}">
+                <div class="field">
+                    <label th:text="#{account.nickname}">称呼</label>
+                    <input type="text" name="name" th:value="${me.name}" autocomplete="name"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{checkout.phone}">电话</label>
+                    <input type="tel" name="phone" th:value="${me.phone}" autocomplete="tel"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{checkout.country}">国家/地区</label>
+                    <input type="text" name="country" th:value="${me.country}"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{checkout.address}">收货地址</label>
+                    <textarea name="address" rows="2" th:text="${me.address}"></textarea>
+                </div>
+                <button class="btn" type="submit" th:text="#{admin.save}">保存</button>
+            </form>
+            <p class="hint" th:text="#{account.profileHint}">保存后结算页会自动带出这些信息</p>
+        </div>
+
+        <!-- 修改密码 -->
+        <div class="panel">
+            <h3 class="block-title" th:text="#{admin.changePwd}">修改密码</h3>
+            <form method="post" th:action="@{/account/password}">
+                <div class="field">
+                    <label th:text="#{admin.oldPassword}">当前密码</label>
+                    <input type="password" name="oldPassword" required autocomplete="current-password"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{admin.newPassword}">新密码</label>
+                    <input type="password" name="newPassword" required minlength="8" autocomplete="new-password"/>
+                </div>
+                <button class="btn" type="submit" th:text="#{admin.save}">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 我的订单 -->
+    <h3 class="block-title" th:text="#{account.myOrders}">我的订单</h3>
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th th:text="#{order.no}">订单号</th><th th:text="#{track.statusT}">状态</th>
+                <th th:text="#{cart.total}">金额</th><th th:text="#{admin.status}">下单时间</th><th th:text="#{admin.ops}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${orders}">
+                <td><a class="strong" th:href="@{/order/track(no=${o.orderNo})}" th:text="${o.orderNo}">SH...</a></td>
+                <td>
+                    <span class="status-badge" th:classappend="'st-' + ${#strings.toLowerCase(o.status)}"
+                          th:text="#{status.__${o.status}__}">待处理</span>
+                </td>
+                <td th:text="${currencySymbol} + ${#numbers.formatDecimal(o.totalAmount.multiply(fxRate),1,2)}">$0.00</td>
+                <td class="muted small" th:text="${o.createdAt}">—</td>
+                <td>
+                    <a class="btn btn-ghost btn-sm" th:href="@{/order/track(no=${o.orderNo})}"
+                       th:text="#{track.title}">订单查询</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(orders)}">
+                <td colspan="5" class="muted" th:text="#{account.noOrders}">还没有订单，去逛逛吧～</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

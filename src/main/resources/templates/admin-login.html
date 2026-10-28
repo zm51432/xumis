@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{admin.login}">后台登录</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="form-wrap" style="max-width:420px;">
+        <div class="login-head">
+            <div class="empty-icon">🔐</div>
+            <h2 class="section-title" th:text="#{admin.login}">后台登录</h2>
+            <p class="sub" th:text="#{admin.loginDesc}">请使用管理员账号登录</p>
+        </div>
+
+        <div class="alert-success" th:if="${param.loggedOut != null}" th:text="#{admin.loggedOut}">已退出登录</div>
+        <div class="alert-error" th:if="${error}" th:text="#{admin.loginError}">用户名或密码不正确</div>
+
+        <form method="post" th:action="@{/admin/login}">
+            <div class="field">
+                <label th:text="#{admin.username}">用户名</label>
+                <input type="text" name="username" required autocomplete="username"
+                       th:value="${lastUsername}" autofocus/>
+            </div>
+            <div class="field">
+                <label th:text="#{admin.password}">密码</label>
+                <input type="password" name="password" required autocomplete="current-password"/>
+            </div>
+            <button class="btn btn-block" type="submit" th:text="#{admin.login}">登录</button>
+        </form>
+
+        <p class="hint" style="text-align:center;margin-top:16px;" th:text="#{admin.loginHint}">
+            首次启动会创建默认站长账号，请在登录后立即修改密码。
+        </p>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

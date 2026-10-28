@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{track.title}">订单查询</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
+
+<div class="container section">
+    <h2 class="section-title" th:text="#{track.title}">订单查询</h2>
+    <p class="sub" th:text="#{track.desc}">输入订单号与下单邮箱，查看订单进度</p>
+
+    <!-- 查询表单 -->
+    <form class="form-wrap" method="post" th:action="@{/order/track}">
+        <div class="field">
+            <label th:text="#{track.no}">订单号</label>
+            <input type="text" name="orderNo" required th:value="${defaultNo}" placeholder="SH20261029XXXXXX"/>
+        </div>
+        <div class="field">
+            <label th:text="#{track.email}">下单邮箱</label>
+            <input type="email" name="email" required th:value="${defaultEmail}" placeholder="you@example.com"/>
+        </div>
+        <button class="btn btn-block" type="submit" th:text="#{track.submit}">查询订单</button>
+    </form>
+
+    <!-- 查不到 -->
+    <div class="alert-error" th:if="${error}" th:text="#{track.notFound}">没找到该订单</div>
+
+    <!-- 查询结果 -->
+    <div class="panel track-result" th:if="${order != null}">
+        <div class="track-head">
+            <div>
+                <span class="muted small" th:text="#{order.no}">订单号</span>
+                <h3 class="order-no" th:text="${order.orderNo}">SH...</h3>
+            </div>
+            <span class="status-badge" th:classappend="'st-' + ${#strings.toLowerCase(order.status)}"
+                  th:text="#{status.__${order.status}__}">待处理</span>
+        </div>
+
+        <!-- 进度时间线 -->
+        <ol class="timeline" th:if="${stage >= 0}">
+            <li class="done">
+                <span class="dot"></span>
+                <span class="t-title" th:text="#{track.placed}">已提交</span>
+                <span class="muted small" th:text="${order.createdAt}">时间</span>
+            </li>
+            <li th:classappend="${stage >= 2} ? 'done' : ''">
+                <span class="dot"></span>
+                <span class="t-title" th:text="#{track.paid}">已确认付款</span>
+            </li>
+            <li th:classappend="${stage >= 3} ? 'done' : ''">
+                <span class="dot"></span>
+                <span class="t-title" th:text="#{track.shipped}">已发货</span>
+            </li>
+            <li th:classappend="${stage >= 4} ? 'done' : ''">
+                <span class="dot"></span>
+                <span class="t-title" th:text="#{track.done}">已完成</span>
+                <span class="muted small" th:if="${stage >= 4 and order.updatedAt != null}" th:text="${order.updatedAt}">时间</span>
+            </li>
+        </ol>
+
+        <!-- 商品明细 -->
+        <h4 class="block-title" th:text="#{track.items}">商品明细</h4>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th th:text="#{nav.products}">商品</th>
+                    <th th:text="#{cart.quantity}">数量</th>
+                    <th th:text="#{cart.lineTotal}">小计</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="it : ${order.items}">
+                    <td th:text="${#locale.language == 'en' and it.productNameEn != null ? it.productNameEn : it.productName}">商品</td>
+                    <td th:text="${it.quantity}">1</td>
+                    <td th:text="${currencySymbol} + ${#numbers.formatDecimal(it.price.multiply(fxRate),1,2)}">$0.00</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="price" style="font-size:20px;"
+             th:text="#{cart.total} + '：' + ${currencySymbol} + ${#numbers.formatDecimal(order.totalAmount.multiply(fxRate),1,2)}">
+            合计
+        </div>
+
+        <!-- 收货信息 -->
+        <h4 class="block-title" th:text="#{track.shipping}">收货信息</h4>
+        <ul class="meta">
+            <li><strong th:text="#{checkout.name}">收货人</strong>：<span th:text="${order.customerName}">—</span></li>
+            <li><strong th:text="#{checkout.email}">邮箱</strong>：<span th:text="${order.email}">—</span></li>
+            <li th:if="${order.phone != null and order.phone != ''}">
+                <strong th:text="#{checkout.phone}">电话</strong>：<span th:text="${order.phone}">—</span></li>
+            <li th:if="${order.country != null and order.country != ''}">
+                <strong th:text="#{checkout.country}">国家</strong>：<span th:text="${order.country}">—</span></li>
+            <li th:if="${order.address != null and order.address != ''}">
+                <strong th:text="#{checkout.address}">地址</strong>：<span th:text="${order.address}">—</span></li>
+        </ul>
+
+        <p class="muted small" th:text="#{track.contact}">有任何问题欢迎联系我们，我们会尽快回复。</p>
+        <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>
