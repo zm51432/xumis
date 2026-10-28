@@ -42,6 +42,7 @@ for arg in "$@"; do
   case "$arg" in
     --skip-build) _SKIP_BUILD=1 ;;
     --prod)       _PROFILE="prod" ;;
+    --h2)         _PROFILE="h2" ;;       # 应急：无 MySQL 时用内置文件库预览
     --stop)       _DO_STOP=1 ;;
     --port=*)     _PORT="${arg#*=}" ;;
     -h|--help)    sed -n '2,20p' "$0"; exit 0 ;;
@@ -184,6 +185,27 @@ fi
 if [ ! -f "$JAR_PATH" ]; then
   err "未找到产物 $JAR_PATH，构建可能失败，请查看上方日志。"
   exit 1
+fi
+
+# ---------- 步骤 4.5：检查 MySQL 是否可用 ----------
+# 站点默认使用 MySQL（唯一数据源）。这里只做提示，不阻断启动。
+DB_HOST="${DB_HOST:-127.0.0.1}"; DB_PORT_ENV="${DB_PORT:-3306}"
+DB_NAME_ENV="${DB_NAME:-shine}"
+info "步骤 3.5/4：检查 MySQL（${DB_HOST}:${DB_PORT_ENV}，库 ${DB_NAME_ENV}）"
+_mysql_ok=0
+if command -v nc >/dev/null 2>&1; then
+  nc -z -G 2 "$DB_HOST" "$DB_PORT_ENV" >/dev/null 2>&1 && _mysql_ok=1
+else
+  (echo > "/dev/tcp/${DB_HOST}/${DB_PORT_ENV}") >/dev/null 2>&1 && _mysql_ok=1
+fi
+if [ "$_mysql_ok" -eq 1 ]; then
+  ok "MySQL 可连接（库不存在时会用 createDatabaseIfNotExist 自动创建）"
+else
+  warn "连不上 MySQL（${DB_HOST}:${DB_PORT_ENV}），启动后可能报错。"
+  warn "  · macOS 启动：sudo /usr/local/mysql/support-files/mysql.server start"
+  warn "  · 或用 brew：brew services start mysql"
+  warn "  · 指定账号：DB_HOST=... DB_PORT=3306 DB_NAME=shine DB_USER=root DB_PASSWORD=xxx ./start.sh"
+  warn "  · 临时用内置文件库预览：./start.sh --h2"
 fi
 
 # ---------- 步骤 5：启动 ----------

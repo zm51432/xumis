@@ -13,8 +13,8 @@
 | 内存         | ≥ 512 MB（建议 1 GB）       | JVM + 应用                               |
 | 磁盘         | ≥ 200 MB（含上传目录增长空间）     | 上传文件默认落在 `./uploads`                   |
 | 操作系统       | Linux / macOS / Windows | 跨平台                                    |
-| 数据库（开发）    | 内置 H2，无需安装              | 零配置启动                                  |
-| 数据库（生产）    | **MySQL 8.0+**          | 通过 prod profile 切换                     |
+| 数据库            | **MySQL 8.0+**（唯一数据源）     | 环境变量 DB_HOST/PORT/NAME/USER/PASSWORD 配置    |
+| 数据库（应急）    | 内置 H2（`h2` profile）         | 仅本机无 MySQL 时临时预览，不用于生产              |
 | 反向代理（生产推荐） | Nginx / Caddy           | 处理 HTTPS、静态资源、域名                       |
 
 ---
@@ -48,8 +48,11 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Start
 # 进入项目根目录（含 pom.xml）
 cd xumis
 
-# 方式一：直接运行（开发，使用 H2）
+# 方式一：直接运行（默认连接本机 MySQL，需先启动 MySQL）
 mvn spring-boot:run
+
+# 无 MySQL 时临时预览（内置文件库）
+mvn spring-boot:run -Dspring-boot.run.profiles=h2
 
 # 方式二：打包为可执行 jar 后运行
 mvn clean package -DskipTests
@@ -60,9 +63,15 @@ java -jar target/shine-xumis.jar
 
 ---
 
-## 3. 生产部署（切换 MySQL）
+## 3. 生产部署（MySQL 参数与账号）
 
 ### 3.1 准备 MySQL
+
+```bash
+mysql -u root -p < sql/init.sql      # 建库 + utf8mb4
+```
+
+或直接执行：
 
 ```sql
 CREATE DATABASE shine CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -91,7 +100,7 @@ export ERP_API_KEY=''
 java -jar target/shine-xumis.jar
 ```
 
-> `application.yml` 的 `prod` profile 已内置 MySQL 连接串，变量缺失时使用默认值（请勿在生产保留默认口令）。
+> `application.yml` **默认即 MySQL 连接串**（`createDatabaseIfNotExist=true`，首次启动自动建库建表），`prod` profile 只额外开启模板缓存等生产项。变量缺省为 `127.0.0.1:3306` / 库 `shine` / `root` / 空口令，生产请通过环境变量注入专用账号与强口令。
 
 ### 3.4 ERP 与手机端对接配置
 

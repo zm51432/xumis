@@ -7,7 +7,7 @@ spring:
   application:
     name: shine-xumis
   thymeleaf:
-    cache: false          # 开发期关闭缓存，生产可改为 true
+    cache: false          # 生产可改为 true（或启用 prod profile）
     encoding: UTF-8
     mode: HTML
   messages:
@@ -15,21 +15,27 @@ spring:
     basename: messages
   jackson:
     default-property-inclusion: non_null
-  # 开发期使用 H2 文件库（数据落在本目录 ./data 下，重启不丢失，符合"目录内安装"）
+
+  # ===== 数据库：MySQL（唯一数据源）=====
+  # 可用环境变量覆盖：DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD
+  # createDatabaseIfNotExist=true：库不存在时自动创建，省去手工建库
   datasource:
-    url: jdbc:h2:file:./data/shinedb;DB_CLOSE_DELAY=-1;MODE=MySQL
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:shine}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update    # 首次启动自动建表；生产建议改为 validate/none 并用 sql/init.sql 建表
     show-sql: false
     open-in-view: false
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
   # 文件上传限制
   servlet:
     multipart:
@@ -67,50 +73,45 @@ app:
     timeout-ms: 5000
 
 ---
-# 生产环境：执行 mvn -Dspring.profiles.active=prod 或设置环境变量 SPRING_PROFILES_ACTIVE=prod
+# 生产环境：java -jar ... --spring.profiles.active=prod
 spring:
   config:
     activate:
       on-profile: prod
   thymeleaf:
     cache: true
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shine}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
-  h2:
-    console:
-      enabled: false
 
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}
-  upload-url: /files/
   admin-key: ${ADMIN_KEY:change-me}
   mobile-api-key: ${MOBILE_API_KEY:}
-  currencies:
-    - code: USD
-      symbol: "$"
-      rate: 1.0
-      enabled: true
-      default-currency: true
-    - code: CNY
-      symbol: "¥"
-      rate: 7.2
-      enabled: true
-      default-currency: false
-    - code: EUR
-      symbol: "€"
-      rate: 0.92
-      enabled: true
-      default-currency: false
   erp:
     enabled: ${ERP_ENABLED:false}
     type: ${ERP_TYPE:noop}
     base-url: ${ERP_BASE_URL:}
     api-key: ${ERP_API_KEY:}
     timeout-ms: ${ERP_TIMEOUT_MS:5000}
+
+---
+# 应急兜底：本机暂时没有 MySQL 时，可用内置文件库快速预览（仅用于开发/演示）
+# 启用方式：java -jar target/shine-xumis.jar --spring.profiles.active=h2
+spring:
+  config:
+    activate:
+      on-profile: h2
+  datasource:
+    url: jdbc:h2:file:./data/shinedb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

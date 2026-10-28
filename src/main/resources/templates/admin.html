@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${storeName} + ' · Admin'">后台</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <meta name="theme-color" content="#f06b87"/>
+    <meta name="theme-color" content="#7fc5ac"/>
 </head>
 <body>
 
@@ -19,7 +19,15 @@
     </div>
 
     <div th:if="${!denied}">
-        <h2 class="section-title">仪表盘 Dashboard</h2>
+        <div class="admin-head">
+            <div>
+                <h2 class="section-title">仪表盘 Dashboard</h2>
+                <p class="sub">订单 / 定制 / 询盘 / 订阅 / 评价 一览</p>
+            </div>
+            <div class="admin-head-actions">
+                <a class="btn btn-sm" th:href="@{/admin/products(key=${key})}">📦 商品管理（上传 / 修改）</a>
+            </div>
+        </div>
 
         <div class="stat-grid">
             <div class="stat"><span class="stat-num" th:text="${countProducts}">0</span><span th:text="#{nav.products}">商品</span></div>

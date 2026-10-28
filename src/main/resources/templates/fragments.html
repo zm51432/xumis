@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${storeName}">shine星心</title>
@@ -35,7 +35,8 @@
         <a class="cart-link" th:href="@{/cart}">🛒
             <span class="badge" th:text="${cartCount}">0</span>
         </a>
-        <button class="lang-btn" onclick="toggleLang()" th:text="#{lang.toggle}">EN</button>
+        <button class="lang-btn" th:data-lang="${#locale.language}" onclick="toggleLang(this)"
+                th:text="${#locale.language == 'en'} ? '中文' : 'EN'">EN</button>
     </div>
 </nav>
 

@@ -92,6 +92,13 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    /** 后台删除商品 */
+    public void delete(Long id) {
+        if (id != null) {
+            productRepository.deleteById(id);
+        }
+    }
+
     /** 计算商品在某币种下的展示价（基准 USD × 汇率，四舍五入 2 位） */
     public BigDecimal priceIn(Product p, java.math.BigDecimal fxRate) {
         if (p.getPrice() == null || fxRate == null) return BigDecimal.ZERO;

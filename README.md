@@ -26,7 +26,7 @@
 | 🧩 ERP 预留 | `ErpClient` 抽象层 + 开关，商品/定制/询盘/**订单**均可同步至用友/金蝶/SAP/自研中台 |
 | 📲 PWA | 内置 manifest + 图标，可「添加到主屏幕」当作轻量 App |
 | 📊 后台仪表盘 | `/admin?key=...` 统计卡片 + 订单/定制/询盘/订阅/待审评价管理 |
-| 💾 数据存储 | 开发用 H2 文件库（目录内持久化），生产可切 MySQL（同一套 JPA 代码） |
+| 💾 数据存储 | **MySQL 8**（唯一数据源，`DB_*` 环境变量配置，首次启动自动建库建表） |
 | 🚀 一键部署 | `start.sh` / `start.bat` / `install.ps1`，Windows / Linux / macOS 均可在目录内零手工安装完成 |
 
 ---
@@ -36,7 +36,7 @@
 - **Java 17** + **Spring Boot 3.2**
 - **Spring MVC** + **Thymeleaf**（前端视图层）
 - **Spring Data JPA**（后端持久化）
-- **H2**（开发）/ **MySQL**（生产）
+- **MySQL 8**（唯一数据源；无 MySQL 时可用 `h2` profile 应急预览）
 - **Bean Validation** 表单校验
 - **Maven** 构建
 
@@ -53,9 +53,9 @@ xumis/
 ├── Dockerfile / docker-compose.yml / .dockerignore
 ├── README.md / DEPLOYMENT.md / ONECLICK.md
 ├── archive/                      # 仓库旧版 personal-site 归档
-├── .tools/                       # 【自动生成】一键脚本下载的 JDK / Maven（不入库）
-├── data/                         # 【自动生成】H2 数据库文件（重启不丢数据）
-├── uploads/                      # 【自动生成】客户上传的参考图
+├── sql/init.sql                   # MySQL 建库脚本（应用也会自动建库，可选执行）
+├── .tools/                        # 【自动生成】一键脚本下载的 JDK / Maven（不入库）
+├── uploads/                       # 【自动生成】客户上传图 / 后台商品图
 ├── runtime/                      # 【自动生成】日志与 PID
 └── src/main/
     ├── java/com/shine/xumis/
@@ -68,7 +68,7 @@ xumis/
     │   ├── service/             # 业务 + 文件存储 + 购物车 + 币种 + ERP 同步
     │   └── dto/                 # 表单对象 / 购物车行 / 搜索结果 / 手机端视图
     └── resources/
-        ├── application.yml      # 含 dev / prod 双 profile
+        ├── application.yml      # 默认(MySQL) / prod / h2(应急) 三组配置
         ├── messages*.properties # 中英文文案
         ├── static/              # css / js / manifest / icon
         └── templates/           # Thymeleaf 页面（首页/商品/详情/购物车/结算/成功/定制/询盘/后台）
@@ -79,7 +79,25 @@ xumis/
 ## 🚀 一键部署（推荐，无需手工装环境）
 
 脚本会自动检测 JDK 17 与 Maven，缺失时**下载到本项目 `.tools/` 目录**（不污染系统、不需要管理员权限），
-然后编译打包并启动。JDK / Maven / 数据库 / 上传文件**全部在项目目录内**，删除目录即卸载。
+然后编译打包并启动。JDK / Maven / 上传文件**全部在项目目录内**，删除目录即卸载。
+
+### 数据库：MySQL 8（需要先启动）
+
+```bash
+# macOS（本机装过 MySQL 时）
+sudo /usr/local/mysql/support-files/mysql.server start      # 或 brew services start mysql
+# Linux
+sudo systemctl start mysqld
+```
+
+连接参数可用环境变量覆盖，缺省为 `127.0.0.1:3306`、库 `shine`、用户 `root`、空口令：
+
+```bash
+DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=shine DB_USER=root DB_PASSWORD=xxx ./start.sh
+```
+
+首次启动会**自动创建 shine 库与全部数据表**并写入 8 条演示商品；也可先手工执行 `sql/init.sql`。
+本机确实没有 MySQL 时，可临时用内置文件库预览：`./start.sh --h2`。
 
 ```bash
 # Linux / macOS
@@ -104,8 +122,8 @@ docker compose up -d --build
 
 启动后访问：
 - 店铺前台： http://localhost:8080/
-- H2 控制台（开发）： http://localhost:8080/h2-console （JDBC URL `jdbc:h2:file:./data/shinedb`，用户 `sa`，密码空）
 - 简易后台： http://localhost:8080/admin?key=admin
+- 商品管理： http://localhost:8080/admin/products?key=admin （上传图片 / 改信息 / 改图片链接 / 删除）
 
 种子数据会在首次启动自动写入演示商品。
 

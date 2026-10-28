@@ -27,6 +27,9 @@ public class LocaleConfig {
     public LocaleResolver localeResolver() {
         CookieLocaleResolver resolver = new CookieLocaleResolver("shine_locale");
         resolver.setDefaultLocale(Locale.CHINESE);
+        // 全站生效 + 记住一年，避免"切回中文却被重置"的问题
+        resolver.setCookiePath("/");
+        resolver.setCookieMaxAge(60 * 60 * 24 * 365);
         return resolver;
     }
 }

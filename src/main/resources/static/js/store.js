@@ -1,20 +1,35 @@
-// 语言切换：读取当前 ?lang= 并切换中/英，保持当前路径
-function toggleLang() {
+// 语言切换：显式写入 Cookie 语言后跳回当前页（保持路径与其它查询参数）
+// 说明：不能靠"删除 ?lang= 参数"切回中文——那样 LocaleChangeInterceptor 不会触发，
+// Cookie 里仍是英文，所以中文永远切不回来。
+function setLang(l) {
   const url = new URL(window.location.href);
-  const current = url.searchParams.get('lang');
-  const next = (current === 'en') ? 'zh' : 'en';
-  if (next === 'zh') {
-    url.searchParams.delete('lang');
-  } else {
-    url.searchParams.set('lang', 'en');
-  }
-  window.location.href = url.pathname + url.search;
+  url.searchParams.delete('lang');            // 清掉旧参数，避免残留覆盖
+  const back = url.pathname + (url.search || '');
+  window.location.href = '/set-lang?l=' + encodeURIComponent(l)
+    + '&redirect=' + encodeURIComponent(back);
+}
+
+// 按钮：按当前页面语言切换到另一种（跟随 <html lang>，而不是 URL 参数）
+function toggleLang(btn) {
+  const cur = (btn && btn.dataset && btn.dataset.lang)
+    || document.documentElement.lang || 'zh';
+  setLang(String(cur).toLowerCase().startsWith('en') ? 'zh' : 'en');
 }
 
 // 币种切换：写入 session 后跳回当前页
 function setCurrency(code) {
   const back = window.location.pathname + window.location.search;
   window.location.href = '/set-currency?c=' + encodeURIComponent(code) + '&redirect=' + encodeURIComponent(back);
+}
+
+// 商品管理：预览上传的图片
+function previewProductImage(input) {
+  const preview = document.getElementById('imgPreview');
+  if (preview && input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; };
+    reader.readAsDataURL(input.files[0]);
+  }
 }
 
 // 商品列表排序：保持分类与搜索条件

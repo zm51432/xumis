@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -9,7 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
-    <meta name="theme-color" content="#f06b87"/>
+    <meta name="theme-color" content="#7fc5ac"/>
     <meta property="og:title" th:content="${storeName}"/>
     <meta property="og:type" content="website"/>
     <meta property="og:description" th:content="#{home.subtitle}"/>

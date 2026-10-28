@@ -9,9 +9,13 @@
     .\install.ps1 -Start -SkipBuild   # 已有 jar 时跳过构建
     .\install.ps1 -Stop          # 停止正在运行的实例
 
+  数据库：默认使用 MySQL（唯一数据源），需本机已启动 MySQL 8；
+    可用环境变量指定：DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD
+    无 MySQL 时临时预览： .\install.ps1 -Start -SpringProfile h2
+
   设计原则：
     · JDK / Maven 只下载解压到本项目 .tools\ 目录，不需要管理员权限、不改系统环境变量
-    · 数据库、上传文件全部落在项目目录（runtime\、uploads\），删除目录即卸载
+    · 上传文件落在项目目录（uploads\），删除目录即卸载
  ============================================================================
 #>
 param(
@@ -35,6 +39,11 @@ $Uploads   = Join-Path $Root "uploads"
 $LogDir    = Join-Path $Runtime "logs"
 $PidFile   = Join-Path $Runtime "app.pid"
 $JarPath   = Join-Path $Root "target\shine-xumis.jar"
+
+# ---------- 数据库（MySQL，可用环境变量覆盖）----------
+$DbHost = if ($env:DB_HOST) { $env:DB_HOST } else { "127.0.0.1" }
+$DbPort = if ($env:DB_PORT) { $env:DB_PORT } else { "3306" }
+$DbName = if ($env:DB_NAME) { $env:DB_NAME } else { "shine" }
 
 $JdkUrl  = "https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jdk/hotspot/normal/eclipse"
 $MvnVer  = "3.9.9"
@@ -197,6 +206,24 @@ if (Test-Path $PidFile) {
         Start-Sleep -Seconds 2
     }
     Remove-Item $PidFile -Force -ErrorAction SilentlyContinue
+}
+
+# 数据库预检：站点使用 MySQL（唯一数据源），连不上时给出提示但不阻断
+Write-Info "步骤 3.5/4：检查 MySQL（$DbHost`:$DbPort，库 $DbName）..."
+$mysqlOk = $false
+try {
+    $tcp = New-Object System.Net.Sockets.TcpClient
+    $conn = $tcp.BeginConnect($DbHost, [int]$DbPort, $null, $null)
+    $mysqlOk = $conn.AsyncWaitHandle.WaitOne(2000) -and $tcp.Connected
+    $tcp.Close()
+} catch { $mysqlOk = $false }
+if ($mysqlOk) {
+    Write-Ok "MySQL 可连接（库不存在时会自动创建）"
+} else {
+    Write-Warn "连不上 MySQL（$DbHost`:$DbPort），启动后可能报错。"
+    Write-Warn "  · 请先安装并启动 MySQL 8（https://dev.mysql.com/downloads/installer/）"
+    Write-Warn "  · 或设置环境变量：DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD"
+    Write-Warn "  · 临时用内置文件库预览： .\install.ps1 -Start -SpringProfile h2"
 }
 
 Write-Info "步骤 4/4：启动站点（profile=$SpringProfile，端口 $Port）..."

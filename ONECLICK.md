@@ -1,8 +1,9 @@
 # shine星心 · 一键部署逐步骤说明
 
 > 目标：**不管 Windows 还是 Linux / macOS，只在本项目目录内执行一条命令即可完成安装、构建与启动。**
-> 全程不需要手工安装 JDK、Maven、数据库，也不需要管理员/root 权限。
-> 所有依赖与数据都落在项目目录里，**删除整个目录即完整卸载**。
+> 全程不需要手工安装 JDK、Maven，也不需要管理员/root 权限；
+> **数据库使用 MySQL 8，需先启动本机 MySQL**（脚本会预检并提示；没有 MySQL 时可用 `--h2` 临时预览）。
+> 依赖与上传文件都落在项目目录里，**删除整个目录即卸载**。
 
 ---
 
@@ -15,8 +16,8 @@
 | `install.ps1` | Windows 安装 + 构建 + 启动 | ✅ |
 | `.tools/jdk17` | 自动下载的 JDK 17（缺失时才有） | ❌ |
 | `.tools/maven` | 自动下载的 Maven 3.9.9（缺失时才有） | ❌ |
-| `data/` | H2 数据库文件（重启不丢数据） | ❌ |
-| `uploads/` | 客户上传的参考图 | ❌ |
+| `uploads/` | 客户上传图 + 后台商品图 | ❌ |
+| `sql/init.sql` | MySQL 建库脚本（应用也会自动建库，可选执行） | ✅ |
 | `runtime/logs` | 运行日志 `app.log`、`app.err.log` | ❌ |
 | `runtime/app.pid` | 进程号，用于 `--stop` / `-Stop` | ❌ |
 | `target/shine-xumis.jar` | 构建产物 | ❌ |
@@ -95,7 +96,8 @@ chmod +x start.sh
 | `./start.sh` | 完整流程：装环境 → 构建 → 启动（默认 8080 端口、dev 配置） |
 | `./start.sh --port=9090` | 指定端口 |
 | `./start.sh --skip-build` | 跳过构建，直接启动已有 jar |
-| `./start.sh --prod` | 使用 prod 配置（需自备 MySQL，见 DEPLOYMENT.md） |
+| `./start.sh --prod` | 使用 prod 配置（MySQL，见 DEPLOYMENT.md） |
+| `./start.sh --h2` | 本机无 MySQL 时用内置文件库临时预览 |
 | `./start.sh --stop` | 停止正在运行的实例（读取 `runtime/app.pid`） |
 | `./start.sh --help` | 查看用法 |
 
@@ -140,7 +142,7 @@ docker compose ps                 # 看状态
 docker compose down               # 停止并移除容器（数据卷保留）
 ```
 
-### 第 4 步：只跑单容器（用内置 H2，不开 MySQL）
+### 第 4 步：只跑单容器（不开 MySQL，用内置文件库预览）
 ```bash
 docker build -t shine-xumis:1.0 .
 docker run -d -p 8080:8080 -v shine-data:/app/data -v shine-uploads:/app/uploads shine-xumis:1.0
@@ -152,13 +154,12 @@ docker run -d -p 8080:8080 -v shine-data:/app/data -v shine-uploads:/app/uploads
 
 | 内容 | 位置 | 备份方式 |
 |------|------|----------|
-| 商品 / 订单 / 评价 / 订阅 | `data/shinedb.mv.db`（H2 文件库） | 复制 `data/` 目录 |
-| 客户上传的参考图 | `uploads/` | 复制 `uploads/` 目录 |
+| 商品 / 订单 / 评价 / 订阅 | MySQL `shine` 库 | `mysqldump shine > backup.sql` |
+| 客户上传图 / 商品图 | `uploads/` | 复制 `uploads/` 目录 |
 | 运行日志 | `runtime/logs/` | 可定期清理 |
-| 生产 MySQL | `mysqldump` 或挂载卷 | 见 DEPLOYMENT.md |
 
-> 开发默认使用 **H2 文件库**（`jdbc:h2:file:./data/shinedb`），
-> 与 MySQL 用同一套 JPA 代码，切生产只改 `application.yml` 的 `spring.datasource.*`，无需改业务代码。
+> 默认数据源为 **MySQL 8**（`jdbc:mysql://127.0.0.1:3306/shine`），首次启动自动建库建表。
+> 本机没有 MySQL 时可用 `./start.sh --h2` 走内置文件库临时预览，但不要用于生产。
 
 ---
 
@@ -179,8 +180,8 @@ docker run -d -p 8080:8080 -v shine-data:/app/data -v shine-uploads:/app/uploads
 
 ## 上线生产（简要）
 
-一键脚本默认跑 `dev`（H2 + 演示后台密钥）。正式上线请按 **DEPLOYMENT.md** 完成：
-1. 准备 MySQL 8，设置 `DB_*` 环境变量；
+一键脚本默认跑 `dev`（连接本机 MySQL，演示后台密钥）。正式上线请按 **DEPLOYMENT.md** 完成：
+1. 准备 MySQL 8，设置 `DB_*` 环境变量与专用账号；
 2. 设置强随机 `ADMIN_KEY`、`MOBILE_API_KEY`；
 3. 用 `--prod` 启动（`./start.sh --prod` 或 `SPRING_PROFILES_ACTIVE=prod`）；
 4. 配置 Nginx 反向代理 + HTTPS（443）；

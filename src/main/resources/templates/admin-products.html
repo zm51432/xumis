@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · 商品管理'">商品管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#8ec9b6"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+
+    <!-- 未授权 -->
+    <div th:if="${denied}" class="admin-denied">
+        <div class="lock">🔒</div>
+        <h2>需要后台密钥</h2>
+        <p class="muted">请在网址后加上 <code>?key=你的密钥</code>（默认 <code>admin</code>）。</p>
+    </div>
+
+    <div th:if="${!denied}">
+
+        <div class="admin-head">
+            <div>
+                <h2 class="section-title">商品管理 Products</h2>
+                <p class="sub">上传商品图片、修改信息与图片链接、上架首页精选</p>
+            </div>
+            <div class="admin-head-actions">
+                <a class="btn btn-ghost btn-sm" th:href="@{/admin(key=${key})}">← 返回仪表盘</a>
+                <a class="btn btn-sm" th:href="@{/admin/products(key=${key})}">+ 新建商品</a>
+            </div>
+        </div>
+
+        <!-- 操作结果提示 -->
+        <div class="alert-success" th:if="${saved == 'created'}">✅ 商品已创建</div>
+        <div class="alert-success" th:if="${saved == 'updated'}">✅ 修改已保存</div>
+        <div class="alert-success" th:if="${saved == 'deleted'}">🗑️ 商品已删除</div>
+        <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
+
+        <!-- ===== 新增 / 编辑表单 ===== -->
+        <div class="panel">
+            <h3 class="block-title" th:text="${edit != null} ? '编辑商品 · ' + ${edit.name} : '新增商品'">新增商品</h3>
+
+            <form class="admin-form" method="post" enctype="multipart/form-data"
+                  th:action="@{/admin/product/save}">
+                <input type="hidden" name="key" th:value="${key}"/>
+                <input type="hidden" name="id" th:if="${edit != null}" th:value="${edit.id}"/>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>商品名称（中文）<span class="req">*</span></label>
+                        <input type="text" name="name" required maxlength="120"
+                               th:value="${edit != null} ? ${edit.name} : ''" placeholder="如：星心项链"/>
+                    </div>
+                    <div class="field">
+                        <label>商品名称（English）</label>
+                        <input type="text" name="nameEn" maxlength="120"
+                               th:value="${edit != null} ? ${edit.nameEn} : ''" placeholder="如：Star Heart Necklace"/>
+                    </div>
+
+                    <div class="field">
+                        <label>分类</label>
+                        <select name="category">
+                            <option th:each="c : ${categories}"
+                                    th:value="${c.name()}"
+                                    th:text="${c.label + ' / ' + c.name()}"
+                                    th:selected="${edit != null and edit.category != null and edit.category.name() == c.name()}">
+                                JEWELRY
+                            </option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>价格（USD 基准）</label>
+                        <input type="text" name="price" inputmode="decimal"
+                               th:value="${edit != null and edit.price != null} ? ${edit.price} : ''" placeholder="19.90"/>
+                        <p class="hint">其它币种按汇率自动换算展示</p>
+                    </div>
+
+                    <div class="field">
+                        <label>库存</label>
+                        <input type="number" name="stock" min="0" step="1"
+                               th:value="${edit != null and edit.stock != null} ? ${edit.stock} : 100"/>
+                    </div>
+                    <div class="field">
+                        <label>材质</label>
+                        <input type="text" name="material" maxlength="120"
+                               th:value="${edit != null} ? ${edit.material} : ''" placeholder="如：合金 / 天然石"/>
+                    </div>
+
+                    <div class="field col-span">
+                        <label>简介（中文）</label>
+                        <textarea name="description" rows="3" maxlength="1000"
+                                  th:text="${edit != null} ? ${edit.description} : ''"></textarea>
+                    </div>
+                    <div class="field col-span">
+                        <label>简介（English）</label>
+                        <textarea name="descriptionEn" rows="3" maxlength="1000"
+                                  th:text="${edit != null} ? ${edit.descriptionEn} : ''"></textarea>
+                    </div>
+
+                    <!-- 图片：上传 或 链接 -->
+                    <div class="field col-span">
+                        <label>商品图片</label>
+                        <div class="img-edit">
+                            <div class="img-preview-box">
+                                <img id="imgPreview"
+                                     th:src="${edit != null and edit.imageUrl != null and edit.imageUrl != ''} ? ${edit.imageUrl} : 'https://placehold.co/300x300/EEF7F3/5B8C77?text=shine'"
+                                     alt="预览"/>
+                            </div>
+                            <div class="img-edit-fields">
+                                <div class="field">
+                                    <label class="sub-label">① 上传本地图片</label>
+                                    <input type="file" name="imageFile" accept="image/*"
+                                           onchange="previewProductImage(this)"/>
+                                    <p class="hint">支持 jpg / png / gif / webp，≤10MB，存到 ./uploads</p>
+                                </div>
+                                <div class="field">
+                                    <label class="sub-label">② 或直接填写图片链接</label>
+                                    <input type="text" name="imageUrl" id="imageUrl" maxlength="500"
+                                           th:value="${edit != null} ? ${edit.imageUrl} : ''"
+                                           placeholder="https://..."
+                                           oninput="document.getElementById('imgPreview').src=this.value||'https://placehold.co/300x300/EEF7F3/5B8C77?text=shine'"/>
+                                    <p class="hint">上传文件优先；两者都留空则保留原图</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field switches">
+                        <label class="switch"><input type="checkbox" name="customizable" value="true"
+                               th:checked="${edit != null and edit.customizable}"/><span>支持来图定制</span></label>
+                        <label class="switch"><input type="checkbox" name="featured" value="true"
+                               th:checked="${edit != null and edit.featured}"/><span>首页精选展示</span></label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn" type="submit"
+                            th:text="${edit != null} ? '保存修改' : '创建商品'">保存</button>
+                    <a class="btn btn-ghost" th:if="${edit != null}" th:href="@{/admin/products(key=${key})}">取消编辑</a>
+                    <a class="btn btn-ghost" th:if="${edit != null}" target="_blank"
+                       th:href="@{'/product/' + ${edit.id}}">预览前台页面 ↗</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== 商品列表 ===== -->
+        <h3 class="block-title">全部商品 <span class="muted small" th:text="'(' + ${#lists.size(products)} + ')'">(0)</span></h3>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>图片</th><th>名称</th><th>分类</th><th>价格</th><th>库存</th>
+                    <th>精选</th><th>定制</th><th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${products}">
+                    <td>
+                        <img class="thumb-sm" th:src="${p.imageUrl}" alt="" onerror="this.style.visibility='hidden'"/>
+                    </td>
+                    <td>
+                        <a class="strong" th:href="@{'/product/' + ${p.id}}" target="_blank" th:text="${p.name}">商品</a>
+                        <div class="muted small" th:text="${p.nameEn}">EN</div>
+                    </td>
+                    <td th:text="${p.category != null} ? ${p.category.label} : '-'">-</td>
+                    <td th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price, 1, 2)}">$0.00</td>
+                    <td th:text="${p.stock}">0</td>
+                    <td>
+                        <form class="inline-form" method="post" th:action="@{/admin/product/toggle}">
+                            <input type="hidden" name="key" th:value="${key}"/>
+                            <input type="hidden" name="id" th:value="${p.id}"/>
+                            <input type="hidden" name="field" value="featured"/>
+                            <button class="chip" th:classappend="${p.featured} ? 'chip-on' : ''" type="submit"
+                                    th:text="${p.featured} ? '★ 精选' : '☆ 设为精选'">☆</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form class="inline-form" method="post" th:action="@{/admin/product/toggle}">
+                            <input type="hidden" name="key" th:value="${key}"/>
+                            <input type="hidden" name="id" th:value="${p.id}"/>
+                            <input type="hidden" name="field" value="customizable"/>
+                            <button class="chip" th:classappend="${p.customizable} ? 'chip-on' : ''" type="submit"
+                                    th:text="${p.customizable} ? '可定制' : '不可定制'">-</button>
+                        </form>
+                    </td>
+                    <td class="nowrap">
+                        <a class="btn btn-ghost btn-sm" th:href="@{/admin/products(key=${key}, id=${p.id})}">编辑</a>
+                        <form class="inline-form" method="post" th:action="@{/admin/product/delete}"
+                              onsubmit="return confirm('确定删除该商品？此操作不可恢复。');">
+                            <input type="hidden" name="key" th:value="${key}"/>
+                            <input type="hidden" name="id" th:value="${p.id}"/>
+                            <button class="btn btn-danger btn-sm" type="submit">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="8" class="muted">还没有商品，用上面的表单创建第一个吧～</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>
