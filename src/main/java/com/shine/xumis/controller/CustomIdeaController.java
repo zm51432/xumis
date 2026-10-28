@@ -5,6 +5,8 @@ import com.shine.xumis.integration.erp.ErpSyncService;
 import com.shine.xumis.model.CustomIdea;
 import com.shine.xumis.service.CustomIdeaService;
 import com.shine.xumis.service.FileStorageService;
+import com.shine.xumis.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,11 +26,14 @@ public class CustomIdeaController {
     private final CustomIdeaService ideaService;
     private final FileStorageService fileStorageService;
     private final ErpSyncService erpSyncService;
+    private final RateLimitService rateLimitService;
 
-    public CustomIdeaController(CustomIdeaService ideaService, FileStorageService fileStorageService, ErpSyncService erpSyncService) {
+    public CustomIdeaController(CustomIdeaService ideaService, FileStorageService fileStorageService,
+                                ErpSyncService erpSyncService, RateLimitService rateLimitService) {
         this.ideaService = ideaService;
         this.fileStorageService = fileStorageService;
         this.erpSyncService = erpSyncService;
+        this.rateLimitService = rateLimitService;
     }
 
     @GetMapping("/custom")
@@ -41,8 +46,14 @@ public class CustomIdeaController {
     public String submit(@Valid @ModelAttribute("form") CustomIdeaRequest form,
                          BindingResult result,
                          @RequestParam(value = "referenceImage", required = false) MultipartFile file,
-                         Model model) {
+                         Model model, HttpServletRequest request) {
         if (result.hasErrors()) {
+            return "custom";
+        }
+        // 防刷：同一 IP 10 分钟内最多 5 次定制提交
+        String key = "custom:" + ReviewController.clientIp(request);
+        if (!rateLimitService.allow(key, 5, 10 * 60 * 1000L)) {
+            model.addAttribute("rateLimited", rateLimitService.retryAfterSeconds(key, 5, 10 * 60 * 1000L));
             return "custom";
         }
         try {

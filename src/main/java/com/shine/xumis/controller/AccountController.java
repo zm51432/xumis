@@ -3,6 +3,7 @@ package com.shine.xumis.controller;
 import com.shine.xumis.model.Order;
 import com.shine.xumis.model.UserAccount;
 import com.shine.xumis.service.OrderService;
+import com.shine.xumis.service.LoginAttemptService;
 import com.shine.xumis.service.UserAccountService;
 import com.shine.xumis.util.RedirectUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,13 @@ public class AccountController {
 
     private final UserAccountService userService;
     private final OrderService orderService;
+    private final LoginAttemptService attemptService;
 
-    public AccountController(UserAccountService userService, OrderService orderService) {
+    public AccountController(UserAccountService userService, OrderService orderService,
+                             LoginAttemptService attemptService) {
         this.userService = userService;
         this.orderService = orderService;
+        this.attemptService = attemptService;
     }
 
     static UserAccount currentUser(HttpSession session) {
@@ -75,7 +79,11 @@ public class AccountController {
             model.addAttribute("name", name);
             return "register";
         }
-        request.getSession(true).setAttribute(UserAccountService.SESSION_KEY, created.get());
+        // 注册成功即登录：更换 Session ID，避免会话固定
+        request.changeSessionId();
+        HttpSession s = request.getSession(true);
+        s.setAttribute(UserAccountService.SESSION_KEY, created.get());
+        s.removeAttribute(com.shine.xumis.util.Csrf.SESSION_ATTR);
         String back = (redirect != null && !redirect.isBlank()) ? RedirectUtils.safe(redirect, request) : "/account";
         return "redirect:" + back;
     }
@@ -99,23 +107,39 @@ public class AccountController {
                         @RequestParam(value = "redirect", required = false) String redirect,
                         HttpServletRequest request,
                         Model model) {
+        String key = "user:" + ((email == null) ? "" : email.trim().toLowerCase());
+        if (attemptService.isLocked(key)) {
+            model.addAttribute("error", true);
+            model.addAttribute("lockedSeconds", attemptService.remainingSeconds(key));
+            model.addAttribute("email", email);
+            model.addAttribute("redirectTo", redirect);
+            return "login";
+        }
+
         var u = userService.login(email, password);
         if (u.isEmpty()) {
+            attemptService.recordFailure(key);
             model.addAttribute("error", true);
             model.addAttribute("email", email);
             model.addAttribute("redirectTo", redirect);
             return "login";
         }
-        request.getSession(true).setAttribute(UserAccountService.SESSION_KEY, u.get());
+        attemptService.recordSuccess(key);
+
+        // 防会话固定：登录后更换 Session ID
+        request.changeSessionId();
+        HttpSession session = request.getSession(true);
+        session.setAttribute(UserAccountService.SESSION_KEY, u.get());
+        session.removeAttribute(com.shine.xumis.util.Csrf.SESSION_ATTR);
         String back = (redirect != null && !redirect.isBlank()) ? RedirectUtils.safe(redirect, request) : "/account";
         return "redirect:" + back;
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
-            session.removeAttribute(UserAccountService.SESSION_KEY);
+            session.invalidate();
         }
         return "redirect:/";
     }

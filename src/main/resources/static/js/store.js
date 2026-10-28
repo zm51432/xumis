@@ -74,7 +74,7 @@ function addToCart(productId, qty) {
   body.set('quantity', String(q));
   fetch('/cart/add-json', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'X-CSRF-Token': csrfToken() },
     body: body
   }).then(r => r.json())
     .then(d => {
@@ -155,8 +155,29 @@ function toggleMenu() {
   }
 }
 
+// ===== CSRF =====
+// 令牌由服务端放在 <meta name="_csrf">，这里给所有 POST 表单自动补隐藏域，
+// 这样每个表单不用手写，也不会漏掉导致 403。
+function csrfToken() {
+  const m = document.querySelector('meta[name="_csrf"]');
+  return m ? m.content : '';
+}
+function injectCsrf() {
+  const t = csrfToken();
+  if (!t) return;
+  document.querySelectorAll('form').forEach(f => {
+    const m = (f.getAttribute('method') || 'get').toLowerCase();
+    if (m !== 'post') return;
+    if (f.querySelector('input[name="_csrf"]')) return;
+    const i = document.createElement('input');
+    i.type = 'hidden'; i.name = '_csrf'; i.value = t;
+    f.appendChild(i);
+  });
+}
+
 // 滚动渐入动画
 document.addEventListener('DOMContentLoaded', () => {
+  injectCsrf();
   const items = document.querySelectorAll('.reveal');
   if (!('IntersectionObserver' in window) || items.length === 0) {
     items.forEach(el => el.classList.add('show'));

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>404 · 页面不存在</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section success-box">
+    <div class="success-icon">🧭</div>
+    <h2>404 · 页面不存在</h2>
+    <p class="muted">这个地址可能已经失效，或者商品已下架。</p>
+    <div class="btn-row" style="margin-top:18px;">
+        <a class="btn" th:href="@{/}" th:text="#{nav.home}">首页</a>
+        <a class="btn btn-ghost" th:href="@{/products}" th:text="#{nav.products}">商品</a>
+        <a class="btn btn-ghost" th:href="@{/order/track}" th:text="#{nav.track}">订单查询</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

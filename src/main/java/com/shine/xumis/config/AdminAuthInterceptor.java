@@ -47,7 +47,8 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
 
         // 应急钥匙（默认关闭）
         String key = request.getParameter("key");
-        if (allowKey && key != null && key.equals(adminKey)) {
+        // 常量时间比较，避免通过响应耗时逐字节猜测密钥
+        if (allowKey && key != null && com.shine.xumis.util.Csrf.matches(adminKey, key)) {
             AdminUser owner = new AdminUser("key-admin", "", "应急钥匙", AdminRole.OWNER);
             owner.setId(-1L);
             HttpSession s = request.getSession(true);

@@ -30,6 +30,7 @@ public class LocaleConfig {
         // 全站生效 + 记住一年，避免"切回中文却被重置"的问题
         resolver.setCookiePath("/");
         resolver.setCookieMaxAge(60 * 60 * 24 * 365);
+        resolver.setCookieHttpOnly(true);   // 语言 Cookie 不暴露给 JS
         return resolver;
     }
 }

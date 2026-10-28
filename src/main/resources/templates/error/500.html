@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>500 · 服务异常</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section success-box">
+    <div class="success-icon">🌿</div>
+    <h2>500 · 服务出了点小状况</h2>
+    <p class="muted">我们已经记录了这个异常，请稍后重试；若持续出现，欢迎联系我们。</p>
+    <div class="btn-row" style="margin-top:18px;">
+        <a class="btn" th:href="@{/}" th:text="#{nav.home}">首页</a>
+        <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

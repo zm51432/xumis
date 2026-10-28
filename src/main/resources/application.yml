@@ -2,6 +2,16 @@ server:
   port: 8080
   servlet:
     context-path: /
+    session:
+      cookie:
+        http-only: true      # 会话 Cookie 禁止 JS 读取，降低 XSS 后的危害
+        same-site: lax       # 跨站请求不带会话 Cookie，缓解 CSRF
+      timeout: 7d
+  error:
+    whitelabel:
+      enabled: false         # 出错时使用 templates/error/*.html，不暴露 Whitelabel 与堆栈
+    include-stacktrace: never
+    include-message: never   # 不在错误页回显内部异常信息
 
 spring:
   application:

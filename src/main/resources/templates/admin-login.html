@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
@@ -22,6 +23,7 @@
 
         <div class="alert-success" th:if="${param.loggedOut != null}" th:text="#{admin.loggedOut}">已退出登录</div>
         <div class="alert-error" th:if="${error}" th:text="#{admin.loginError}">用户名或密码不正确</div>
+        <div class="alert-error" th:if="${lockedSeconds != null}" th:text="${lockedSeconds} + ' ' + #{account.locked}">尝试过于频繁，请稍后再试</div>
 
         <form method="post" th:action="@{/admin/login}">
             <div class="field">

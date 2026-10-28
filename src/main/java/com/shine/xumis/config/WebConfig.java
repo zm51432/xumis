@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AdminAuthInterceptor adminAuthInterceptor;
+    private final CsrfInterceptor csrfInterceptor;
 
     @Value("${app.upload-dir:./uploads}")
     private String uploadDir;
@@ -26,8 +27,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload-url:/files/}")
     private String uploadUrl;
 
-    public WebConfig(AdminAuthInterceptor adminAuthInterceptor) {
+    public WebConfig(AdminAuthInterceptor adminAuthInterceptor, CsrfInterceptor csrfInterceptor) {
         this.adminAuthInterceptor = adminAuthInterceptor;
+        this.csrfInterceptor = csrfInterceptor;
     }
 
     @Override
@@ -43,6 +45,9 @@ public class WebConfig implements WebMvcConfigurer {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("lang");
         registry.addInterceptor(interceptor);
+
+        // CSRF：所有写操作必须带会话令牌（/api/** 走 API Key，不拦截）
+        registry.addInterceptor(csrfInterceptor);
 
         // 后台必须登录（登录/登出页自身放行）
         registry.addInterceptor(adminAuthInterceptor)

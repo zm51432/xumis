@@ -48,40 +48,29 @@ public class ProductService {
     }
 
     /**
-     * 商品搜索 + 分类 + 排序 + 分页（内存过滤，适合中小规模目录）。
+     * 商品搜索 + 分类 + 排序 + 分页。
+     * 说明：查询下沉到数据库（分页/排序由 SQL 完成），不再把整表读进内存再过滤，
+     * 商品规模增长时性能与内存占用都可控。
      * sort 取值：default(默认排序) / price_asc / price_desc / newest
      */
     public ProductSearchResult search(String query, Category category, String sort,
                                       int page, int size) {
-        List<Product> all = (category != null)
-                ? new java.util.ArrayList<>(findByCategory(category))
-                : new java.util.ArrayList<>(findAll());
-
-        if (query != null && !query.isBlank()) {
-            String q = query.toLowerCase();
-            all = all.stream().filter(p -> {
-                String hay = (p.getName() + " " + p.getNameEn() + " " +
-                        p.getDescription() + " " + p.getDescriptionEn()).toLowerCase();
-                return hay.contains(q);
-            }).collect(Collectors.toList());
-        }
-
-        Comparator<Product> cmp = switch (sort == null ? "" : sort) {
-            case "price_asc" -> Comparator.<Product, BigDecimal>comparing(Product::getPrice);
-            case "price_desc" -> Comparator.<Product, BigDecimal>comparing(Product::getPrice).reversed();
-            case "newest" -> Comparator.<Product, Long>comparing(Product::getId).reversed();
-            default -> Comparator.<Product, Long>comparing(Product::getId);
+        int safeSize = Math.min(Math.max(size, 1), 60);
+        org.springframework.data.domain.Sort order = switch (sort == null ? "" : sort) {
+            case "price_asc" -> org.springframework.data.domain.Sort.by("price").ascending();
+            case "price_desc" -> org.springframework.data.domain.Sort.by("price").descending();
+            case "newest" -> org.springframework.data.domain.Sort.by("id").descending();
+            default -> org.springframework.data.domain.Sort.by("id").ascending();
         };
-        all.sort(cmp);
+        String kw = (query == null || query.isBlank()) ? "" : query.trim();
 
-        long total = all.size();
-        int totalPages = (int) Math.max(1, Math.ceil((double) total / size));
-        int safePage = Math.min(Math.max(page, 0), totalPages - 1);
-        int from = safePage * size;
-        int to = Math.min(from + size, all.size());
-        List<Product> pageItems = from <= to ? all.subList(from, to) : List.of();
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(Math.max(page, 0), safeSize, order);
+        org.springframework.data.domain.Page<Product> p = productRepository.search(kw, category, pageable);
 
-        return new ProductSearchResult(pageItems, safePage, totalPages, total);
+        int totalPages = Math.max(1, p.getTotalPages());
+        int safePage = Math.min(p.getNumber(), totalPages - 1);
+        return new ProductSearchResult(p.getContent(), safePage, totalPages, p.getTotalElements());
     }
 
     public Product findById(Long id) {

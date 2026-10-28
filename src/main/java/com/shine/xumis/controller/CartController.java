@@ -77,9 +77,15 @@ public class CartController {
             return res;
         }
         int q = Math.max(1, Math.min(quantity, 99));
-        cartService.add(session, productId, q);
+        int added = cartService.add(session, productId, q);
+        if (added <= 0) {
+            res.put("ok", false);
+            res.put("message", "库存不足，最多可购买 " + p.getStock() + " 件");
+            return res;
+        }
         res.put("ok", true);
         res.put("count", cartService.count(session));
+        res.put("qty", added);
         res.put("name", p.getName());
         return res;
     }
@@ -113,6 +119,7 @@ public class CartController {
     }
 
     @PostMapping("/place")
+    @org.springframework.transaction.annotation.Transactional
     public String place(@RequestParam String customerName,
                         @RequestParam String email,
                         @RequestParam(required = false) String phone,
@@ -124,6 +131,11 @@ public class CartController {
                         Model model) {
         if (cartService.isEmpty(session)) {
             return "redirect:/cart";
+        }
+        // 结算前清理已删除/缺货的条目，避免下出空单
+        cartService.pruneInvalid(session);
+        if (cartService.isEmpty(session)) {
+            return "redirect:/cart?invalid=1";
         }
         Map<Long, Integer> cart = cartService.getCart(session);
         Order order = new Order();
@@ -143,18 +155,35 @@ public class CartController {
         }
 
         BigDecimal total = BigDecimal.ZERO;
+        List<Product> toRestock = new ArrayList<>();
         for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
             Product p = productService.findById(entry.getKey());
             if (p == null) continue;
+            int want = Math.max(1, entry.getValue());
+            int stock = (p.getStock() == null) ? 0 : p.getStock();
+            // 库存不足：按现有库存截断，不够则跳过
+            if (stock <= 0) continue;
+            int qty = Math.min(want, stock);
+
             OrderItem item = new OrderItem();
             item.setProductId(p.getId());
             item.setProductName(p.getName());
             item.setProductNameEn(p.getNameEn());
             item.setPrice(p.getPrice());
-            item.setQuantity(entry.getValue());
+            item.setQuantity(qty);
             item.setImageUrl(p.getImageUrl());
             order.addItem(item);
-            total = total.add(p.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+            total = total.add(p.getPrice().multiply(BigDecimal.valueOf(qty)));
+            // 扣减库存（防超卖）
+            p.setStock(stock - qty);
+            toRestock.add(p);
+        }
+        // 一件都没能下单（理论上不会，兜底保护）
+        if (order.getItems().isEmpty()) {
+            return "redirect:/cart?invalid=1";
+        }
+        for (Product p : toRestock) {
+            productService.save(p);
         }
         // 总额以基准 USD 存储（便于 ERP/财务统一），展示时按币种换算
         order.setTotalAmount(total);
@@ -172,14 +201,17 @@ public class CartController {
     }
 
     private void buildCart(HttpSession session, Model model) {
+        // 展示前先清掉已删除/缺货的条目，避免购物车里出现"幽灵商品"
+        cartService.pruneInvalid(session);
         Map<Long, Integer> cart = cartService.getCart(session);
         List<CartLine> lines = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
             Product p = productService.findById(entry.getKey());
             if (p == null) continue;
-            lines.add(new CartLine(p, entry.getValue()));
-            total = total.add(p.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+            int qty = Math.max(1, entry.getValue());
+            lines.add(new CartLine(p, qty));
+            total = total.add(p.getPrice().multiply(BigDecimal.valueOf(qty)));
         }
         model.addAttribute("lines", lines);
         model.addAttribute("total", total);
@@ -187,7 +219,13 @@ public class CartController {
         model.addAttribute("isEmpty", lines.isEmpty());
     }
 
+    /**
+     * 生成订单号：时间戳 + 3 位随机。
+     * 只用时间戳时，同一秒内的两单会撞号（order_no 有唯一约束）导致第二单入库失败。
+     */
     private String generateOrderNo() {
-        return "SH" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        int rnd = 100 + new java.security.SecureRandom().nextInt(900);
+        return "SH" + stamp + rnd;
     }
 }

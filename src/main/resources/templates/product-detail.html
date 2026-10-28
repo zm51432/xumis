@@ -11,6 +11,7 @@
     <meta property="og:title" th:content="${product.name}"/>
     <meta property="og:type" content="product"/>
     <meta property="og:image" th:content="${product.imageUrl}"/>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
@@ -88,7 +89,8 @@
         </div>
         <p class="muted" th:if="${#lists.isEmpty(reviews)}" th:text="#{review.empty}">暂无评价</p>
 
-        <div class="review-form">
+            <div class="alert-error" th:if="${param.reviewRate != null}" th:text="#{review.rateLimited}">评价提交过于频繁</div>
+<div class="review-form">
             <h4 th:text="#{product.writeReview}">写评价</h4>
             <form action="#" th:action="@{/product/{id}/review(id=${product.id})}" method="post">
                 <input type="text" name="author" th:placeholder="#{review.author}"/>

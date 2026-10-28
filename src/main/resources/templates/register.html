@@ -6,6 +6,7 @@
     <title th:text="${storeName} + ' · ' + #{account.register}">注册</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 

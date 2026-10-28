@@ -8,6 +8,7 @@
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
@@ -17,7 +18,8 @@
 <div class="container section">
     <h2 class="section-title" th:text="#{cart.title}">购物车</h2>
 
-    <div th:if="${isEmpty}" class="empty-cart">
+        <div class="alert-error" th:if="${param.invalid != null}" th:text="#{cart.invalid}">部分商品已下架或缺货，已从购物车移除</div>
+<div th:if="${isEmpty}" class="empty-cart">
         <div class="empty-icon">🛒</div>
         <p class="strong" th:text="#{cart.empty}">购物车还是空的</p>
         <p class="muted" th:text="#{cart.emptyHint}">去挑选喜欢的饰品与手工品吧～</p>

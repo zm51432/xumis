@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${storeName}">shine星心</title>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
@@ -72,6 +73,8 @@
                 <button type="submit" th:text="#{subscribe.button}">订阅</button>
             </form>
             <p class="ok-msg" th:if="${param.subscribed != null}" th:text="#{subscribe.success}">订阅成功</p>
+            <p class="error" th:if="${param.subBad != null}" th:text="#{subscribe.badEmail}">邮箱格式不正确</p>
+            <p class="error" th:if="${param.subRate != null}" th:text="#{subscribe.rateLimited}">订阅过于频繁</p>
         </div>
     </div>
 </footer>

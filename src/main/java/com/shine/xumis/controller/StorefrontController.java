@@ -51,10 +51,13 @@ public class StorefrontController {
     }
 
     @GetMapping("/product/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, Model model,
+                         jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
         Product p = productService.findById(id);
         if (p == null) {
-            return "redirect:/products";
+            // 商品不存在：返回真正的 404（而不是 200 空白页，利于 SEO 与监控）
+            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND);
+            return null;
         }
         model.addAttribute("product", p);
         model.addAttribute("reviews", reviewService.approvedFor(p));

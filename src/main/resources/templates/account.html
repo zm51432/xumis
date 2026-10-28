@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
@@ -21,7 +22,9 @@
         </div>
         <div class="admin-head-actions">
             <a class="btn btn-ghost btn-sm" th:href="@{/products}" th:text="#{cart.continue}">继续购物</a>
-            <a class="btn btn-ghost btn-sm" th:href="@{/logout}" th:text="#{account.logout}">退出登录</a>
+            <form method="post" th:action="@{/logout}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{account.logout}">退出登录</button>
+            </form>
         </div>
     </div>
 

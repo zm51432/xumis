@@ -109,7 +109,12 @@ public class AdminController {
         if (!me.canWrite()) {
             return "redirect:/admin?denied=1";
         }
-        orderService.updateStatus(id, status);
+        // 状态白名单：避免被塞入任意值导致前台状态徽章/i18n 取不到文案
+        String s = (status == null) ? "" : status.trim().toUpperCase();
+        if (!List.of("PENDING", "PAID", "SHIPPED", "DONE", "CANCELLED").contains(s)) {
+            return "redirect:/admin?err=" + urlEncode("非法的订单状态：" + status);
+        }
+        orderService.updateStatus(id, s);
         return "redirect:/admin";
     }
 
