@@ -420,3 +420,27 @@ tr:hover td { background: #fbfefc; }
   .img-edit { grid-template-columns: 1fr; }
   .img-preview-box { margin-bottom: 6px; }
 }
+
+/* ===== 面包屑 ===== */
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); padding: 18px 0 4px; }
+.breadcrumb a { color: var(--mint-deep); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: #c9d6cf; }
+.breadcrumb .current { color: var(--ink); font-weight: 600; }
+
+/* ===== 低库存标签 ===== */
+.tag.low { background: #fff1ec; color: #e0683c; border: 1px solid #f6d3c4; }
+
+/* ===== 到货通知 ===== */
+.restock { margin: 14px 0 4px; padding: 14px 16px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; }
+.restock .inline-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.restock input[type=email] { flex: 1; min-width: 180px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.restock .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* ===== 价格区间筛选 ===== */
+.price-input { width: 84px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.pm-sep { color: var(--muted); }
+
+/* ===== 相关推荐 ===== */
+.related { margin-top: 36px; }
+.related h3 { font-size: 18px; margin: 0 0 14px; }

@@ -8,15 +8,25 @@
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
+    <link rel="canonical" th:href="${siteBaseUrl} + '/product/' + ${product.id}"/>
     <meta property="og:title" th:content="${product.name}"/>
     <meta property="og:type" content="product"/>
-    <meta property="og:image" th:content="${product.imageUrl}"/>
+    <meta property="og:url" th:content="${siteBaseUrl} + '/product/' + ${product.id}"/>
+    <meta property="og:image" th:content="${siteBaseUrl} + ${product.imageUrl}"/>
+    <meta property="og:description" th:content="${product.description}"/>
     <meta name="_csrf" th:content="${csrf}"/>
 </head>
 <body>
 
 <div th:replace="~{fragments :: nav}"></div>
 <div th:replace="~{fragments :: mobilenav}"></div>
+
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a th:href="@{/}" th:text="#{nav.home}">首页</a><span class="sep">/</span>
+    <a th:href="@{/products}" th:text="#{nav.products}">商品</a><span class="sep">/</span>
+    <a th:href="@{/products(cat=${product.category})}" th:text="${product.category.label}">分类</a><span class="sep">/</span>
+    <span class="current" th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</span>
+</nav>
 
 <div class="container section">
     <div class="detail" th:if="${product != null}">
@@ -33,8 +43,11 @@
                     <span th:text="${product.category.label}">饰品</span></li>
                 <li><strong th:text="#{product.material}">材质</strong>：
                     <span th:text="${product.material}">—</span></li>
-                <li><strong th:text="#{product.stock}">库存</strong>：
-                    <span th:text="${product.stock}">0</span></li>
+                <li th:if="${product.stock != null and product.stock > 0}"><strong th:text="#{product.stock}">库存</strong>：
+                    <span th:if="${product.stock <= 10}" th:text="#{product.lowStock(${product.stock})}">仅剩 N 件</span>
+                    <span th:if="${product.stock > 10}" th:text="#{product.inStock}">现货充足</span></li>
+                <li th:if="${product.stock == null or product.stock <= 0}"><strong th:text="#{product.stock}">库存</strong>：
+                    <span th:text="#{product.outOfStock}">暂时缺货</span></li>
                 <li th:if="${product.customizable}">
                     <span class="tag custom" th:text="#{product.customizable}">支持来图定制</span></li>
             </ul>
@@ -66,6 +79,17 @@
                 </form>
             </noscript>
 
+            <!-- 到货通知：缺货时引导留邮箱，避免流失 -->
+            <div class="restock" th:if="${product.stock == null or product.stock <= 0}">
+                <p class="muted" th:text="#{product.restockHint}">此商品暂时缺货，留下邮箱，到货第一时间通知你。</p>
+                <form action="#" th:action="@{/product/{id}/restock(id=${product.id})}" method="post" class="inline-form">
+                    <input type="email" name="email" required th:placeholder="#{product.restockEmail}"/>
+                    <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+                    <button class="btn btn-sm" type="submit" th:text="#{product.restockBtn}">到货通知</button>
+                </form>
+                <p class="ok-msg" th:if="${param.restock != null}" th:text="#{product.restockOk}">已登记</p>
+            </div>
+
             <div class="btn-row" style="justify-content:flex-start;margin-top:10px;">
                 <a class="btn btn-ghost" th:if="${product.customizable}" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
                 <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
@@ -75,6 +99,23 @@
     <div th:if="${product == null}">
         <p>商品不存在。</p>
         <a class="btn" th:href="@{/products}" th:text="#{nav.products}">返回商品</a>
+    </div>
+
+    <!-- 相关推荐：同分类其它商品，降低跳出、带动连带购买 -->
+    <div class="related reveal" th:if="${not #lists.isEmpty(related)}">
+        <h3 th:text="#{product.related}">相关推荐</h3>
+        <div class="grid">
+            <div class="card" th:each="r : ${related}">
+                <a th:href="@{/product/{id}(id=${r.id})}">
+                    <img th:src="${r.imageUrl}" alt="" loading="lazy" onerror="imgFallback(this)"/>
+                </a>
+                <div class="card-body">
+                    <h3 th:text="${#locale.language == 'en' ? r.nameEn : r.name}">商品</h3>
+                    <span class="tag" th:text="${r.category.label}">分类</span>
+                    <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(r.price.multiply(fxRate),1,2)}">$0.00</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 评价区 -->
@@ -115,7 +156,7 @@
   "@context": "https://schema.org/",
   "@type": "Product",
   "name": "[[${product.name}]]",
-  "image": "[[${product.imageUrl}]]",
+  "image": "[[${siteBaseUrl} + ${product.imageUrl}]]",
   "description": "[[${product.description}]]",
   "offers": {
     "@type": "Offer",

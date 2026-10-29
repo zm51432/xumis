@@ -15,6 +15,11 @@
 <div th:replace="~{fragments :: nav}"></div>
 <div th:replace="~{fragments :: mobilenav}"></div>
 
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a th:href="@{/}" th:text="#{nav.home}">首页</a><span class="sep">/</span>
+    <span class="current" th:text="#{nav.products}">商品</span>
+</nav>
+
 <div class="container section">
     <h2 class="section-title reveal" th:text="#{products.title}">全部商品</h2>
     <p class="sub" th:text="#{products.subtitle}">饰品 · 手工品 · 来图定制</p>
@@ -22,7 +27,14 @@
     <!-- 搜索 + 排序 -->
     <div class="toolbar">
         <form class="toolbar-search" action="/products" method="get">
+            <input type="hidden" name="cat" th:value="${activeCat}"/>
+            <input type="hidden" name="sort" th:value="${sort}"/>
             <input type="text" name="q" th:value="${q}" th:placeholder="#{search.placeholder}"/>
+            <input class="price-input" type="number" name="priceMin" step="0.01" min="0"
+                   th:value="${pmin}" th:placeholder="#{products.priceMin}"/>
+            <span class="pm-sep">–</span>
+            <input class="price-input" type="number" name="priceMax" step="0.01" min="0"
+                   th:value="${pmax}" th:placeholder="#{products.priceMax}"/>
             <button type="submit" th:text="#{search.button}">搜索</button>
         </form>
         <div class="toolbar-sort">
@@ -55,6 +67,7 @@
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
                 <span class="tag custom" th:if="${p.customizable}" th:text="#{home.customizable}">支持来图定制</span>
+                <span class="tag low" th:if="${p.stock != null and p.stock > 0 and p.stock <= 10}" th:text="#{products.lowStock(${p.stock})}">仅剩 N 件</span>
                 <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
                 <div class="card-actions">
                     <a class="btn btn-ghost btn-sm" th:href="@{/product/{id}(id=${p.id})}" th:text="#{product.viewDetail}">查看详情</a>
@@ -79,10 +92,10 @@
     <!-- 分页 -->
     <div class="pager" th:if="${totalPages > 1}">
         <a class="pager-btn" th:if="${page > 0}"
-           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page-1})}" th:text="#{pagination.prev}">上一页</a>
+           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page-1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.prev}">上一页</a>
         <span class="pager-info" th:text="(${page+1}) + ' / ' + ${totalPages}">1 / 1</span>
         <a class="pager-btn" th:if="${page < totalPages-1}"
-           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page+1})}" th:text="#{pagination.next}">下一页</a>
+           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page+1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.next}">下一页</a>
     </div>
 </div>
 

@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByFeaturedTrue(Pageable pageable);
 
     /**
-     * 关键字 + 分类的**数据库侧**分页查询。
+     * 关键字 + 分类 + 价格区间的**数据库侧**分页查询。
      * 之前是 findAll() 全表读进内存再过滤排序，商品规模一大就会明显变慢且吃内存。
      */
     @Query("SELECT p FROM Product p WHERE " +
@@ -29,6 +29,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             " LOWER(COALESCE(p.nameEn, '')) LIKE LOWER(CONCAT('%', :kw, '%')) OR " +
             " LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :kw, '%')) OR " +
             " LOWER(COALESCE(p.descriptionEn, '')) LIKE LOWER(CONCAT('%', :kw, '%'))) " +
-            "AND (:cat IS NULL OR p.category = :cat)")
-    Page<Product> search(@Param("kw") String kw, @Param("cat") Category cat, Pageable pageable);
+            "AND (:cat IS NULL OR p.category = :cat) " +
+            "AND (:priceMin IS NULL OR p.price >= :priceMin) " +
+            "AND (:priceMax IS NULL OR p.price <= :priceMax)")
+    Page<Product> search(@Param("kw") String kw, @Param("cat") Category cat,
+                         @Param("priceMin") java.math.BigDecimal priceMin,
+                         @Param("priceMax") java.math.BigDecimal priceMax,
+                         Pageable pageable);
 }

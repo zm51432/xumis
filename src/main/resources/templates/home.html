@@ -12,6 +12,8 @@
     <meta name="theme-color" content="#7fc5ac"/>
     <meta property="og:title" th:content="${storeName}"/>
     <meta property="og:type" content="website"/>
+    <meta property="og:url" th:content="${siteBaseUrl} + '/'"/>
+    <meta property="og:image" th:if="${not #lists.isEmpty(featured)}" th:content="${siteBaseUrl} + ${featured[0].imageUrl}"/>
     <meta property="og:description" th:content="#{home.subtitle}"/>
     <meta name="_csrf" th:content="${csrf}"/>
 </head>

@@ -4,6 +4,7 @@ import com.shine.xumis.config.AppProperties;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.service.CartService;
 import com.shine.xumis.service.CurrencyService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,10 +31,14 @@ public class GlobalModelAdvice {
     }
 
     @ModelAttribute
-    public void populateGlobal(HttpSession session, Model model) {
+    public void populateGlobal(HttpSession session, HttpServletRequest request, Model model) {
         model.addAttribute("storeName", STORE_NAME);
         model.addAttribute("storeNameEn", STORE_NAME_EN);
         model.addAttribute("categories", Arrays.asList(Category.values()));
+
+        // 站点绝对基址：供 OG / 结构化数据 / canonical 生成绝对地址，
+        // 否则社交分享与搜索引擎拿到的会是相对路径，图片与链接失效。
+        model.addAttribute("siteBaseUrl", siteBaseUrl(request));
 
         // 多币种：从 session 读取用户选择，缺省用默认币种
         String selected = (String) session.getAttribute("CURRENCY");
@@ -54,5 +59,17 @@ public class GlobalModelAdvice {
         if (u instanceof com.shine.xumis.model.UserAccount user) {
             model.addAttribute("user", user);
         }
+    }
+
+    /** 根据请求拼出站点绝对基址（与 SeoController.baseUrl 保持一致） */
+    private String siteBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme();
+        String host = request.getServerName();
+        int port = request.getServerPort();
+        String base = scheme + "://" + host;
+        if (!((scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443))) {
+            base += ":" + port;
+        }
+        return base;
     }
 }

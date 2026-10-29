@@ -3,12 +3,16 @@ package com.shine.xumis.controller;
 import com.shine.xumis.dto.ProductSearchResult;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
+import com.shine.xumis.model.RestockRequest;
+import com.shine.xumis.repository.RestockRepository;
 import com.shine.xumis.service.ProductService;
 import com.shine.xumis.service.ReviewService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -19,10 +23,13 @@ public class StorefrontController {
 
     private final ProductService productService;
     private final ReviewService reviewService;
+    private final RestockRepository restockRepository;
 
-    public StorefrontController(ProductService productService, ReviewService reviewService) {
+    public StorefrontController(ProductService productService, ReviewService reviewService,
+                               RestockRepository restockRepository) {
         this.productService = productService;
         this.reviewService = reviewService;
+        this.restockRepository = restockRepository;
     }
 
     @GetMapping("/")
@@ -37,17 +44,33 @@ public class StorefrontController {
                            @RequestParam(value = "q", required = false) String q,
                            @RequestParam(value = "sort", defaultValue = "default") String sort,
                            @RequestParam(value = "page", defaultValue = "0") int page,
+                           @RequestParam(value = "priceMin", required = false) String priceMinStr,
+                           @RequestParam(value = "priceMax", required = false) String priceMaxStr,
                            Model model) {
         int size = 12;
-        ProductSearchResult result = productService.search(q, cat, sort, page, size);
+        java.math.BigDecimal priceMin = parsePrice(priceMinStr);
+        java.math.BigDecimal priceMax = parsePrice(priceMaxStr);
+        ProductSearchResult result = productService.search(q, cat, sort, page, size, priceMin, priceMax);
         model.addAttribute("products", result.getItems());
         model.addAttribute("activeCat", cat);
         model.addAttribute("q", q == null ? "" : q);
         model.addAttribute("sort", sort);
+        model.addAttribute("pmin", priceMinStr == null ? "" : priceMinStr);
+        model.addAttribute("pmax", priceMaxStr == null ? "" : priceMaxStr);
         model.addAttribute("page", result.getPage());
         model.addAttribute("totalPages", result.getTotalPages());
         model.addAttribute("totalItems", result.getTotalItems());
         return "products";
+    }
+
+    private java.math.BigDecimal parsePrice(String s) {
+        if (s == null || s.isBlank()) return null;
+        try {
+            java.math.BigDecimal v = new java.math.BigDecimal(s.trim());
+            return v.compareTo(java.math.BigDecimal.ZERO) < 0 ? null : v;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @GetMapping("/product/{id}")
@@ -63,6 +86,7 @@ public class StorefrontController {
         model.addAttribute("reviews", reviewService.approvedFor(p));
         model.addAttribute("avgRating", reviewService.avgRating(p));
         model.addAttribute("reviewCount", reviewService.approvedFor(p).size());
+        model.addAttribute("related", productService.findRelated(p, 4));
         return "product-detail";
     }
 
@@ -70,5 +94,28 @@ public class StorefrontController {
     public String orderSuccess(@RequestParam(value = "no", required = false) String orderNo, Model model) {
         model.addAttribute("orderNo", orderNo);
         return "order-success";
+    }
+
+    /**
+     * 到货通知登记：缺货商品下方留邮箱。含蜜罐字段 company 防机器人；
+     * 邮箱格式校验失败则静默忽略，避免被滥用。
+     */
+    @PostMapping("/product/{id}/restock")
+    public String restock(@PathVariable Long id,
+                          @RequestParam String email,
+                          @RequestParam(required = false) String company,
+                          HttpServletRequest request) {
+        // 蜜罐：机器人通常会填隐藏字段，直接放行（当成功处理）但不落库
+        if (company != null && !company.isBlank()) {
+            return "redirect:/product/" + id + "?restock=1";
+        }
+        Product p = productService.findById(id);
+        if (p != null && email != null && email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            RestockRequest r = new RestockRequest();
+            r.setProductId(id);
+            r.setEmail(email.trim().toLowerCase());
+            restockRepository.save(r);
+        }
+        return "redirect:/product/" + id + "?restock=1";
     }
 }

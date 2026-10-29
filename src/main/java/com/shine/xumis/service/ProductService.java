@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +60,16 @@ public class ProductService {
      */
     public ProductSearchResult search(String query, Category category, String sort,
                                       int page, int size) {
+        return search(query, category, sort, page, size, null, null);
+    }
+
+    /**
+     * 商品搜索 + 分类 + 价格区间 + 排序 + 分页。
+     * 价格区间用于前台「预算筛选」，避免买家在大量商品里逐页翻找。
+     */
+    public ProductSearchResult search(String query, Category category, String sort,
+                                      int page, int size,
+                                      java.math.BigDecimal priceMin, java.math.BigDecimal priceMax) {
         int safeSize = Math.min(Math.max(size, 1), 60);
         org.springframework.data.domain.Sort order = switch (sort == null ? "" : sort) {
             case "price_asc" -> org.springframework.data.domain.Sort.by("price").ascending();
@@ -70,11 +81,25 @@ public class ProductService {
 
         org.springframework.data.domain.Pageable pageable =
                 org.springframework.data.domain.PageRequest.of(Math.max(page, 0), safeSize, order);
-        org.springframework.data.domain.Page<Product> p = productRepository.search(kw, category, pageable);
+        org.springframework.data.domain.Page<Product> p = productRepository.search(kw, category, priceMin, priceMax, pageable);
 
         int totalPages = Math.max(1, p.getTotalPages());
         int safePage = Math.min(p.getNumber(), totalPages - 1);
         return new ProductSearchResult(p.getContent(), safePage, totalPages, p.getTotalElements());
+    }
+
+    /** 相关推荐：同分类、排除自身，补足到 limit 件（优先同分类，其次精选） */
+    public List<Product> findRelated(Product p, int limit) {
+        List<Product> same = productRepository.findByCategory(p.getCategory()).stream()
+                .filter(x -> !x.getId().equals(p.getId())).collect(Collectors.toList());
+        if (same.size() >= limit) return same.subList(0, limit);
+        List<Product> featured = productRepository.findByFeaturedTrue().stream()
+                .filter(x -> !x.getId().equals(p.getId())
+                        && same.stream().noneMatch(s -> s.getId().equals(x.getId())))
+                .limit(limit - same.size()).collect(Collectors.toList());
+        List<Product> out = new ArrayList<>(same);
+        out.addAll(featured);
+        return out;
     }
 
     public Product findById(Long id) {
