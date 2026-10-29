@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta name="color-scheme" content="light"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title th:text="${storeName} + ' · ' + #{account.authTitle}">登录 / 注册</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="form-wrap auth-wrap">
+        <h2 class="section-title" th:text="#{account.authTitle}">登录 / 注册</h2>
+        <p class="sub" th:text="#{account.authDesc}">一个账号即可保存收货信息、随时查看订单进度</p>
+
+        <!-- 标签切换：登录 / 注册 -->
+        <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab" data-tab="login"
+                    th:classappend="${tab == 'register'} ? '' : 'is-active'"
+                    th:text="#{account.login}">登录</button>
+            <button type="button" class="auth-tab" data-tab="register"
+                    th:classappend="${tab == 'register'} ? 'is-active' : ''"
+                    th:text="#{account.register}">注册</button>
+        </div>
+
+        <!-- 登录面板 -->
+        <div class="auth-panel" id="panel-login"
+             th:classappend="${tab == 'register'} ? 'is-hidden' : ''">
+            <div class="alert-error" th:if="${loginError}" th:text="#{account.loginError}">邮箱或密码不正确</div>
+            <div class="alert-error" th:if="${lockedSeconds != null}"
+                 th:text="${lockedSeconds} + ' ' + #{account.locked}">尝试过于频繁，请稍后再试</div>
+            <div class="alert-success" th:if="${param.registered != null}" th:text="#{account.registered}">注册成功</div>
+
+            <form method="post" th:action="@{/login}">
+                <input type="hidden" name="redirect" th:value="${redirectTo}"/>
+                <div class="field">
+                    <label th:text="#{checkout.email}">邮箱</label>
+                    <input type="email" name="email" required th:value="${email}" autocomplete="email"
+                           th:autofocus="${tab != 'register'}"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{admin.password}">密码</label>
+                    <input type="password" name="password" required autocomplete="current-password"/>
+                </div>
+                <button class="btn btn-block" type="submit" th:text="#{account.login}">登录</button>
+            </form>
+
+            <p class="muted small auth-foot">
+                <a th:href="@{/forgot-password}" th:text="#{account.forgotPwd}">忘记密码</a>
+                <span style="margin:0 8px;">·</span>
+                <a th:href="@{/order/track}" th:text="#{nav.track}">订单查询</a>
+            </p>
+        </div>
+
+        <!-- 注册面板 -->
+        <div class="auth-panel" id="panel-register"
+             th:classappend="${tab == 'register'} ? '' : 'is-hidden'">
+            <div class="alert-error" th:if="${regError == 'badEmail'}" th:text="#{account.badEmail}">邮箱格式不正确</div>
+            <div class="alert-error" th:if="${regError == 'weakPassword'}" th:text="#{account.weakPassword}">密码至少 8 位</div>
+            <div class="alert-error" th:if="${regError == 'pwdMismatch'}" th:text="#{account.pwdMismatch}">两次输入的密码不一致</div>
+            <div class="alert-error" th:if="${regError == 'dupEmail'}" th:text="#{account.dupEmail}">该邮箱已注册，请直接登录</div>
+
+            <form method="post" th:action="@{/register}" onsubmit="return checkRegisterForm(this)">
+                <input type="hidden" name="redirect" th:value="${redirectTo}"/>
+                <div class="field">
+                    <label th:text="#{checkout.email}">邮箱</label>
+                    <input type="email" name="email" required th:value="${email}" autocomplete="email"
+                           th:autofocus="${tab == 'register'}"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{account.nickname}">称呼</label>
+                    <input type="text" name="name" th:value="${name}" autocomplete="name"/>
+                </div>
+                <div class="field">
+                    <label th:text="#{admin.password}">密码</label>
+                    <input type="password" name="password" required minlength="8" autocomplete="new-password"/>
+                    <p class="hint" th:text="#{account.passwordHint}">至少 8 位</p>
+                </div>
+                <div class="field">
+                    <label th:text="#{account.confirmPassword}">确认密码</label>
+                    <input type="password" name="confirmPassword" required minlength="8" autocomplete="new-password"/>
+                </div>
+                <p class="alert-error" id="pwdMismatch" style="display:none;"
+                   th:text="#{account.pwdMismatch}">两次输入的密码不一致</p>
+                <button class="btn btn-block" type="submit" th:text="#{account.register}">注册</button>
+            </form>
+
+            <p class="muted small auth-foot" th:text="#{account.termsNote}">注册即表示同意本站服务条款与隐私政策</p>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+<script>
+    // 标签切换：不刷新页面，同时把 ?tab= 同步到地址栏，便于刷新/分享后停在同一个面板
+    (function () {
+        var tabs = document.querySelectorAll('.auth-tab');
+        var panels = {login: document.getElementById('panel-login'), register: document.getElementById('panel-register')};
+
+        function activate(name, syncUrl) {
+            if (!panels[name]) return;
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.toggle('is-active', tabs[i].getAttribute('data-tab') === name);
+            }
+            Object.keys(panels).forEach(function (k) {
+                panels[k].classList.toggle('is-hidden', k !== name);
+            });
+            if (syncUrl && window.history && history.replaceState) {
+                var url = new URL(location.href);
+                url.searchParams.set('tab', name);
+                history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }
+            var first = panels[name].querySelector('input:not([type=hidden])');
+            if (first) first.focus();
+        }
+
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].addEventListener('click', function () {
+                activate(this.getAttribute('data-tab'), true);
+            });
+        }
+
+        // 带错误返回时优先停在出错的面板（如「邮箱已注册」应停在注册页）
+        var initial = document.querySelector('.auth-tab.is-active');
+        if (!initial) activate('login', false);
+    })();
+
+    // 前端先拦一次密码不一致，减少无意义往返；服务端仍会二次校验
+    function checkRegisterForm(f) {
+        var p = f.password.value, c = f.confirmPassword.value;
+        var box = document.getElementById('pwdMismatch');
+        if (p !== c) {
+            if (box) box.style.display = 'block';
+            f.confirmPassword.focus();
+            return false;
+        }
+        if (box) box.style.display = 'none';
+        return true;
+    }
+</script>
+</body>
+</html>
