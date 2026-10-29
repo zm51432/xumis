@@ -1,6 +1,58 @@
 # 变更记录 CHANGELOG
 
-## 2026-10-30 — 销售统计 / 支付渠道 / 首页定制区块改版 / 导航精简
+## 2026-10-30（第二次）— 登录与注册合并为一个页面
+
+**目标**：把原来分开的 `/login` 与 `/register` 两个页面合并成一个带「登录 / 注册」标签切换的页面，减少一次跳转。
+
+### 新增
+
+- `templates/auth.html`：合并页。顶部胶囊式标签（登录 / 注册）+ 两个面板，登录面板含邮箱、密码、忘记密码、订单查询；注册面板含邮箱、称呼、密码（≥8 位提示）、确认密码、条款说明。
+- 样式（`static/css/style.css`）：`.auth-wrap` / `.auth-tabs` / `.auth-tab(.is-active)` / `.auth-panel.is-hidden` / `.auth-foot`，沿用项目原有的米绿配色与圆角。
+
+### 路由与行为
+
+| 地址 | 行为 |
+|---|---|
+| `GET /login` | 渲染合并页，默认停在**登录**标签 |
+| `GET /login?tab=register` | 渲染合并页，直接停在**注册**标签 |
+| `GET /register` | 渲染合并页，默认停在**注册**标签（旧链接继续可用，不做 302，避免多一跳） |
+| `POST /login` | 逻辑不变；失败/锁定后回到**登录**标签并提示 |
+| `POST /register` | 逻辑不变；校验失败后回到**注册**标签，保留已填邮箱与称呼 |
+
+- 标签切换用前端 JS（无刷新），同时把 `?tab=` 写回地址栏，刷新或分享链接后仍停在同一个面板。
+- 无 JS 时由服务端决定显示哪个面板，两个表单都能正常提交。
+- 两个表单都保留 `redirect` 隐藏域，`/login?redirect=/account` 这类回跳逻辑不受影响。
+
+### 后端改动（`controller/AccountController.java`）
+
+- `registerPage` / `loginPage` 返回视图改为 `auth`，并注入 `tab`（login / register）；`loginPage` 新增可选参数 `tab`。
+- 错误属性改名，避免两个面板互相干扰：
+  - 登录失败 → `loginError`（布尔）
+  - 注册失败 → `regError`（`badEmail` / `weakPassword` / `pwdMismatch` / `dupEmail`）
+- 注册失败分支补上 `redirectTo` 回填（此前会丢失，回跳会退化成 `/account`）。
+
+### 删除
+
+- `templates/login.html`、`templates/register.html`（已被 `auth.html` 取代）。
+
+### i18n
+
+- 新增 `account.authTitle`（登录 / 注册）、`account.authDesc`（一个账号即可保存收货信息…），三个语言文件同步。
+
+### 缓存版本
+
+- 样式版本号 `?v=20261030b` → `?v=20261030c`（21 个模板同步更新）。
+
+### 验证
+
+- `GET /login`、`GET /register`、`GET /login?tab=register` 均 200，标签选中态正确。
+- 错误密码提交：200，回到登录标签，提示「邮箱或密码不正确」，邮箱已回填。
+- 注册两次密码不一致提交：200，回到注册标签，提示「两次输入的密码不一致」，称呼已回填。
+- 已登录用户访问 `/login`、`/register` 仍 302 跳 `/account`。
+
+---
+
+## 2026-10-30（第一次）— 销售统计 / 支付渠道 / 首页定制区块改版 / 导航精简
 
 本次改动已上线：<https://shine.xumois.cn/>。构建方式：`mvn -o clean package -DskipTests`（JDK 17），产物 `target/shine-xumis.jar`。
 

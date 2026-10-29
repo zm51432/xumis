@@ -52,7 +52,9 @@ public class AccountController {
             return "redirect:/account";
         }
         model.addAttribute("redirectTo", redirect);
-        return "register";
+        // 登录/注册已合并在同一页面，这里默认停在「注册」标签
+        model.addAttribute("tab", "register");
+        return "auth";
     }
 
     @PostMapping("/register")
@@ -64,29 +66,39 @@ public class AccountController {
                            HttpServletRequest request,
                            Model model) {
         if (email == null || !email.contains("@")) {
-            model.addAttribute("error", "badEmail");
-            return "register";
-        }
-        if (password == null || password.length() < 8) {
-            model.addAttribute("error", "weakPassword");
+            model.addAttribute("regError", "badEmail");
+            model.addAttribute("tab", "register");
+            model.addAttribute("redirectTo", redirect);
             model.addAttribute("email", email);
             model.addAttribute("name", name);
-            return "register";
+            return "auth";
+        }
+        if (password == null || password.length() < 8) {
+            model.addAttribute("regError", "weakPassword");
+            model.addAttribute("tab", "register");
+            model.addAttribute("redirectTo", redirect);
+            model.addAttribute("email", email);
+            model.addAttribute("name", name);
+            return "auth";
         }
         // 二次校验：前端校验可被绕过，服务端必须自己确认两次输入一致
         if (confirmPassword == null || !confirmPassword.equals(password)) {
-            model.addAttribute("error", "pwdMismatch");
+            model.addAttribute("regError", "pwdMismatch");
+            model.addAttribute("tab", "register");
+            model.addAttribute("redirectTo", redirect);
             model.addAttribute("email", email);
             model.addAttribute("name", name);
-            return "register";
+            return "auth";
         }
         var created = userService.register(email, password, name,
                 com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"));
         if (created.isEmpty()) {
-            model.addAttribute("error", "dupEmail");
+            model.addAttribute("regError", "dupEmail");
+            model.addAttribute("tab", "register");
+            model.addAttribute("redirectTo", redirect);
             model.addAttribute("email", email);
             model.addAttribute("name", name);
-            return "register";
+            return "auth";
         }
         // 注册成功即登录：更换 Session ID，避免会话固定
         request.changeSessionId();
@@ -102,12 +114,15 @@ public class AccountController {
     @GetMapping("/login")
     public String loginPage(HttpSession session,
                             @RequestParam(value = "redirect", required = false) String redirect,
+                            @RequestParam(value = "tab", required = false) String tab,
                             Model model) {
         if (currentUser(session) != null) {
             return "redirect:/account";
         }
         model.addAttribute("redirectTo", redirect);
-        return "login";
+        // 支持 /login?tab=register 直接停在注册标签
+        model.addAttribute("tab", "register".equalsIgnoreCase(tab) ? "register" : "login");
+        return "auth";
     }
 
     @PostMapping("/login")
@@ -118,21 +133,23 @@ public class AccountController {
                         Model model) {
         String key = "user:" + ((email == null) ? "" : email.trim().toLowerCase());
         if (attemptService.isLocked(key)) {
-            model.addAttribute("error", true);
+            model.addAttribute("loginError", true);
             model.addAttribute("lockedSeconds", attemptService.remainingSeconds(key));
             model.addAttribute("email", email);
             model.addAttribute("redirectTo", redirect);
-            return "login";
+            model.addAttribute("tab", "login");
+            return "auth";
         }
 
         var u = userService.login(email, password,
                 com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"));
         if (u.isEmpty()) {
             attemptService.recordFailure(key);
-            model.addAttribute("error", true);
+            model.addAttribute("loginError", true);
             model.addAttribute("email", email);
             model.addAttribute("redirectTo", redirect);
-            return "login";
+            model.addAttribute("tab", "login");
+            return "auth";
         }
         attemptService.recordSuccess(key);
 

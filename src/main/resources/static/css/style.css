@@ -259,6 +259,25 @@ h1, h2, h3 { font-family: "Quicksand", "PingFang SC", "Microsoft YaHei", sans-se
 }
 .form-wrap { max-width: 640px; margin: 0 auto; padding: 34px; }
 .panel { padding: 26px 28px; margin-bottom: 26px; }
+
+/* ===== 登录 / 注册合并页 ===== */
+.auth-wrap { max-width: 460px; }
+.auth-tabs {
+  display: flex; gap: 6px; padding: 5px; margin: 4px 0 22px;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px;
+}
+.auth-tab {
+  flex: 1; padding: 10px 12px; border: none; background: transparent; border-radius: 999px;
+  font-family: inherit; font-size: 14px; font-weight: 800; color: var(--muted);
+  cursor: pointer; transition: .18s;
+}
+.auth-tab:hover { color: var(--mint-deep); }
+.auth-tab.is-active {
+  background: #fff; color: var(--mint-deep); box-shadow: var(--shadow-sm);
+}
+.auth-panel.is-hidden { display: none; }
+.auth-foot { text-align: center; margin-top: 16px; }
+/* 无 JS 时由服务端决定显示哪个面板（/login 或 /register），仍可正常提交 */
 .field { margin-bottom: 16px; }
 .field label { display: block; font-weight: 700; margin-bottom: 7px; font-size: 14px; }
 .field .sub-label { font-size: 13px; color: var(--muted); font-weight: 700; }
