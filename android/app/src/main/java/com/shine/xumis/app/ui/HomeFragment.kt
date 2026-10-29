@@ -12,6 +12,7 @@ import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.FragmentHomeBinding
 import com.shine.xumis.app.model.MobileProduct
 import com.shine.xumis.app.ui.adapter.ProductAdapter
+import com.shine.xumis.app.util.CatalogCache
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -40,11 +41,25 @@ class HomeFragment : Fragment() {
                 val page = ApiClient.api().products(0, 30)
                 val list = page.content ?: emptyList()
                 adapter.submit(list)
+                binding.tvOffline.visibility = View.GONE
                 binding.btnRetry.visibility = View.GONE
+                if (list.isNotEmpty()) CatalogCache.save(requireContext(), list)
                 if (list.isEmpty()) Toast.makeText(requireContext(), "暂无商品，请确认后端已初始化", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                binding.btnRetry.visibility = View.VISIBLE
-                Toast.makeText(requireContext(), "加载失败：${e.message}", Toast.LENGTH_LONG).show()
+                // 网络不可用：回退到上次成功拉取的商品快照，而不是一片空白
+                val snapshot = CatalogCache.load(requireContext())
+                if (snapshot != null && snapshot.items.isNotEmpty()) {
+                    adapter.submit(snapshot.items)
+                    binding.tvOffline.visibility = View.VISIBLE
+                    binding.tvOffline.text =
+                        "离线数据 · 展示 ${snapshot.items.size} 件缓存的商品（" +
+                            CatalogCache.savedAtText(requireContext()) + " 更新），联网后下拉刷新"
+                    binding.btnRetry.visibility = View.GONE
+                } else {
+                    binding.tvOffline.visibility = View.GONE
+                    binding.btnRetry.visibility = View.VISIBLE
+                    Toast.makeText(requireContext(), "加载失败：${e.message}", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 binding.swipe.isRefreshing = false
             }

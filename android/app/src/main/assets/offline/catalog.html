@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>shine 星心 · 离线商品册</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="appbar">
+  <div class="logo">✦</div>
+  <div class="brand">离线商品册<small>Offline Catalog</small></div>
+</div>
+
+<div class="wrap">
+
+  <div class="note">
+    这是随 App 打包的商品快照（共 12 件，生成于 2026-10-30）。联网后回到首页可获取最新价格与库存。
+  </div>
+
+  <div class="grid" id="grid">
+    <div class="item" data-idx="0">
+      <img src="img/p01_necklace_star_heart.png" alt="星心项链" loading="lazy">
+      <div class="body">
+        <div class="name">星心项链</div>
+        <div class="price">$19.90</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="1">
+      <img src="img/p02_earrings_shell_pearl.png" alt="贝珠耳环" loading="lazy">
+      <div class="body">
+        <div class="name">贝珠耳环</div>
+        <div class="price">$12.50</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="2">
+      <img src="img/p03_bracelet_woven.png" alt="编织友谊手链" loading="lazy">
+      <div class="body">
+        <div class="name">编织友谊手链</div>
+        <div class="price">$8.80</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="3">
+      <img src="img/p04_ring_silver_heart.png" alt="银质心戒" loading="lazy">
+      <div class="body">
+        <div class="name">银质心戒</div>
+        <div class="price">$15.00</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="4">
+      <img src="img/p05_necklace_moonstone.png" alt="月光石项链" loading="lazy">
+      <div class="body">
+        <div class="name">月光石项链</div>
+        <div class="price">$21.00</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="5">
+      <img src="img/p06_mug_ceramic.png" alt="手作陶杯" loading="lazy">
+      <div class="body">
+        <div class="name">手作陶杯</div>
+        <div class="price">$22.00</div>
+        <div class="tag">手工品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="6">
+      <img src="img/p07_scarf_silk.png" alt="手绘真丝丝巾" loading="lazy">
+      <div class="body">
+        <div class="name">手绘真丝丝巾</div>
+        <div class="price">$28.00</div>
+        <div class="tag">手工品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="7">
+      <img src="img/p08_doll_crochet.png" alt="钩针兔玩偶" loading="lazy">
+      <div class="body">
+        <div class="name">钩针兔玩偶</div>
+        <div class="price">$18.50</div>
+        <div class="tag">手工品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="8">
+      <img src="img/p09_candle_soy.png" alt="大豆蜡香薰" loading="lazy">
+      <div class="body">
+        <div class="name">大豆蜡香薰</div>
+        <div class="price">$16.00</div>
+        <div class="tag">手工品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="9">
+      <img src="img/p10_frame_driedflower.png" alt="干花相框" loading="lazy">
+      <div class="body">
+        <div class="name">干花相框</div>
+        <div class="price">$24.00</div>
+        <div class="tag">手工品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="10">
+      <img src="img/p11_clip_pearl.png" alt="珍珠发夹" loading="lazy">
+      <div class="body">
+        <div class="name">珍珠发夹</div>
+        <div class="price">$9.90</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+    <div class="item" data-idx="11">
+      <img src="img/p12_bracelet_rosequartz.png" alt="玫瑰石英手串" loading="lazy">
+      <div class="body">
+        <div class="name">玫瑰石英手串</div>
+        <div class="price">$13.50</div>
+        <div class="tag">饰品</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>数据来源：shine.xumois.cn · 快照 2026-10-30</div>
+    <div><a href="index.html">返回离线首页</a> · <a href="policies.html">配送与售后条款</a></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <img class="hero" id="sImg" alt="">
+    <div class="info">
+      <h3 id="sName"></h3>
+      <div class="price" id="sPrice"></div>
+      <dl>
+        <dt>分类</dt><dd id="sCat"></dd>
+        <dt>材质</dt><dd id="sMat"></dd>
+        <dt>库存</dt><dd id="sStock"></dd>
+      </dl>
+      <div class="desc" id="sDesc"></div>
+      <div class="btn-row">
+        <a class="btn" id="sOnline" href="#">联网查看最新</a>
+        <button class="btn ghost" id="sClose">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var data = [{"img": "img/p01_necklace_star_heart.png", "name": "星心项链", "price": "19.90", "category": "饰品", "material": "合金 / 镀玫瑰金", "stock": 98, "description": "经典星心吊坠，温柔点亮日常穿搭。", "url": "https://shine.xumois.cn/product/1"}, {"img": "img/p02_earrings_shell_pearl.png", "name": "贝珠耳环", "price": "12.50", "category": "饰品", "material": "天然贝珠 / 合金", "stock": 98, "description": "天然贝珠耳坠，轻盈显气质。", "url": "https://shine.xumois.cn/product/2"}, {"img": "img/p03_bracelet_woven.png", "name": "编织友谊手链", "price": "8.80", "category": "饰品", "material": "棉线 / 丝线", "stock": 99, "description": "粉绿撞色编织，送给最好的朋友。", "url": "https://shine.xumois.cn/product/3"}, {"img": "img/p04_ring_silver_heart.png", "name": "银质心戒", "price": "15.00", "category": "饰品", "material": "925 银", "stock": 99, "description": "细圈银戒点缀小爱心，日常百搭。", "url": "https://shine.xumois.cn/product/4"}, {"img": "img/p05_necklace_moonstone.png", "name": "月光石项链", "price": "21.00", "category": "饰品", "material": "天然月光石 / 银链", "stock": 100, "description": "月光石随光晕染，神秘又温柔。", "url": "https://shine.xumois.cn/product/5"}, {"img": "img/p06_mug_ceramic.png", "name": "手作陶杯", "price": "22.00", "category": "手工品", "material": "釉下彩陶瓷", "stock": 100, "description": "鼠尾草绿手作陶杯，温润好握感。", "url": "https://shine.xumois.cn/product/6"}, {"img": "img/p07_scarf_silk.png", "name": "手绘真丝丝巾", "price": "28.00", "category": "手工品", "material": "100% 桑蚕丝", "stock": 100, "description": "水彩花卉手绘，柔光流动。", "url": "https://shine.xumois.cn/product/7"}, {"img": "img/p08_doll_crochet.png", "name": "钩针兔玩偶", "price": "18.50", "category": "手工品", "material": "棉纱线", "stock": 100, "description": "奶油色钩针兔，治愈系陪伴。", "url": "https://shine.xumois.cn/product/8"}, {"img": "img/p09_candle_soy.png", "name": "大豆蜡香薰", "price": "16.00", "category": "手工品", "material": "大豆蜡 / 陶瓷杯", "stock": 99, "description": "淡香大豆蜡，氛围感拉满。", "url": "https://shine.xumois.cn/product/9"}, {"img": "img/p10_frame_driedflower.png", "name": "干花相框", "price": "24.00", "category": "手工品", "material": "永生花 / 木框", "stock": 99, "description": "微缩花境定格，装饰小角落。", "url": "https://shine.xumois.cn/product/10"}, {"img": "img/p11_clip_pearl.png", "name": "珍珠发夹", "price": "9.90", "category": "饰品", "material": "仿珍珠 / 金色调", "stock": 99, "description": "小珍珠发夹，点睛甜美发型。", "url": "https://shine.xumois.cn/product/11"}, {"img": "img/p12_bracelet_rosequartz.png", "name": "玫瑰石英手串", "price": "13.50", "category": "饰品", "material": "天然粉晶 / 弹力线", "stock": 100, "description": "粉晶手串，温柔好寓意。", "url": "https://shine.xumois.cn/product/12"}];
+
+  var sheet = document.getElementById('sheet');
+  var el = {
+    img: document.getElementById('sImg'),
+    name: document.getElementById('sName'),
+    price: document.getElementById('sPrice'),
+    cat: document.getElementById('sCat'),
+    mat: document.getElementById('sMat'),
+    stock: document.getElementById('sStock'),
+    desc: document.getElementById('sDesc'),
+    online: document.getElementById('sOnline')
+  };
+
+  document.getElementById('grid').addEventListener('click', function (e) {
+    var card = e.target.closest('.item');
+    if (!card) return;
+    var item = data[+card.dataset.idx];
+    el.img.src = item.img;
+    el.name.textContent = item.name;
+    el.price.textContent = '$' + item.price;
+    el.cat.textContent = item.category || '—';
+    el.mat.textContent = item.material || '—';
+    el.stock.textContent = item.stock > 0 ? ('现货 ' + item.stock + ' 件') : '暂时缺货';
+    el.desc.textContent = item.description || '（暂无描述）';
+    el.online.href = item.url;
+    sheet.classList.add('open');
+  });
+
+  document.getElementById('sClose').addEventListener('click', function () {
+    sheet.classList.remove('open');
+  });
+  sheet.addEventListener('click', function (e) {
+    if (e.target === sheet) sheet.classList.remove('open');
+  });
+})();
+</script>
+</body>
+</html>

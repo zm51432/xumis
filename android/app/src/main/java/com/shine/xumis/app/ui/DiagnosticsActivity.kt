@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import com.shine.xumis.app.R
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivityDiagnosticsBinding
+import com.shine.xumis.app.util.HealthLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,6 +55,7 @@ class DiagnosticsActivity : AppCompatActivity() {
             }
             val avg = totalMs / TOTAL
             binding.tvSummary.append("\n结论：${if (fail == 0) "全部 50 次通过 ✓" else "存在 $fail 次失败，请检查后端"}\n平均耗时 ${avg} ms，最大耗时 ${maxMs} ms")
+            HealthLog.save(this@DiagnosticsActivity, pass, fail, avg, maxMs)
             binding.btnRun.isEnabled = true
         }
     }

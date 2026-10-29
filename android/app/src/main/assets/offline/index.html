@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>shine 星心 · 离线模式</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="appbar">
+  <div class="logo">✦</div>
+  <div class="brand">shine 星心<small>Star-Heart Studio</small></div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="status" id="statusBox">
+      <div class="dot">!</div>
+      <div>
+        <h2 id="statusTitle">网络连接不可用</h2>
+        <div class="muted" id="statusDesc">页面没能从服务器加载完成。你仍然可以浏览 App 内置的离线商品册。</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="btnRetry">重新连接</button>
+      <a class="btn mint" href="catalog.html">离线商品册</a>
+    </div>
+    <div class="btn-row">
+      <a class="btn ghost" href="policies.html">配送与售后条款</a>
+    </div>
+  </div>
+
+  <div class="note">
+    离线资源随 App 一起安装，不依赖网络：12 件商品的图片、材质与描述，以及完整的配送 / 退换 / 支付说明。
+  </div>
+
+  <div class="card">
+    <h2>仍然连不上？</h2>
+    <ul class="tips">
+      <li>确认手机已联网（Wi-Fi 或移动数据）。</li>
+      <li>切换飞行模式后再关闭，让网络重新注册。</li>
+      <li>返回 App 的「设置 → 测试连接」，确认服务器地址与后端状态。</li>
+      <li>若后端正在重启，通常 1 分钟内恢复。</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <div id="targetLine"></div>
+    <div>shine 星心 · 离线兜底页面</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var target = params.get('target') || '';
+  var reason = params.get('reason') || '';
+
+  if (reason === 'timeout') {
+    document.getElementById('statusTitle').textContent = '服务器响应超时';
+    document.getElementById('statusDesc').textContent = '网络较弱或服务器繁忙，页面没能及时返回。可以稍后重试。';
+  } else if (reason === 'http') {
+    document.getElementById('statusTitle').textContent = '服务器暂时无法处理请求';
+    document.getElementById('statusDesc').textContent = '页面返回了错误状态，可能是服务正在重启。';
+  }
+
+  if (!navigator.onLine) {
+    document.getElementById('statusDesc').textContent = '当前设备已断开网络。你仍然可以浏览 App 内置的离线商品册。';
+  }
+
+  var btn = document.getElementById('btnRetry');
+  btn.addEventListener('click', function () {
+    if (!target) { location.href = 'https://shine.xumois.cn/'; return; }
+    btn.textContent = '正在重新连接…';
+    location.href = target;
+  });
+
+  if (target) {
+    var u;
+    try { u = new URL(target); } catch (e) { u = null; }
+    document.getElementById('targetLine').textContent = u ? ('目标地址：' + u.host + u.pathname) : '';
+  }
+
+  window.addEventListener('online', function () {
+    document.getElementById('statusTitle').textContent = '网络已恢复';
+    btn.textContent = '立即重新加载';
+  });
+})();
+</script>
+</body>
+</html>

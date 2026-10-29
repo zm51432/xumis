@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="运行状态"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="14dp">
+
+            <!-- 结论 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp">
+
+                <TextView android:id="@+id/tv_verdict" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="20sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text" android:text="等待检测"/>
+
+                <TextView android:id="@+id/tv_verdict_sub" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="点击下方「立即检测」，对服务端执行 5 轮接口采样。"/>
+            </LinearLayout>
+
+            <!-- 四项指标 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="12dp">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:background="@drawable/bg_card" android:padding="14dp"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="通过率" android:textSize="12sp" android:textColor="@color/shine_sub"/>
+                    <TextView android:id="@+id/tv_rate" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="—" android:textSize="22sp"
+                        android:textStyle="bold" android:textColor="@color/shine_pink_dark"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:background="@drawable/bg_card" android:padding="14dp"
+                    android:layout_marginStart="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="平均延迟" android:textSize="12sp" android:textColor="@color/shine_sub"/>
+                    <TextView android:id="@+id/tv_avg" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="—" android:textSize="22sp"
+                        android:textStyle="bold" android:textColor="@color/shine_text"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="12dp">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:background="@drawable/bg_card" android:padding="14dp"
+                    android:layout_marginEnd="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="最大延迟" android:textSize="12sp" android:textColor="@color/shine_sub"/>
+                    <TextView android:id="@+id/tv_max" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="—" android:textSize="22sp"
+                        android:textStyle="bold" android:textColor="@color/shine_text"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:background="@drawable/bg_card" android:padding="14dp"
+                    android:layout_marginStart="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="已使用" android:textSize="12sp" android:textColor="@color/shine_sub"/>
+                    <TextView android:id="@+id/tv_days" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="—" android:textSize="22sp"
+                        android:textStyle="bold" android:textColor="@color/shine_text"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 明细 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp" android:layout_marginTop="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="运行明细" android:textSize="16sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:id="@+id/tv_detail" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="4dp" android:text="读取中…"/>
+            </LinearLayout>
+
+            <!-- 操作 -->
+            <Button android:id="@+id/btn_run" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="立即检测（5 轮）"
+                android:layout_marginTop="14dp"/>
+
+            <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent" android:layout_height="6dp"
+                android:max="100" android:progress="0" android:layout_marginTop="8dp"
+                android:visibility="gone"/>
+
+            <Button android:id="@+id/btn_pressure" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="50 次压力自检"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_marginTop="8dp"/>
+
+            <TextView android:id="@+id/tv_crash" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="12sp"
+                android:textColor="#B3261E" android:layout_marginTop="14dp"
+                android:lineSpacingExtra="3dp" android:visibility="gone"/>
+
+            <TextView android:id="@+id/tv_log" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="11sp"
+                android:textColor="@color/shine_sub" android:fontFamily="monospace"
+                android:layout_marginTop="10dp" android:lineSpacingExtra="2dp"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

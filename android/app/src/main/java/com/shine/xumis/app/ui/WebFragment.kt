@@ -13,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.shine.xumis.app.databinding.FragmentWebBinding
+import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.WebViewSetup
 
@@ -43,7 +44,10 @@ open class WebFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val ctx = requireContext()
         WebViewSetup.apply(binding.web)
-        binding.web.webViewClient = WebViewSetup.client(ctx)
+        // 主文档加载失败（断网/超时/5xx）时切到内置离线页，避免整屏白页
+        binding.web.webViewClient = WebViewSetup.client(ctx) { url, reason ->
+            _binding?.web?.loadUrl(OfflineAssets.indexUrl(url, reason))
+        }
         binding.web.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
                 webView: WebView?,

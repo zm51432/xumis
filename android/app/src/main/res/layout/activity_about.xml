@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="帮助与关于"
+        app:navigationIcon="?attr/homeAsUpIndicator"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="14dp">
+
+            <!-- 品牌 / 版本 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="shine 星心" android:textSize="22sp" android:textStyle="bold"
+                    android:fontFamily="@font/quicksand_bold" app:fontFamily="@font/quicksand_bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="饰品与手工品 · 独立站客户端" android:textSize="12sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="2dp"/>
+
+                <TextView android:id="@+id/tv_version" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:textColor="@color/shine_text" android:layout_marginTop="12dp"
+                    android:text="版本 1.2.0 (3)"/>
+
+                <TextView android:id="@+id/tv_server" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="4dp"
+                    android:text="服务器 https://shine.xumois.cn"/>
+
+                <TextView android:id="@+id/tv_conn" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:layout_marginTop="8dp" android:textColor="@color/shine_pink_dark"
+                    android:text="连接状态：检测中…"/>
+            </LinearLayout>
+
+            <!-- 离线能力 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp" android:layout_marginTop="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="离线可用内容" android:textSize="16sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:id="@+id/tv_offline_stat" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="正在统计…"/>
+
+                <Button android:id="@+id/btn_catalog" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="打开离线商品册"
+                    android:layout_marginTop="12dp"/>
+
+                <Button android:id="@+id/btn_policies" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="配送与售后条款"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- FAQ -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp" android:layout_marginTop="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="常见问题" android:textSize="16sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:id="@+id/tv_faq" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13.5sp"
+                    android:textColor="@color/shine_sub" android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="5dp"/>
+            </LinearLayout>
+
+            <!-- 联系 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_card"
+                android:padding="18dp" android:layout_marginTop="12dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="联系我们" android:textSize="16sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="客服邮箱 service@shine.xumois.cn\n客服时间 周一至周六 09:30–18:30 (GMT+8)"
+                    android:textSize="13sp" android:textColor="@color/shine_sub"
+                    android:layout_marginTop="6dp" android:lineSpacingExtra="4dp"/>
+
+                <Button android:id="@+id/btn_share_app" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="分享给朋友"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_marginTop="12dp"/>
+
+                <Button android:id="@+id/btn_settings" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="服务器设置 / 测试连接"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            </LinearLayout>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="本应用内置离线资源与自检能力，断网时仍可浏览商品册与售后条款。"
+                android:textSize="12sp" android:textColor="@color/shine_sub"
+                android:gravity="center" android:paddingTop="16dp" android:paddingBottom="8dp"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

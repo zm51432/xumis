@@ -26,6 +26,8 @@
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
+        <activity android:name=".ui.StatusActivity" android:exported="false" />
+        <activity android:name=".ui.AboutActivity" android:exported="false" />
         <activity android:name=".ui.WebViewActivity" android:exported="false" />
     </application>
 </manifest>

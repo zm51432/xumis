@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.shine.xumis.app.databinding.ActivityWebviewBinding
+import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.WebViewSetup
 
@@ -38,7 +39,9 @@ class WebViewActivity : AppCompatActivity() {
         intent.getStringExtra("title")?.let { binding.topAppBar.title = it }
 
         WebViewSetup.apply(binding.web)
-        binding.web.webViewClient = WebViewSetup.client(this)
+        binding.web.webViewClient = WebViewSetup.client(this) { bad, reason ->
+            binding.web.loadUrl(OfflineAssets.indexUrl(bad, reason))
+        }
         binding.web.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
                 webView: WebView?,

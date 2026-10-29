@@ -6,7 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -41,8 +43,16 @@ object WebViewSetup {
         CookieManager.getInstance().flush()
     }
 
-    /** 站内 http(s) 留在 WebView，其余协议（tel/mailto/支付宝唤端等）交给系统处理 */
-    fun client(context: Context): WebViewClient = object : WebViewClient() {
+    /**
+     * 站内 http(s) 留在 WebView，其余协议（tel/mailto/支付宝唤端等）交给系统处理。
+     *
+     * onOffline：主文档加载失败时回调 (失败的地址, 原因)，由调用方切到内置离线页；
+     * 不传则维持原来的纯 WebView 行为。离线页本身是 file:// 加载，不会再次触发回调。
+     */
+    fun client(
+        context: Context,
+        onOffline: ((String, String) -> Unit)? = null
+    ): WebViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val uri = request.url
             val scheme = uri.scheme?.lowercase() ?: return false
@@ -55,6 +65,33 @@ object WebViewSetup {
             } catch (e: Exception) {
                 false
             }
+        }
+
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
+            super.onReceivedError(view, request, error)
+            if (request == null || !request.isForMainFrame) return
+            val url = request.url?.toString() ?: return
+            if (url.startsWith("file:")) return
+            val reason = if (error?.errorCode == ERROR_TIMEOUT) "timeout" else "offline"
+            onOffline?.invoke(url, reason)
+        }
+
+        override fun onReceivedHttpError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            errorResponse: WebResourceResponse?
+        ) {
+            super.onReceivedHttpError(view, request, errorResponse)
+            if (request == null || !request.isForMainFrame) return
+            val code = errorResponse?.statusCode ?: return
+            if (code < 500) return
+            val url = request.url?.toString() ?: return
+            if (url.startsWith("file:")) return
+            onOffline?.invoke(url, "http")
         }
     }
 
@@ -82,4 +119,14 @@ object WebViewSetup {
     /** 从系统选择结果解析出 WebView 需要的 Uri 数组 */
     fun parseChooserResult(resultCode: Int, data: Intent?): Array<Uri>? =
         WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+
+    /** 原生分享：把商品名称 / 链接丢给系统分享面板 */
+    fun shareIntent(title: String, text: String, url: String): Intent {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, title)
+            putExtra(Intent.EXTRA_TEXT, "$text\n$url")
+        }
+        return Intent.createChooser(send, "分享到").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
 }

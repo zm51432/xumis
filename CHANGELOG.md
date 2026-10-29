@@ -167,3 +167,48 @@
 
 - `paymentMethod` 为可空新增列。若线上为 `ddl-auto=update` 会自动加列；历史订单该字段为空，页面显示「-」，统计口径不受影响。
 - 销售统计当前为**实时全表遍历**（订单量在千级以内无压力）。若后续订单量上万，建议改为数据库聚合查询或加日汇总表。
+
+---
+
+## 2026-10-30 · Android 1.2.0：从「WebView 壳」变成离线可用的客户端（6.99 MB → 20.2 MB）
+
+> 诉求：APK 不能只是个网页展示，还要能证明「可靠、能用」。体积增长全部来自真实内容与能力，不是塞无意义文件。
+
+### 体积构成（6.99 MB → 20.2 MB，+13.2 MB）
+
+| 增量 | 大小 | 用途 |
+|---|---|---|
+| `assets/offline/img/*.png`（12 张商品原图） | 13.1 MB | 离线商品册 + 弱网首屏本地解码，不再等网络 |
+| `assets/fonts/*.ttf`（Nunito 4 字重 + Quicksand 2 字重） | 0.63 MB | 离线排版与站点一致，不依赖 Google Fonts |
+| `assets/offline/*.html + app.css`（兜底页 / 商品册 / 条款） | <0.02 MB | 断网时的可用界面 |
+| 新增 Kotlin（状态页 / 帮助页 / 缓存 / 崩溃保护） | — | 见下 |
+
+### 新增能力
+
+- **离线商品册** `assets/offline/catalog.html`：内置 12 件商品的图、价、材质、描述，点卡片看详情，底部「联网查看最新」跳站点。
+- **离线兜底页** `assets/offline/index.html`：WebView 主文档加载失败（断网/超时/5xx）自动切过去，带 `?target=` 回跳，点「重新连接」直接回到原页面；`WebViewSetup.client(context, onOffline)` 新增回调参数，`WebFragment` / `WebViewActivity` 均已接入。
+- **配送与售后条款** `assets/offline/policies.html`：发货、跨境运费、7 天无理由、定制款例外、四种支付渠道说明，离线可读。
+- **商品列表本地缓存** `util/CatalogCache`：在线成功后落盘，断网时 `HomeFragment` 回退展示并显示「离线数据 · N 件 · 缓存时间」提示条。
+- **启动重试与离线进入** `SplashActivity`：ping 失败自动重试 3 次（0.8s/1.6s 退避）；仍失败给三个出口——重试 / 改地址 / 离线进入（有缓存时）。
+- **运行状态页** `StatusActivity`：5 轮采样（ping+商品+分类算一轮），展示通过率、平均/最大延迟、已用天数、缓存商品数、离线资源、上次检测时间、崩溃记录；结果由 `util/HealthLog` 持久化；可跳 50 次压力自检。
+- **帮助与关于** `AboutActivity`：版本、服务器、实时连接状态、离线资源清单、5 条 FAQ、客服邮箱、分享 App。
+- **崩溃保护** `util/CrashGuard`：异常堆栈落盘 `filesDir/last_crash.txt`，60 秒内非连环崩溃则拉回启动页；日志在运行状态页可查。
+- **分享 / 浏览器打开** `ProductDetailActivity` 新增 `product_menu.xml`（分享走系统分享面板，浏览器打开走 ACTION_VIEW）。
+- 主菜单扩为：运行状态 / 自检(50遍) / 帮助与关于 / 设置。
+
+### 文件
+
+- 新增：`util/OfflineAssets.kt`、`util/CatalogCache.kt`、`util/HealthLog.kt`、`util/CrashGuard.kt`、`ui/StatusActivity.kt`、`ui/AboutActivity.kt`、`layout/activity_status.xml`、`layout/activity_about.xml`、`drawable/{bg_card,ic_status,ic_help,ic_share,ic_browser}.xml`、`menu/product_menu.xml`、`tools/gen_offline_catalog.py`、`assets/offline/**`、`assets/fonts/**`、`res/font/{nunito,quicksand_bold}.ttf`
+- 改动：`WebViewSetup.kt`（onOffline 回调 + shareIntent）、`HomeFragment.kt`、`WebFragment.kt`、`WebViewActivity.kt`、`SplashActivity.kt`、`ProductDetailActivity.kt`、`MainActivity.kt`、`DiagnosticsActivity.kt`（结果写入 HealthLog）、`ShineApp.kt`、`AndroidManifest.xml`、`app/build.gradle`（versionCode 3 / versionName 1.2.0）、`deploy/apk/index.html`
+
+### 真机（Android 14 模拟器）验证
+
+- 运行状态页：5/5 通过，平均 227 ms、最大 418 ms，通过率 100%，明细显示「商品图 12 张 / 13.1 MB」「缓存 12 件」。
+- 帮助与关于：连接状态「正常 · 286 ms · 数据库正常」。
+- 离线商品册：App 内 `file://` 打开，图片、字体、JS 详情弹层全部正常。
+- **断网实测**（飞行模式）：首页回退缓存并显示提示条；购物车 WebView 显示离线兜底页（含「目标地址 shine.xumois.cn/cart」）；恢复网络点「重新连接」回到真实购物车且登录态/购物车内容仍在；冷启动显示「离线进入（缓存 12 件商品）」。
+- APK `versionCode=3 / versionName=1.2.0`，线上与本地 SHA-256 一致（`4328a3e6…f0228cf9`），已发布到 https://shine.xumois.cn/download/。
+
+### 维护提示
+
+- 商品数据更新后，跑 `python3 android/tools/gen_offline_catalog.py` 重新生成离线快照再打包，否则离线册会停留在旧价格。

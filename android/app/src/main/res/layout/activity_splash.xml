@@ -21,4 +21,8 @@
 
     <Button android:id="@+id/btn_retry" android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="重试连接" android:layout_marginTop="10dp" android:visibility="gone"/>
+
+    <Button android:id="@+id/btn_offline" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="浏览离线商品册" android:layout_marginTop="4dp" android:visibility="gone"
+        style="@style/Widget.MaterialComponents.Button.TextButton"/>
 </LinearLayout>

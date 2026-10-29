@@ -1,4 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_status" android:title="运行状态" android:icon="@drawable/ic_status" />
     <item android:id="@+id/menu_diag" android:title="自检(50遍)" android:icon="@drawable/ic_diagnostics" />
+    <item android:id="@+id/menu_about" android:title="帮助与关于" android:icon="@drawable/ic_help" />
     <item android:id="@+id/menu_settings" android:title="设置" android:icon="@drawable/ic_settings" />
 </menu>

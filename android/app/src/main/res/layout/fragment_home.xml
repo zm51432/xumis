@@ -9,6 +9,12 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:padding="8dp">
 
+            <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:visibility="gone"
+                android:background="#FFF0F4" android:padding="10dp" android:layout_margin="6dp"
+                android:textSize="12sp" android:textColor="@color/shine_pink_dark"
+                android:text="离线数据 · 正在展示上次缓存的商品，联网后下拉刷新"/>
+
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
                 android:textColor="@color/shine_text" android:layout_margin="6dp"/>

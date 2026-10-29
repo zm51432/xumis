@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_share" android:title="分享" android:icon="@drawable/ic_share" />
+    <item android:id="@+id/menu_browser" android:title="在浏览器打开" android:icon="@drawable/ic_browser" />
+</menu>
