@@ -17,4 +17,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByStatus(String status);
 
     long countByStatus(String status);
+
+    /** 后台评价管理：按状态倒序（status 为空表示全部） */
+    @EntityGraph(attributePaths = "product")
+    List<Review> findByStatusOrderByCreatedAtDesc(String status);
+
+    @EntityGraph(attributePaths = "product")
+    List<Review> findAllByOrderByCreatedAtDesc();
+
+    /** 是否已评价过（同一邮箱对同一商品只允许一条） */
+    List<Review> findByUserEmailAndProductId(String userEmail, Long productId);
+
+    @EntityGraph(attributePaths = "product")
+    List<Review> findByProductIdOrderByCreatedAtDesc(Long productId);
 }

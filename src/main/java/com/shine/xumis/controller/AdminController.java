@@ -6,6 +6,7 @@ import com.shine.xumis.model.AdminUser;
 import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Order;
 import com.shine.xumis.model.Product;
+import com.shine.xumis.model.Review;
 import com.shine.xumis.model.UserAccount;
 import com.shine.xumis.service.*;
 import jakarta.servlet.http.HttpSession;
@@ -94,7 +95,8 @@ public class AdminController {
             return "redirect:/admin?denied=1";
         }
         reviewService.approve(id);
-        return "redirect:/admin";
+        // 统一回到评价管理页，方便连续审核
+        return "redirect:/admin/reviews?saved=updated";
     }
 
     /** 推进订单状态（运营及以上） */
@@ -300,6 +302,73 @@ public class AdminController {
         }
         boolean ok = userService.delete(id);
         return "redirect:/admin/customers?saved=" + (ok ? "deleted" : "notfound");
+    }
+
+    // ==================== 商品评价管理 ====================
+
+    /** 评价管理：可按状态/商品筛选与关键词搜索，列表带商品状态（上架、库存） */
+    @GetMapping("/admin/reviews")
+    public String reviews(HttpSession session, Model model,
+                          @RequestParam(value = "status", required = false) String status,
+                          @RequestParam(value = "productId", required = false) Long productId,
+                          @RequestParam(value = "q", required = false) String q,
+                          @RequestParam(value = "saved", required = false) String saved,
+                          @RequestParam(value = "err", required = false) String err) {
+        AdminUser me = me(session);
+        if (me == null) {
+            return "redirect:/admin/login";
+        }
+        List<Review> list = (productId != null)
+                ? reviewService.forProduct(productId)
+                : reviewService.listForAdmin(status);
+        if (q != null && !q.isBlank()) {
+            String kw = q.trim().toLowerCase();
+            list = list.stream().filter(r ->
+                    (r.getComment() != null && r.getComment().toLowerCase().contains(kw))
+                            || (r.getAuthor() != null && r.getAuthor().toLowerCase().contains(kw))
+                            || (r.getUserEmail() != null && r.getUserEmail().toLowerCase().contains(kw))
+                            || (r.getProduct() != null && r.getProduct().getName() != null
+                            && r.getProduct().getName().toLowerCase().contains(kw))
+            ).toList();
+        }
+        model.addAttribute("me", me);
+        model.addAttribute("reviews", list);
+        model.addAttribute("status", (status == null || status.isBlank()) ? "ALL" : status.toUpperCase());
+        model.addAttribute("q", q);
+        model.addAttribute("productId", productId);
+        model.addAttribute("countPending", reviewService.pendingCount());
+        model.addAttribute("countAll", reviewService.countAll());
+        model.addAttribute("products", productService.findAll());
+        model.addAttribute("saved", saved);
+        model.addAttribute("err", err);
+        return "admin-reviews";
+    }
+
+    /** 撤回通过（退回待审，前台立即不再展示） */
+    @PostMapping("/admin/review/unapprove")
+    public String unapproveReview(HttpSession session, @RequestParam(required = false) Long id) {
+        AdminUser me = me(session);
+        if (me == null) {
+            return "redirect:/admin/login";
+        }
+        if (!me.canWrite()) {
+            return "redirect:/admin/reviews?err=" + urlEncode("当前角色为只读，不能操作评价");
+        }
+        reviewService.unapprove(id);
+        return "redirect:/admin/reviews?saved=updated";
+    }
+
+    @PostMapping("/admin/review/delete")
+    public String deleteReview(HttpSession session, @RequestParam(required = false) Long id) {
+        AdminUser me = me(session);
+        if (me == null) {
+            return "redirect:/admin/login";
+        }
+        if (!me.canWrite()) {
+            return "redirect:/admin/reviews?err=" + urlEncode("当前角色为只读，不能删除评价");
+        }
+        boolean ok = reviewService.delete(id);
+        return "redirect:/admin/reviews?saved=" + (ok ? "deleted" : "notfound");
     }
 
     // ==================== 管理员账号（仅站长） ====================

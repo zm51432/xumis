@@ -30,37 +30,36 @@ public class ReviewController {
 
     @PostMapping("/product/{id}/review")
     public String add(@PathVariable Long id,
-                      @RequestParam String author,
-                      @RequestParam int rating,
-                      @RequestParam String comment,
+                      @RequestParam(required = false) String author,
+                      @RequestParam(defaultValue = "5") int rating,
+                      @RequestParam(required = false) String comment,
+                      jakarta.servlet.http.HttpSession session,
                       HttpServletRequest request) {
         Product p = productService.findById(id);
         if (p == null) {
             return "redirect:/products";
+        }
+        // 只有登录用户能评价：需要邮箱去匹配订单，判断是不是真的买过
+        var user = AccountController.currentUser(session);
+        if (user == null) {
+            return "redirect:/product/" + id + "?reviewNeedLogin=1";
         }
         // 防刷屏：同一 IP 10 分钟内最多 5 条评价
         String key = "review:" + clientIp(request);
         if (!rateLimitService.allow(key, 5, 10 * 60 * 1000L)) {
             return "redirect:/product/" + id + "?reviewRate=" + rateLimitService.retryAfterSeconds(key, 5, 10 * 60 * 1000L);
         }
-        // 评分越界兜底（1~5）与长度收敛，避免恶意值污染平均分/撑爆页面
-        int safeRating = Math.max(1, Math.min(5, rating));
-        String safeAuthor = author == null || author.isBlank() ? "匿名" : author.trim();
-        if (safeAuthor.length() > 60) {
-            safeAuthor = safeAuthor.substring(0, 60);
-        }
-        String safeComment = (comment == null) ? "" : comment.trim();
-        if (safeComment.length() > 1000) {
-            safeComment = safeComment.substring(0, 1000);
-        }
-        Review r = new Review();
-        r.setProduct(p);
-        r.setAuthor(safeAuthor);
-        r.setRating(safeRating);
-        r.setComment(safeComment);
-        r.setStatus("PENDING");
-        reviewService.save(r);
-        return "redirect:/product/" + id + "?review=1";
+        String name = (author == null || author.isBlank())
+                ? ((user.getName() != null && !user.getName().isBlank()) ? user.getName() : null)
+                : author;
+
+        ReviewService.SubmitResult res = reviewService.submit(p, user.getEmail(), name, rating, comment);
+        return switch (res) {
+            case OK -> "redirect:/product/" + id + "?review=1";
+            case NOT_PURCHASED -> "redirect:/product/" + id + "?reviewNeedBuy=1";
+            case DUPLICATE -> "redirect:/product/" + id + "?reviewDup=1";
+            case NO_PRODUCT -> "redirect:/products";
+        };
     }
 
     static String clientIp(HttpServletRequest request) {

@@ -16,8 +16,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findAllByOrderByCreatedAtDesc();
 
-    /** 我的订单：按账号 ID 或下单邮箱（兼容游客下单） */
+    /** 我的订单：按账号 ID 或下单邮箱（兼容游客下单）。预加载明细，便于判断是否买过某商品 */
+    @EntityGraph(attributePaths = {"items"})
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
+    @EntityGraph(attributePaths = {"items"})
     List<Order> findByEmailOrderByCreatedAtDesc(String email);
 
     long countByStatus(String status);

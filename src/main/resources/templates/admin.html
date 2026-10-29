@@ -31,6 +31,7 @@
                       th:text="${me.role.label}">站长</span>
             </span>
             <a class="btn btn-sm" th:href="@{|${adminBase}/products|}">📦 商品管理</a>
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/reviews|}">🗣 评价管理</a>
             <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/customers|}">👥 客户管理</a>
             <a class="btn btn-ghost btn-sm" th:if="${me != null and me.canManageAdmins()}"
                th:href="@{|${adminBase}/admins|}">👤 账号权限</a>
@@ -83,7 +84,10 @@
         </div>
 
         <!-- 待审评价 -->
-        <h3 class="block-title">待审核评价 Pending Reviews</h3>
+        <h3 class="block-title">
+            <span th:text="#{admin.pendingReviews}">待审核评价</span>
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/reviews(status='PENDING')|}" th:text="#{admin.viewAll}">查看全部</a>
+        </h3>
         <div class="table-wrap">
         <table class="admin-table">
             <thead><tr><th>商品</th><th>作者</th><th>评分</th><th>评论</th><th>操作</th></tr></thead>

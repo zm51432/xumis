@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta name="color-scheme" content="light"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title th:text="${storeName} + ' · ' + #{admin.reviews}">评价管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title" th:text="#{admin.reviews}">评价管理</h2>
+            <p class="sub" th:text="#{admin.reviewsDesc}">买家评价留言、评分与对应商品状态</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me">
+                <span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span>
+                <span class="status-badge" th:if="${me != null}"
+                      th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
+                      th:text="${me.role.label}">站长</span>
+            </span>
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">← 返回仪表盘</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${saved == 'updated'}" th:text="#{admin.adminUpdated}">已更新</div>
+    <div class="alert-success" th:if="${saved == 'deleted'}" th:text="#{admin.reviewDeleted}">评价已删除</div>
+    <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
+
+    <!-- 概览 -->
+    <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat"><span class="stat-num" th:text="${countAll}">0</span><span th:text="#{admin.reviewCountAll}">评价总数</span></div>
+        <div class="stat"><span class="stat-num" th:text="${countPending}">0</span><span th:text="#{admin.pendingReviews}">待审核</span></div>
+    </div>
+
+    <!-- 筛选 -->
+    <form class="toolbar" method="get" th:action="@{|${adminBase}/reviews|}" style="margin-bottom:14px;">
+        <div class="toolbar-search">
+            <input type="text" name="q" th:value="${q}" th:placeholder="#{admin.searchReview}" placeholder="搜索评价内容/评价人/商品"/>
+            <button type="submit" th:text="#{search.button}">搜索</button>
+        </div>
+        <div class="toolbar-sort">
+            <select name="status" onchange="this.form.submit()">
+                <option value="ALL" th:selected="${status == 'ALL'}" th:text="#{admin.filterAll}">全部</option>
+                <option value="PENDING" th:selected="${status == 'PENDING'}" th:text="#{admin.filterPending}">待审核</option>
+                <option value="APPROVED" th:selected="${status == 'APPROVED'}" th:text="#{admin.filterApproved}">已通过</option>
+            </select>
+            <select name="productId" onchange="this.form.submit()">
+                <option value="" th:selected="${productId == null}" th:text="#{admin.allProducts}">全部商品</option>
+                <option th:each="p : ${products}" th:value="${p.id}" th:selected="${productId != null and productId == p.id}"
+                        th:text="${p.name}">商品</option>
+            </select>
+            <span class="muted small" th:text="${#lists.size(reviews)} + ' ' + #{admin.reviewRows}">0 条</span>
+        </div>
+    </form>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th th:text="#{admin.reviewProduct}">商品</th>
+                <th th:text="#{admin.productStatus}">商品状态</th>
+                <th th:text="#{admin.reviewRating}">评分</th>
+                <th th:text="#{admin.reviewComment}">评价留言</th>
+                <th th:text="#{admin.reviewAuthor}">评价人</th>
+                <th th:text="#{admin.reviewOrder}">购买订单</th>
+                <th th:text="#{admin.reviewTime}">时间</th>
+                <th th:text="#{admin.reviewStatus}">状态</th>
+                <th th:text="#{admin.ops}">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${reviews}">
+                <td>
+                    <span class="strong" th:text="${r.product != null ? r.product.name : '-'}">商品</span>
+                    <div class="muted small" th:if="${r.product != null}" th:text="'#' + ${r.product.id}">#1</div>
+                </td>
+                <td>
+                    <span th:if="${r.product != null}">
+                        <span class="chip" th:classappend="${r.product.stock != null and r.product.stock > 0} ? 'chip-on' : ''"
+                              th:text="${r.product.stock != null and r.product.stock > 0} ? #{admin.inStock} : #{admin.outOfStock}">有货</span>
+                        <div class="muted small" th:text="#{admin.stock} + '：' + ${r.product.stock}">库存：0</div>
+                        <div class="muted small" th:if="${r.product.featured}" th:text="#{admin.featured}">首页精选</div>
+                    </span>
+                    <span th:if="${r.product == null}" class="muted">-</span>
+                </td>
+                <td class="nowrap">
+                    <span class="stars" th:text="${r.rating} + ' ★'">5 ★</span>
+                </td>
+                <td class="review-comment" th:text="${r.comment}">好评</td>
+                <td>
+                    <span th:text="${r.author}">匿名</span>
+                    <div class="muted small" th:text="${r.userEmail}">a@b.com</div>
+                    <span class="chip verified-chip" th:if="${r.verifiedPurchase}" th:text="#{admin.reviewVerified}">已购买</span>
+                </td>
+                <td class="muted small" th:text="${r.orderNo != null} ? ${r.orderNo} : '-'">-</td>
+                <td class="nowrap muted small"
+                    th:text="${r.createdAt != null} ? ${#strings.substring(r.createdAt.toString(),0,16).replace('T',' ')} : '-'">-</td>
+                <td>
+                    <span class="chip" th:classappend="${r.status == 'APPROVED'} ? 'chip-on' : ''"
+                          th:text="${r.status == 'APPROVED'} ? #{admin.reviewApproved} : #{admin.reviewPending}">待审核</span>
+                </td>
+                <td class="nowrap">
+                    <form class="inline-form" method="post" th:action="@{|${adminBase}/review/approve|}"
+                          th:if="${me != null and me.canWrite() and r.status != 'APPROVED'}">
+                        <input type="hidden" name="id" th:value="${r.id}"/>
+                        <button class="btn btn-sm" type="submit" th:text="#{admin.approve}">通过</button>
+                    </form>
+                    <form class="inline-form" method="post" th:action="@{|${adminBase}/review/unapprove|}"
+                          th:if="${me != null and me.canWrite() and r.status == 'APPROVED'}">
+                        <input type="hidden" name="id" th:value="${r.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.reviewUnapprove}">撤回</button>
+                    </form>
+                    <form class="inline-form" method="post" th:action="@{|${adminBase}/review/delete|}"
+                          th:if="${me != null and me.canWrite()}"
+                          th:onsubmit="|return confirm('#{admin.confirmDeleteReview}');|">
+                        <input type="hidden" name="id" th:value="${r.id}"/>
+                        <button class="btn btn-danger btn-sm" type="submit" th:text="#{admin.delete}">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reviews)}">
+                <td colspan="9" class="muted" th:text="#{admin.noReviews}">还没有评价</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

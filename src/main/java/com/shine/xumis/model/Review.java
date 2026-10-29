@@ -21,6 +21,18 @@ public class Review {
 
     private String author;
 
+    /** 评价人邮箱（登录账号邮箱，用于校验是否真的购买过） */
+    @Column(length = 120)
+    private String userEmail;
+
+    /** 关联的订单号（购买凭证，便于后台核对） */
+    @Column(length = 40)
+    private String orderNo;
+
+    /** 是否真实购买：由服务端按订单校验后写入，前台仅展示不允许伪造 */
+    @Column(nullable = false)
+    private boolean verifiedPurchase = false;
+
     /** 评分 1-5 */
     @Column(nullable = false)
     private Integer rating = 5;
@@ -46,6 +58,12 @@ public class Review {
     public void setProduct(Product product) { this.product = product; }
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    public String getOrderNo() { return orderNo; }
+    public void setOrderNo(String orderNo) { this.orderNo = orderNo; }
+    public boolean isVerifiedPurchase() { return verifiedPurchase; }
+    public void setVerifiedPurchase(boolean verifiedPurchase) { this.verifiedPurchase = verifiedPurchase; }
     public Integer getRating() { return rating; }
     public void setRating(Integer rating) { this.rating = rating; }
     public String getComment() { return comment; }

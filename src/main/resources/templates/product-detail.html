@@ -125,16 +125,29 @@
         <h3 th:text="#{product.reviews}">商品评价</h3>
         <div class="review-list" th:if="${not #lists.isEmpty(reviews)}">
             <div class="review-item" th:each="r : ${reviews}">
-                <div class="stars" th:text="${r.rating} + ' ★'">5 ★</div>
+                <div class="review-head">
+                    <span class="stars" th:text="${r.rating} + ' ★'">5 ★</span>
+                    <span class="chip verified-chip" th:if="${r.verifiedPurchase}" th:text="#{review.verified}">已购买</span>
+                </div>
                 <p th:text="${r.comment}">好评</p>
-                <small class="muted" th:text="${r.author}">匿名</small>
+                <small class="muted">
+                    <span th:text="${r.author}">匿名</span>
+                    <span class="muted" th:if="${r.createdAt != null}"
+                          th:text="' · ' + ${#strings.substring(r.createdAt.toString(),0,10)}"> · 2026-01-01</span>
+                </small>
             </div>
         </div>
         <p class="muted" th:if="${#lists.isEmpty(reviews)}" th:text="#{review.empty}">暂无评价</p>
 
-            <div class="alert-error" th:if="${param.reviewRate != null}" th:text="#{review.rateLimited}">评价提交过于频繁</div>
-<div class="review-form">
+        <div class="alert-success" th:if="${param.review != null}" th:text="#{review.pending}">评价已提交，审核后展示</div>
+        <div class="alert-error" th:if="${param.reviewRate != null}" th:text="#{review.rateLimited}">评价提交过于频繁</div>
+        <div class="alert-error" th:if="${param.reviewDup != null}" th:text="#{review.duplicate}">你已经评价过这件商品了</div>
+        <div class="alert-warn" th:if="${param.reviewNeedBuy != null}" th:text="#{review.needBuy}">只有购买过该商品的用户才能评价</div>
+
+        <!-- 已购买且未评价：显示表单；否则给出对应引导 -->
+        <div class="review-form" th:if="${canReview}">
             <h4 th:text="#{product.writeReview}">写评价</h4>
+            <p class="muted small" th:text="#{review.verifiedTip}">你已购买该商品，评价将标记「已购买」</p>
             <form action="#" th:action="@{/product/{id}/review(id=${product.id})}" method="post">
                 <input type="text" name="author" th:placeholder="#{review.author}"/>
                 <select name="rating">
@@ -147,7 +160,15 @@
                 <textarea name="comment" rows="3" required th:placeholder="#{review.comment}"></textarea>
                 <button class="btn" type="submit" th:text="#{review.submit}">提交评价</button>
             </form>
-            <p class="ok-msg" th:if="${param.review != null}" th:text="#{review.pending}">已提交</p>
+        </div>
+
+        <div class="review-lock" th:if="${not canReview}">
+            <p class="muted" th:if="${not loggedIn}">
+                <span th:text="#{review.needLogin}">登录后才能评价</span>
+                <a th:href="@{/login(redirect=${'/product/' + product.id})}" th:text="#{account.login}">登录</a>
+            </p>
+            <p class="muted" th:if="${loggedIn and not purchased}" th:text="#{review.needBuy}">只有购买过该商品的用户才能评价</p>
+            <p class="muted" th:if="${loggedIn and purchased and reviewed}" th:text="#{review.duplicate}">你已经评价过这件商品了</p>
         </div>
     </div>
 </div>

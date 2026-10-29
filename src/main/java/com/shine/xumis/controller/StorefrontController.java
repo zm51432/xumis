@@ -75,6 +75,7 @@ public class StorefrontController {
 
     @GetMapping("/product/{id}")
     public String detail(@PathVariable Long id, Model model,
+                         jakarta.servlet.http.HttpSession session,
                          jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
         Product p = productService.findById(id);
         if (p == null) {
@@ -86,6 +87,20 @@ public class StorefrontController {
         model.addAttribute("reviews", reviewService.approvedFor(p));
         model.addAttribute("avgRating", reviewService.avgRating(p));
         model.addAttribute("reviewCount", reviewService.approvedFor(p).size());
+
+        // 评价权限：登录 + 真买过 + 还没评价过（后台审核通过后仍不可重复提交）
+        var user = AccountController.currentUser(session);
+        boolean purchased = false;
+        boolean reviewed = false;
+        if (user != null) {
+            purchased = reviewService.findPurchase(user.getEmail(), p.getId()).isPresent();
+            reviewed = reviewService.myReview(user.getEmail(), p.getId()).isPresent();
+        }
+        model.addAttribute("loggedIn", user != null);
+        model.addAttribute("purchased", purchased);
+        model.addAttribute("reviewed", reviewed);
+        model.addAttribute("canReview", user != null && purchased && !reviewed);
+
         model.addAttribute("related", productService.findRelated(p, 4));
         return "product-detail";
     }
