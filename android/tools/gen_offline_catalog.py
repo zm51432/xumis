@@ -47,7 +47,7 @@ TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="footer">
-    <div>数据来源：shine.xumois.cn · 快照 {date}</div>
+    <div>商品快照 · 生成于 {date}</div>
     <div><a href="index.html">返回离线首页</a> · <a href="policies.html">配送与售后条款</a></div>
   </div>
 </div>

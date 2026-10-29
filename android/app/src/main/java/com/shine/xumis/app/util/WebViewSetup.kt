@@ -24,7 +24,10 @@ object WebViewSetup {
 
     @SuppressLint("SetJavaScriptEnabled")
     fun apply(web: WebView) {
+        AppPrefs.init(web.context)
         web.settings.apply {
+            // 「设置 → 网页字号」通过 textZoom 生效，站内页面无需改 CSS
+            textZoom = AppPrefs.textZoomPercent()
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
@@ -120,12 +123,21 @@ object WebViewSetup {
     fun parseChooserResult(resultCode: Int, data: Intent?): Array<Uri>? =
         WebChromeClient.FileChooserParams.parseResult(resultCode, data)
 
-    /** 原生分享：把商品名称 / 链接丢给系统分享面板 */
+    /**
+     * 清理网页与图片缓存，但**保留 Cookie**——设置页里做清理不能把用户登录态一起清掉。
+     * 表单数据与历史记录也不动，只回收最占空间的磁盘缓存。
+     */
+    fun clearWebCache(context: Context) {
+        WebView(context).clearCache(true)
+        CookieManager.getInstance().flush()
+    }
+
+    /** 原生分享：把商品名称 / 描述丢给系统分享面板（url 可为空） */
     fun shareIntent(title: String, text: String, url: String): Intent {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, title)
-            putExtra(Intent.EXTRA_TEXT, "$text\n$url")
+            putExtra(Intent.EXTRA_TEXT, if (url.isBlank()) text else "$text\n$url")
         }
         return Intent.createChooser(send, "分享到").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }

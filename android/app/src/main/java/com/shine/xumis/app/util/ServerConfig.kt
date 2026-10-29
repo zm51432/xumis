@@ -1,67 +1,35 @@
 package com.shine.xumis.app.util
 
 import android.content.Context
-import android.content.SharedPreferences
 
 /**
- * 服务器地址配置（SharedPreferences 持久化）。
+ * 服务端地址：固定指向线上服务，**不在任何界面展示、也不允许用户修改**。
  *
- * 默认值即为线上服务器 https://shine.xumois.cn，APK 安装后无需任何设置即可连上服务。
- * - 线上：https://shine.xumois.cn（Nginx 443 → 后端 8080）
- * - 模拟器调试：http://10.0.2.2:8080（需在设置页手动切换）
- * - 局域网真机调试：http://<电脑内网IP>:8080（需在设置页手动切换）
+ * 1.2.x 及更早版本把地址做成「服务器设置」页里的输入框，用户装上就先看到一串 URL，
+ * 既不专业，也容易被误改导致连不上。现在地址只存在于代码内部，App 后台直连；
+ * 升级时顺手清掉旧版本留在 SharedPreferences 里的自定义地址。
+ *
+ * 调试需求（本地后端）请改 UrlUtils.PROD_URL 后重新打包，不要在运行时暴露入口。
  */
 object ServerConfig {
-    private const val PREFS = "shine_prefs"
-    private const val KEY_URL = "server_url"
-    private const val KEY_MIGRATED_V2 = "url_migrated_v2"
 
-    /** 线上服务器：APK 出厂默认连接地址 */
-    const val PROD_URL = UrlUtils.PROD_URL
+    /** 线上服务地址（内部常量，界面不渲染） */
+    private const val HOST = UrlUtils.PROD_URL
 
-    /** 模拟器访问宿主机后端的调试地址 */
-    const val EMULATOR_URL = UrlUtils.EMULATOR_URL
+    private const val LEGACY_PREFS = "shine_prefs"
+    private const val LEGACY_KEY_URL = "server_url"
 
-    /** 默认地址（= 线上服务器） */
-    const val DEFAULT_URL = PROD_URL
+    /** 站点基址（带结尾斜杠）：WebView 拼 /cart、/product/1、/download/ 用 */
+    fun siteBase(): String = UrlUtils.normalizeBase(HOST)
 
-    private lateinit var prefs: SharedPreferences
+    /** 移动端 API 基址：<host>/api/m/ */
+    fun apiBase(): String = UrlUtils.join(HOST, "api/m/")
 
-    fun init(ctx: Context) {
-        prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        migrateLegacyDefault()
-    }
-
-    var baseUrl: String
-        get() {
-            val u = prefs.getString(KEY_URL, null) ?: DEFAULT_URL
-            return normalize(u)
+    /** 首次启动清理旧版遗留的地址配置，避免旧值被误读 */
+    fun purgeLegacy(ctx: Context) {
+        val p = ctx.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE)
+        if (p.contains(LEGACY_KEY_URL)) {
+            p.edit().remove(LEGACY_KEY_URL).apply()
         }
-        set(value) = prefs.edit().putString(KEY_URL, normalize(value)).apply()
-
-    /** 是否仍在使用线上默认地址（用户未自定义） */
-    fun isUsingDefault(): Boolean = baseUrl == normalize(PROD_URL)
-
-    /**
-     * 旧版本默认值是模拟器地址 10.0.2.2:8080，已安装用户升级后会带着这个旧值，
-     * 真机上永远连不上，所以升级时把它清掉、回落到新的线上默认值。
-     * 只清理「恰好等于旧默认值」的情况，用户自己改过的地址不受影响。
-     */
-    private fun migrateLegacyDefault() {
-        if (prefs.getBoolean(KEY_MIGRATED_V2, false)) return
-        val saved = prefs.getString(KEY_URL, null)
-        val editor = prefs.edit().putBoolean(KEY_MIGRATED_V2, true)
-        if (saved != null && normalize(saved) == normalize(EMULATOR_URL)) {
-            editor.remove(KEY_URL)
-        }
-        editor.apply()
     }
-
-    private fun normalize(input: String): String = UrlUtils.normalizeBase(input)
-
-    /** 移动端 API 基址：<base>/api/m/ */
-    fun apiBase(): String = baseUrl + "api/m/"
-
-    /** 站点基址（WebView 用） */
-    fun siteBase(): String = baseUrl
 }

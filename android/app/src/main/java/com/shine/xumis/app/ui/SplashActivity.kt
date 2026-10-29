@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
  *
  * 弱网下先自动重试 3 次（0.8s / 1.6s 退避）再判定失败；
  * 判定失败也不是死路——有本地缓存可以离线进入，没有缓存就直接给离线商品册。
+ * 页面上不出现服务器地址，用户只需要「重试」或「离线进入」两个选择。
  */
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
@@ -26,10 +27,6 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnSettings.visibility = View.GONE
-        binding.btnSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
         binding.btnRetry.visibility = View.GONE
         binding.btnRetry.setOnClickListener { checkServer() }
         binding.btnOffline.visibility = View.GONE
@@ -39,9 +36,8 @@ class SplashActivity : AppCompatActivity() {
     private fun checkServer() {
         binding.pb.visibility = View.VISIBLE
         binding.btnRetry.visibility = View.GONE
-        binding.btnSettings.visibility = View.GONE
         binding.btnOffline.visibility = View.GONE
-        binding.tvStatus.text = "正在连接服务器…"
+        binding.tvStatus.text = "正在连接商城…"
         lifecycleScope.launch {
             var lastError: String? = null
             for (attempt in 1..3) {
@@ -53,23 +49,22 @@ class SplashActivity : AppCompatActivity() {
                         finish()
                         return@launch
                     }
-                    lastError = "服务器返回异常，请检查后端是否正常运行"
+                    lastError = "服务暂时不可用，请稍后重试"
                 } catch (e: Exception) {
-                    lastError = "无法连接：${e.message}"
+                    lastError = "网络连接失败"
                 }
                 if (attempt < 3) {
                     binding.tvStatus.text = "第 $attempt 次连接失败，正在重试…"
                     delay(attempt * 800L)
                 }
             }
-            onFail(lastError ?: "无法连接服务器")
+            onFail(lastError ?: "网络连接失败")
         }
     }
 
     private fun onFail(msg: String) {
         binding.pb.visibility = View.GONE
-        binding.tvStatus.text = "$msg\n可重试、修改服务器地址，或先离线浏览已缓存的内容"
-        binding.btnSettings.visibility = View.VISIBLE
+        binding.tvStatus.text = "$msg\n可以重试，或先离线浏览已缓存的内容"
         binding.btnRetry.visibility = View.VISIBLE
 
         val snapshot = CatalogCache.load(this)

@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Retrofit 客户端（按当前服务器地址懒构建，切换地址后自动重建）。
+ * Retrofit 客户端。服务端地址固定（内置常量），首次调用时构建后复用。
  * 走直连（不经过系统代理），与后端原生 HTTP 通信。
  */
 object ApiClient {

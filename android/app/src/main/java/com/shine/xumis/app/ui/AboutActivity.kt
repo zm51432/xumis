@@ -8,15 +8,14 @@ import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivityAboutBinding
 import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.OfflineAssets
-import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * 帮助与关于：版本、服务器、连接状态、离线资源清单、FAQ、联系方式。
- * 全部内容本地可得，不联网也能打开。
+ * 帮助与关于：版本、连接状态、离线资源清单、FAQ、联系方式。
+ * 全部内容本地可得，不联网也能打开；不展示任何服务器地址。
  */
 class AboutActivity : AppCompatActivity() {
 
@@ -32,7 +31,6 @@ class AboutActivity : AppCompatActivity() {
         binding.topAppBar.setNavigationOnClickListener { finish() }
 
         binding.tvVersion.text = "版本 ${versionName()} (${versionCode()})"
-        binding.tvServer.text = "服务器 ${ServerConfig.baseUrl}"
         binding.tvFaq.text = FAQ
 
         binding.btnCatalog.setOnClickListener {
@@ -41,15 +39,12 @@ class AboutActivity : AppCompatActivity() {
         binding.btnPolicies.setOnClickListener {
             openAsset("配送与售后条款", OfflineAssets.POLICIES)
         }
-        binding.btnSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
         binding.btnShareApp.setOnClickListener {
             startActivity(
                 WebViewSetup.shareIntent(
                     "shine 星心",
-                    "shine 星心 · 饰品与手工品，手机客户端下载：",
-                    ServerConfig.siteBase() + "download/"
+                    "shine 星心 · 饰品与手工品，官方手机客户端安装即用，断网也能浏览商品册。",
+                    ""
                 )
             )
         }
@@ -112,8 +107,8 @@ class AboutActivity : AppCompatActivity() {
 
     companion object {
         private val FAQ = """
-            1. 安装后需要设置服务器吗？
-            不需要。App 出厂即指向 shine.xumois.cn，打开就能用；只有调试时才需要在「设置」里改地址。
+            1. 安装后需要做配置吗？
+            不需要。App 出厂已在后台直连官方商店服务，打开即用，无需填写任何地址或账号配置。
 
             2. 没有网络还能用吗？
             可以。首页会展示上次缓存的商品列表，并标注缓存时间；「离线商品册」内置 12 件商品的图片、材质与描述，配送与售后条款也随包安装。

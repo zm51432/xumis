@@ -42,13 +42,12 @@
     <ul class="tips">
       <li>确认手机已联网（Wi-Fi 或移动数据）。</li>
       <li>切换飞行模式后再关闭，让网络重新注册。</li>
-      <li>返回 App 的「设置 → 测试连接」，确认服务器地址与后端状态。</li>
+      <li>返回 App 的「设置 → 检查网络」，确认网络与商城服务状态。</li>
       <li>若后端正在重启，通常 1 分钟内恢复。</li>
     </ul>
   </div>
 
   <div class="footer">
-    <div id="targetLine"></div>
     <div>shine 星心 · 离线兜底页面</div>
   </div>
 </div>
@@ -73,16 +72,10 @@
 
   var btn = document.getElementById('btnRetry');
   btn.addEventListener('click', function () {
-    if (!target) { location.href = 'https://shine.xumois.cn/'; return; }
+    if (!target) { location.reload(); return; }
     btn.textContent = '正在重新连接…';
     location.href = target;
   });
-
-  if (target) {
-    var u;
-    try { u = new URL(target); } catch (e) { u = null; }
-    document.getElementById('targetLine').textContent = u ? ('目标地址：' + u.host + u.pathname) : '';
-  }
 
   window.addEventListener('online', function () {
     document.getElementById('statusTitle').textContent = '网络已恢复';

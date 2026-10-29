@@ -1,44 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@color/shine_bg">
 
     <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
-        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="服务器设置"
-        app:navigationIcon="?attr/homeAsUpIndicator"/>
+        android:id="@+id/top_app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_pink"
+        app:title="设置"
+        app:titleTextColor="@android:color/white"
+        app:navigationIcon="?attr/homeAsUpIndicator" />
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="16dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="24dp">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="服务器地址" android:textColor="@color/shine_sub"/>
+            <!-- ============ 通用 ============ -->
+            <TextView style="@style/SettingsSection" android:text="通用" />
 
-            <EditText android:id="@+id/et_url" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:hint="https://shine.xumois.cn" android:inputType="textUri" android:layout_marginTop="8dp"
-                android:backgroundTint="@color/shine_pink"/>
+            <LinearLayout style="@style/SettingsCard">
 
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="默认已连接线上服务器 shine.xumois.cn，无需修改。仅供调试：模拟器填 http://10.0.2.2:8080，局域网真机填 http://电脑内网IP:8080"
-                android:textSize="12sp" android:textColor="@color/shine_sub" android:layout_marginTop="6dp"/>
+                <include
+                    android:id="@+id/row_text_zoom"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-            <Button android:id="@+id/btn_save" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="保存并重连" android:layout_marginTop="16dp"/>
+                <include
+                    android:id="@+id/row_network"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-            <Button android:id="@+id/btn_test" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="测试连接" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginTop="8dp"/>
+                <include
+                    android:id="@+id/row_cache"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
-            <Button android:id="@+id/btn_reset" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="恢复默认（线上服务器）" style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_marginTop="4dp"/>
+            <!-- ============ 内容与存储 ============ -->
+            <TextView style="@style/SettingsSection" android:text="内容与存储" />
 
-            <TextView android:id="@+id/tv_result" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:textSize="13sp" android:textColor="@color/shine_sub"
-                android:paddingTop="12dp" android:lineSpacingExtra="4dp"/>
+            <LinearLayout style="@style/SettingsCard">
+
+                <include
+                    android:id="@+id/row_catalog"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_offline"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- ============ 帮助与支持 ============ -->
+            <TextView style="@style/SettingsSection" android:text="帮助与支持" />
+
+            <LinearLayout style="@style/SettingsCard">
+
+                <include
+                    android:id="@+id/row_status"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_diag"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_about"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_policies"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- ============ 关于 ============ -->
+            <TextView style="@style/SettingsSection" android:text="关于" />
+
+            <LinearLayout style="@style/SettingsCard">
+
+                <include
+                    android:id="@+id/row_version"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_share"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="商品图、字体与离线页面均随安装包内置，断网也能浏览商品册与售后条款。"
+                android:textColor="@color/shine_sub"
+                android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

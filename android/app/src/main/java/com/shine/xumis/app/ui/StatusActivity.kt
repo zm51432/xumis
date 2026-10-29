@@ -11,7 +11,6 @@ import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.CrashGuard
 import com.shine.xumis.app.util.HealthLog
 import com.shine.xumis.app.util.OfflineAssets
-import com.shine.xumis.app.util.ServerConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -117,7 +116,6 @@ class StatusActivity : AppCompatActivity() {
         val last = HealthLog.last(this)
         binding.tvDays.text = "${HealthLog.daysInUse(this)} 天"
         binding.tvDetail.text = buildString {
-            append("服务器　${ServerConfig.baseUrl}\n")
             append("缓存商品　$cached 件（${CatalogCache.savedAtText(this@StatusActivity)}）\n")
             append("离线资源　商品图 $imgs 张 / $bytes，条款 1 份\n")
             append("上次检测　${last?.timeText ?: "—"}\n")

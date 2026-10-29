@@ -8,4 +8,26 @@
         <item name="android:statusBarColor">@color/shine_pink</item>
         <item name="android:navigationBarColor">@color/shine_pink</item>
     </style>
+
+    <!-- 设置页：分组标题 -->
+    <style name="SettingsSection">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">7dp</item>
+        <item name="android:textColor">@color/shine_sub</item>
+        <item name="android:textSize">12.5sp</item>
+        <item name="android:letterSpacing">0.06</item>
+    </style>
+
+    <!-- 设置页：分组卡片（行自带点击态，圆角裁切保证水波纹不出框） -->
+    <style name="SettingsCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:clipToOutline">true</item>
+    </style>
 </resources>
