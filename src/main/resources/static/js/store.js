@@ -193,8 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Cookie 同意横幅（跨境合规）：未同意则展示，同意后写入本地 Cookie
+// 注意：部分国产浏览器（小米/UC）的无痕模式下访问 localStorage 会抛异常，必须兜住
 function initCookieConsent() {
-  if (localStorage.getItem('shine_cookie_ok') === '1') return;
+  var agreed = false;
+  try {
+    agreed = localStorage.getItem('shine_cookie_ok') === '1';
+  } catch (e) {
+    agreed = true;   // 无法记录偏好时不再打扰用户
+  }
+  if (agreed) return;
   const banner = document.createElement('div');
   banner.className = 'cookie-banner';
   banner.innerHTML =
@@ -203,8 +210,8 @@ function initCookieConsent() {
       : '我们使用 Cookie 提升浏览体验，继续浏览即表示同意。') + '</span>' +
     '<button class="cookie-ok">' + (document.documentElement.lang === 'en' ? 'Got it' : '知道了') + '</button>';
   document.body.appendChild(banner);
-  banner.querySelector('.cookie-ok').addEventListener('click', () => {
-    localStorage.setItem('shine_cookie_ok', '1');
+  banner.querySelector('.cookie-ok').addEventListener('click', function () {
+    try { localStorage.setItem('shine_cookie_ok', '1'); } catch (e) {}
     banner.remove();
   });
 }
