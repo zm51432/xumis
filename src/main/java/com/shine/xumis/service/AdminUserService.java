@@ -31,6 +31,14 @@ public class AdminUserService {
         return adminUserRepository.findAll();
     }
 
+    public Optional<AdminUser> findById(Long id) {
+        return adminUserRepository.findById(id);
+    }
+
+    public long countOwners() {
+        return adminUserRepository.countByRole(AdminRole.OWNER);
+    }
+
     public Optional<AdminUser> findByUsername(String username) {
         return adminUserRepository.findByUsername(username);
     }
@@ -103,6 +111,17 @@ public class AdminUserService {
         AdminUser u = opt.get();
         u.setEnabled(enabled);
         adminUserRepository.save(u);
+        return true;
+    }
+
+    /** 删除管理员账号（不能删自己 / 不能删最后一个站长，由调用方校验） */
+    @Transactional
+    public boolean delete(Long id) {
+        Optional<AdminUser> opt = adminUserRepository.findById(id);
+        if (opt.isEmpty()) {
+            return false;
+        }
+        adminUserRepository.delete(opt.get());
         return true;
     }
 

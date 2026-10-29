@@ -368,6 +368,28 @@ public class AdminController {
         return "redirect:/admin/admins?saved=updated";
     }
 
+    @PostMapping("/admin/admins/delete")
+    public String deleteAdmin(HttpSession session, @RequestParam Long id) {
+        AdminUser me = me(session);
+        if (me == null) {
+            return "redirect:/admin/login";
+        }
+        if (!me.canManageAdmins()) {
+            return "redirect:/admin/admins?err=" + urlEncode("无权操作");
+        }
+        // 不能删除自己
+        if (me.getId() != null && me.getId().equals(id)) {
+            return "redirect:/admin/admins?err=" + urlEncode("不能删除自己");
+        }
+        // 不能删掉最后一个站长，避免后台无人可管理
+        AdminUser target = adminUserService.findById(id).orElse(null);
+        if (target != null && target.isOwner() && adminUserService.countOwners() <= 1) {
+            return "redirect:/admin/admins?err=" + urlEncode("不能删除最后一个站长账号");
+        }
+        adminUserService.delete(id);
+        return "redirect:/admin/admins?saved=deleted";
+    }
+
     /** 修改自己的密码（所有角色可用） */
     @PostMapping("/admin/password")
     public String changePassword(HttpSession session,

@@ -30,6 +30,7 @@
     <div class="alert-success" th:if="${saved == 'created'}" th:text="#{admin.adminCreated}">账号已创建</div>
     <div class="alert-success" th:if="${saved == 'updated'}" th:text="#{admin.adminUpdated}">已更新</div>
     <div class="alert-success" th:if="${saved == 'pwd'}" th:text="#{admin.pwdChanged}">密码已修改</div>
+    <div class="alert-success" th:if="${saved == 'deleted'}" th:text="#{admin.adminDeleted}">账号已删除</div>
     <div class="alert-error" th:if="${saved == 'dup'}" th:text="#{admin.adminDup}">用户名已存在</div>
     <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
 
@@ -109,6 +110,12 @@
                             <input type="hidden" name="enabled" th:value="${!a.enabled}"/>
                             <button class="btn btn-ghost btn-sm" type="submit"
                                     th:text="${a.enabled} ? #{admin.disable} : #{admin.enable}">停用</button>
+                        </form>
+                        <form class="inline-form" method="post" th:action="@{/admin/admins/delete}"
+                              th:if="${a.id != me.id}"
+                              onsubmit="return confirm('确定删除该管理员账号？此操作不可撤销');">
+                            <input type="hidden" name="id" th:value="${a.id}"/>
+                            <button class="btn btn-danger btn-sm" type="submit" th:text="#{admin.delete}">删除</button>
                         </form>
                         <span class="muted small" th:if="${a.id == me.id}" th:text="#{admin.self}">（当前登录）</span>
                     </td>
