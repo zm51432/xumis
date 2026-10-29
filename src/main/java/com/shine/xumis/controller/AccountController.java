@@ -58,6 +58,7 @@ public class AccountController {
     @PostMapping("/register")
     public String register(@RequestParam(required = false) String email,
                            @RequestParam(required = false) String password,
+                           @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
                            @RequestParam(required = false) String name,
                            @RequestParam(value = "redirect", required = false) String redirect,
                            HttpServletRequest request,
@@ -68,6 +69,13 @@ public class AccountController {
         }
         if (password == null || password.length() < 8) {
             model.addAttribute("error", "weakPassword");
+            model.addAttribute("email", email);
+            model.addAttribute("name", name);
+            return "register";
+        }
+        // 二次校验：前端校验可被绕过，服务端必须自己确认两次输入一致
+        if (confirmPassword == null || !confirmPassword.equals(password)) {
+            model.addAttribute("error", "pwdMismatch");
             model.addAttribute("email", email);
             model.addAttribute("name", name);
             return "register";

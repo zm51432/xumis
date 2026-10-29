@@ -37,6 +37,7 @@
             <span class="badge" th:text="${cartCount}">0</span>
         </a>
         <a th:if="${user == null}" th:href="@{/login}" th:text="#{account.login}">登录</a>
+        <a th:if="${user == null}" class="nav-register" th:href="@{/register}" th:text="#{account.register}">注册</a>
         <a th:if="${user != null}" th:href="@{/account}" th:text="#{account.my}">我的账户</a>
         <button class="lang-btn" th:data-lang="${#locale.language}" onclick="toggleLang(this)"
                 th:text="${#locale.language == 'en'} ? '中文' : 'EN'">EN</button>

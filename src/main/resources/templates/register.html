@@ -19,9 +19,10 @@
 
         <div class="alert-error" th:if="${error == 'badEmail'}" th:text="#{account.badEmail}">邮箱格式不正确</div>
         <div class="alert-error" th:if="${error == 'weakPassword'}" th:text="#{account.weakPassword}">密码至少 8 位</div>
+        <div class="alert-error" th:if="${error == 'pwdMismatch'}" th:text="#{account.pwdMismatch}">两次输入的密码不一致</div>
         <div class="alert-error" th:if="${error == 'dupEmail'}" th:text="#{account.dupEmail}">该邮箱已注册，请直接登录</div>
 
-        <form method="post" th:action="@{/register}">
+        <form method="post" th:action="@{/register}" onsubmit="return checkRegisterForm(this)">
             <input type="hidden" name="redirect" th:value="${redirectTo}"/>
             <div class="field">
                 <label th:text="#{checkout.email}">邮箱</label>
@@ -36,6 +37,11 @@
                 <input type="password" name="password" required minlength="8" autocomplete="new-password"/>
                 <p class="hint" th:text="#{account.passwordHint}">至少 8 位</p>
             </div>
+            <div class="field">
+                <label th:text="#{account.confirmPassword}">确认密码</label>
+                <input type="password" name="confirmPassword" required minlength="8" autocomplete="new-password"/>
+            </div>
+            <p class="alert-error" id="pwdMismatch" style="display:none;" th:text="#{account.pwdMismatch}">两次输入的密码不一致</p>
             <button class="btn btn-block" type="submit" th:text="#{account.register}">注册</button>
         </form>
 
@@ -43,10 +49,27 @@
             <span th:text="#{account.hasAccount}">已有账号？</span>
             <a th:href="@{/login(redirect=${redirectTo})}" th:text="#{account.login}">登录</a>
         </p>
+        <p class="muted small" style="text-align:center;margin-top:8px;" th:text="#{account.termsNote}">
+            注册即表示同意本站服务条款与隐私政策
+        </p>
     </div>
 </div>
 
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/store.js}"></script>
+<script>
+    // 前端先拦一次密码不一致，减少无意义的一次往返；服务端仍会二次校验
+    function checkRegisterForm(f) {
+        var p = f.password.value, c = f.confirmPassword.value;
+        var box = document.getElementById('pwdMismatch');
+        if (p !== c) {
+            if (box) box.style.display = 'block';
+            f.confirmPassword.focus();
+            return false;
+        }
+        if (box) box.style.display = 'none';
+        return true;
+    }
+</script>
 </body>
 </html>
