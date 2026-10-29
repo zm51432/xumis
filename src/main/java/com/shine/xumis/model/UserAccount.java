@@ -33,6 +33,21 @@ public class UserAccount {
 
     private boolean enabled = true;
 
+    /** 邮箱是否已验证（注册后为 false，点击邮件链接后变为 true） */
+    private boolean emailVerified = false;
+
+    /** 邮箱验证令牌（一次性，带过期时间） */
+    @Column(length = 64)
+    private String verifyToken;
+
+    private LocalDateTime verifyTokenExpiry;
+
+    /** 找回密码令牌（一次性，带过期时间） */
+    @Column(length = 64)
+    private String resetToken;
+
+    private LocalDateTime resetTokenExpiry;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime lastLoginAt;
@@ -67,6 +82,16 @@ public class UserAccount {
     public void setAddress(String address) { this.address = address; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+    public String getVerifyToken() { return verifyToken; }
+    public void setVerifyToken(String verifyToken) { this.verifyToken = verifyToken; }
+    public LocalDateTime getVerifyTokenExpiry() { return verifyTokenExpiry; }
+    public void setVerifyTokenExpiry(LocalDateTime verifyTokenExpiry) { this.verifyTokenExpiry = verifyTokenExpiry; }
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getLastLoginAt() { return lastLoginAt; }

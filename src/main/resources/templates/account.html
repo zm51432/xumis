@@ -32,6 +32,14 @@
     <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'pwd'}" th:text="#{account.pwdSaved}">密码已修改</div>
     <div class="alert-error" th:if="${param.saved != null and param.saved[0] == 'pwdError'}" th:text="#{account.pwdError}">原密码不正确</div>
 
+    <div class="alert-warn" th:if="${me.emailVerified == false}">
+        <span th:text="#{account.unverified}">你的邮箱尚未验证，部分功能可能受限。</span>
+        <form method="post" th:action="@{/account/resend-verify}" style="display:inline;">
+            <button class="btn btn-ghost btn-sm" type="submit" th:text="#{account.resendVerify}">重发验证邮件</button>
+        </form>
+    </div>
+    <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'resend'}" th:text="#{account.resendSent}">验证邮件已重新发送，请查收</div>
+
     <div class="account-grid">
         <!-- 收货资料 -->
         <div class="panel">

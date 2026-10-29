@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ' + #{account.verifyTitle}">邮箱验证</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
+
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="form-wrap" style="max-width:420px;">
+        <div class="alert-success" th:if="${ok}" th:text="#{account.verified}">邮箱已验证，感谢你的确认！</div>
+        <div class="alert-error" th:if="${!ok}" th:text="#{account.verifyFailed}">验证链接无效或已过期，请重新登录后获取验证邮件。</div>
+        <p style="text-align:center;margin-top:16px;">
+            <a class="btn btn-block" th:href="@{/login}" th:text="#{account.login}">前往登录</a>
+        </p>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

@@ -194,4 +194,79 @@ public class AccountController {
         boolean ok = userService.changePassword(me.getId(), oldPassword, newPassword);
         return "redirect:/account?saved=" + (ok ? "pwd" : "pwdError");
     }
+
+    // ===== 邮箱验证 / 找回密码 =====
+
+    /** 点击邮件中的验证链接 */
+    @GetMapping("/verify")
+    public String verify(@RequestParam(required = false) String token, Model model) {
+        boolean ok = userService.verifyEmail(token);
+        model.addAttribute("ok", ok);
+        return "verify-result";
+    }
+
+    /** 忘记密码：填邮箱 */
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "forgot-password";
+    }
+
+    /** 忘记密码：提交邮箱，生成并发送重置链接（无论账号是否存在都给同样提示，防泄露） */
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam(required = false) String email) {
+        if (email != null && email.contains("@")) {
+            userService.createPasswordResetToken(email);
+        }
+        return "redirect:/forgot-password?sent=1";
+    }
+
+    /** 重置密码：凭令牌打开表单 */
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam(required = false) String token, Model model) {
+        if (token == null || !userService.isResetTokenValid(token)) {
+            model.addAttribute("invalid", true);
+            return "reset-password";
+        }
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
+    /** 重置密码：提交新密码 */
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam(required = false) String token,
+                                @RequestParam(required = false) String password,
+                                @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
+                                Model model) {
+        if (token == null || !userService.isResetTokenValid(token)) {
+            model.addAttribute("invalid", true);
+            return "reset-password";
+        }
+        if (password == null || password.length() < 8) {
+            model.addAttribute("token", token);
+            model.addAttribute("error", "weak");
+            return "reset-password";
+        }
+        if (confirmPassword == null || !confirmPassword.equals(password)) {
+            model.addAttribute("token", token);
+            model.addAttribute("error", "mismatch");
+            return "reset-password";
+        }
+        boolean ok = userService.resetPassword(token, password);
+        if (!ok) {
+            model.addAttribute("invalid", true);
+            return "reset-password";
+        }
+        return "redirect:/login?reset=1";
+    }
+
+    /** 已登录用户在「我的账户」重新发送验证邮件 */
+    @PostMapping("/account/resend-verify")
+    public String resendVerify(HttpSession session) {
+        UserAccount me = currentUser(session);
+        if (me == null) {
+            return "redirect:/login?redirect=/account";
+        }
+        userService.resendVerification(me.getEmail());
+        return "redirect:/account?saved=resend";
+    }
 }

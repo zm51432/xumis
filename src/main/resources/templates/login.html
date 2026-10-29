@@ -38,6 +38,8 @@
             <span th:text="#{account.noAccount}">还没有账号？</span>
             <a th:href="@{/register(redirect=${redirectTo})}" th:text="#{account.register}">注册</a>
             <span style="margin:0 8px;">·</span>
+            <a th:href="@{/forgot-password}" th:text="#{account.forgotPwd}">忘记密码</a>
+            <span style="margin:0 8px;">·</span>
             <a th:href="@{/order/track}" th:text="#{nav.track}">订单查询</a>
         </p>
     </div>

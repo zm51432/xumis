@@ -56,7 +56,27 @@ spring:
       max-file-size: 10MB
       max-request-size: 12MB
 
+  # ===== 邮件（邮箱验证 / 找回密码）=====
+  # 可用环境变量覆盖：MAIL_HOST / MAIL_PORT / MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM
+  # 未配置 MAIL_HOST 时，MailService 降级：仅把验证/重置链接打到服务端日志，不真正发信
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+    test-connection: false
+
 app:
+  # 站点绝对基址：用于拼出邮件中的验证/重置链接（与 GlobalModelAdvice.siteBaseUrl 保持一致）
+  site-base-url: ${SITE_BASE_URL:https://shine.xumois.cn}
   upload-dir: ./uploads
   upload-url: /files/
   admin-key: admin        # 应急钥匙（仅在 app.admin-allow-key=true 时生效）
