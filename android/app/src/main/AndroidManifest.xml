@@ -5,6 +5,12 @@
     <!-- 联网：App 与商店服务通信，属于安装即授予的普通权限，不弹窗 -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+      应用内升级：下载新版本后调用系统安装器，Android 8.0+ 需要该权限声明
+      （是否真的允许安装仍由用户在系统设置里单独开关，App 只做引导）。
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- ========== 1. 定位：估算运费 / 就近自提点，WebView 地理定位 ========== -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -79,6 +85,11 @@
             <action android:name="android.intent.action.GET_CONTENT" />
             <data android:mimeType="*/*" />
         </intent>
+        <!-- 应用内升级：需要能查询到系统安装器（package-archive 的 VIEW 接收方） -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
         <package android:name="com.miui.securitycenter" />
         <package android:name="com.coloros.safecenter" />
         <package android:name="com.oppo.safe" />
@@ -111,6 +122,7 @@
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
+        <activity android:name=".ui.UpdateActivity" android:exported="false" />
         <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
         <activity android:name=".ui.StatusActivity" android:exported="false" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />

@@ -4,4 +4,6 @@
     <cache-path name="captures" path="captures/" />
     <!-- 预留：App 内部生成、需要外发给其它应用的文件 -->
     <files-path name="shared" path="shared/" />
+    <!-- 升级包：下载到 filesDir/updates，交给系统安装器时以 content:// 授权读取 -->
+    <files-path name="updates" path="updates/" />
 </paths>

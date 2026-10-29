@@ -28,3 +28,6 @@ Thumbs.db
 
 # 日志
 *.log
+
+# 安装包为构建产物，发布走 APK 推送服务（deploy/ota），不入库
+/shine.apk

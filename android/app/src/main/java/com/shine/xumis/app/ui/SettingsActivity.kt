@@ -15,6 +15,7 @@ import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
+import com.shine.xumis.app.util.UpdateChecker
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +30,7 @@ import kotlinx.coroutines.withContext
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
+    private var checkingUpdate = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,6 +183,11 @@ class SettingsActivity : AppCompatActivity() {
     // ---------------- 关于 ----------------
 
     private fun setUpAbout() {
+        bind(
+            binding.rowUpdate, R.drawable.ic_refresh, "检查更新",
+            "检查新版本并直接升级"
+        ) { checkUpdate() }
+
         bind(binding.rowVersion, R.drawable.ic_info, "版本", null, chevron = false)
         bind(binding.rowShare, R.drawable.ic_share, "分享给朋友", "把 App 推荐给朋友") {
             startActivity(
@@ -193,10 +200,42 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    // ---------------- 检查更新 ----------------
+
+    private fun checkUpdate() {
+        if (checkingUpdate) return
+        checkingUpdate = true
+        setValue(binding.rowUpdate, "检查中…")
+        lifecycleScope.launch {
+            val resp = runCatching {
+                withContext(Dispatchers.IO) { UpdateChecker.check(this@SettingsActivity) }
+            }.getOrNull()
+            checkingUpdate = false
+            if (resp == null) {
+                setValue(binding.rowUpdate, "检查失败")
+                Toast.makeText(this@SettingsActivity, "检查失败，请检查手机网络后重试", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val rel = resp.latest
+            if (resp.update && rel != null) {
+                setValue(binding.rowUpdate, "v" + rel.versionName)
+                startActivity(UpdateActivity.intent(this@SettingsActivity, rel, resp.force))
+            } else {
+                setValue(binding.rowUpdate, "已是最新")
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "当前已是最新版本 v" + UpdateChecker.installedVersionName(this@SettingsActivity),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     // ---------------- 刷新 ----------------
 
     private fun refreshRows() {
         setValue(binding.rowTextZoom, AppPrefs.textZoomLabel())
+        if (!checkingUpdate) setValue(binding.rowUpdate, "v" + versionName())
         setValue(binding.rowVersion, "v${versionName()}（${versionCode()}）")
         setValue(binding.rowPermissions, Permissions.summary(this))
 

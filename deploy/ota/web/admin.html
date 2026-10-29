@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>版本推送中心 · shine 星心</title>
+<style>
+  :root{
+    --mint:#7fc5ac; --mint-deep:#4c9b81; --mint-soft:#eef7f2;
+    --bg:#f7faf8; --line:#e3ece7; --text:#243b34; --sub:#6b7f78;
+    --warn:#c9772f; --warn-soft:#fdf3e7; --danger:#c0504d; --danger-soft:#fbecec;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;font-size:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;cursor:pointer}
+  code{background:var(--mint-soft);border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--mint-deep)}
+
+  /* ---------- 顶栏 ---------- */
+  .top{
+    position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;
+    padding:14px 24px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.2px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--mint-deep);box-shadow:0 0 0 4px var(--mint-soft)}
+  .brand small{font-weight:500;color:var(--sub);font-size:12.5px;padding-left:2px}
+  .top .grow{flex:1}
+  .top .clock{color:var(--sub);font-size:12.5px;font-variant-numeric:tabular-nums}
+  .ghost{
+    border:1px solid var(--line);background:#fff;color:var(--text);
+    padding:7px 14px;border-radius:999px;font-size:13px;transition:.15s;
+  }
+  .ghost:hover{border-color:var(--mint);color:var(--mint-deep)}
+
+  /* ---------- 布局 ---------- */
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 24px;box-shadow:0 8px 24px rgba(76,155,129,.05)}
+  .card h2{margin:0 0 4px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card h2 .hint{font-weight:400;color:var(--sub);font-size:12.5px}
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin-top:18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  @media(max-width:860px){.grid,.grid2{grid-template-columns:1fr}}
+
+  /* ---------- 当前版本 ---------- */
+  .hero{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px;margin-top:4px}
+  @media(max-width:860px){.hero{grid-template-columns:1fr 1fr}}
+  .hero .box{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+  .hero .box .k{color:var(--sub);font-size:12.5px;margin-bottom:4px}
+  .hero .box .v{font-size:20px;font-weight:700;letter-spacing:.2px;font-variant-numeric:tabular-nums}
+  .hero .box .v small{font-size:12.5px;font-weight:500;color:var(--sub);margin-left:4px}
+  .hero .current{background:linear-gradient(135deg,#f0f9f4,#ffffff);border-color:#cfe7db}
+  .badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:600}
+  .badge.live{background:var(--mint-soft);color:var(--mint-deep)}
+  .badge.beta{background:#eef2fb;color:#4a6bb5}
+  .badge.old{background:#f2f4f3;color:var(--sub)}
+  .badge.force{background:var(--warn-soft);color:var(--warn)}
+  .badge.new{background:var(--mint-soft);color:var(--mint-deep)}
+
+  /* ---------- 上传 ---------- */
+  .drop{
+    margin-top:14px;border:1.5px dashed #cfe0d8;border-radius:16px;background:#fbfdfc;
+    padding:26px 18px;text-align:center;transition:.18s;cursor:pointer;
+  }
+  .drop:hover,.drop.on{border-color:var(--mint-deep);background:var(--mint-soft)}
+  .drop .big{font-size:14px;font-weight:600}
+  .drop .sm{font-size:12.5px;color:var(--sub);margin-top:4px}
+  .drop.has{border-style:solid;border-color:#cfe7db;background:var(--mint-soft);text-align:left}
+  .fileline{display:flex;align-items:center;gap:10px}
+  .fileline .nm{font-weight:600;word-break:break-all}
+  .fileline .sz{color:var(--sub);font-size:12.5px;white-space:nowrap}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:11.5px;color:var(--sub)}
+  .chip b{color:var(--text);font-weight:600}
+
+  label.f{display:block;margin-top:16px;font-size:12.5px;font-weight:600;color:#33473f}
+  textarea,input[type=number],input[type=password],input[type=text],select{
+    width:100%;margin-top:6px;border:1px solid var(--line);border-radius:12px;background:#fff;
+    padding:10px 12px;font-size:13.5px;font-family:inherit;color:var(--text);outline:none;transition:.15s;
+  }
+  textarea:focus,input:focus,select:focus{border-color:var(--mint);box-shadow:0 0 0 3px rgba(127,197,172,.18)}
+  textarea{min-height:92px;resize:vertical;line-height:1.7}
+  .row{display:flex;gap:12px}.row>*{flex:1}
+  .check{display:flex;align-items:flex-start;gap:9px;margin-top:14px;font-size:13px;color:#33473f;cursor:pointer}
+  .check input{margin:3px 0 0;width:16px;height:16px;accent-color:var(--mint-deep)}
+  .check .d{display:block;color:var(--sub);font-size:12px}
+
+  .actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .btn{
+    border:none;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:600;
+    background:var(--mint-deep);color:#fff;box-shadow:0 6px 16px rgba(76,155,129,.22);transition:.15s;
+  }
+  .btn:hover{background:#428a73}
+  .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  .btn.sub{background:#fff;color:var(--mint-deep);border:1px solid #cfe0d8;box-shadow:none}
+  .btn.sub:hover{background:var(--mint-soft)}
+  .btn.mini{padding:6px 13px;font-size:12.5px;box-shadow:none;border-radius:10px}
+  .btn.mini.sub{background:#fff}
+  .btn.mini.danger{background:#fff;color:var(--danger);border:1px solid #eccfce}
+  .btn.mini.danger:hover{background:var(--danger-soft)}
+
+  .prog{height:6px;border-radius:99px;background:#e9f2ed;margin-top:14px;overflow:hidden;display:none}
+  .prog.on{display:block}
+  .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--mint-deep));transition:width .2s}
+
+  /* ---------- 表格 ---------- */
+  .tbl{margin-top:12px;width:100%;border-collapse:separate;border-spacing:0}
+  .tbl th{
+    text-align:left;font-size:11.5px;font-weight:600;color:var(--sub);letter-spacing:.4px;
+    padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  .tbl td{padding:12px 10px;border-bottom:1px solid #f1f6f3;vertical-align:middle;font-size:13px}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl .vname{font-weight:700;font-size:13.5px}
+  .tbl .vcode{color:var(--sub);font-size:11.5px;font-variant-numeric:tabular-nums}
+  .tbl .ops{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+  .empty{padding:34px 10px;text-align:center;color:var(--sub);font-size:13px}
+
+  /* ---------- 统计 ---------- */
+  .bars{display:flex;align-items:flex-end;gap:10px;height:112px;margin-top:16px}
+  .bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .bars .pair{display:flex;align-items:flex-end;gap:3px;width:100%;height:100%;justify-content:center}
+  .bars .b{width:9px;border-radius:4px 4px 2px 2px;background:var(--mint);min-height:2px;transition:.3s}
+  .bars .b.d{background:#cfe0d8}
+  .bars .lbl{font-size:10.5px;color:var(--sub)}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--sub);margin-top:8px}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+
+  .log{margin-top:12px;max-height:264px;overflow:auto}
+  .log .it{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed #eef3f1;font-size:12.5px}
+  .log .it:last-child{border-bottom:none}
+  .log .t{color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums;font-size:11.5px;padding-top:2px}
+  .log .a{font-weight:600;white-space:nowrap}
+  .log .d{color:var(--sub);word-break:break-all}
+
+  /* ---------- 登录 ---------- */
+  .login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login .card{width:100%;max-width:380px;padding:32px 28px}
+  .login h1{margin:0 0 4px;font-size:19px}
+  .login p{margin:0 0 22px;color:var(--sub);font-size:13px}
+
+  /* ---------- 弹窗 / 提示 ---------- */
+  .mask{position:fixed;inset:0;background:rgba(36,59,52,.32);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask.on{display:flex}
+  .modal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(36,59,52,.2)}
+  .modal h3{margin:0 0 4px;font-size:16px}
+  .modal .tip{color:var(--sub);font-size:12.5px;margin:0 0 6px}
+
+  #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+    background:#243b34;color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:99;transition:.25s;max-width:88vw}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+  #toast.err{background:#a8453f}
+  .banner{background:var(--warn-soft);border:1px solid #f0dcc0;color:#8a5a1f;border-radius:14px;padding:11px 14px;font-size:12.5px;margin-top:16px}
+  .banner b{font-weight:700}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ============ 登录 ============ -->
+<div class="login" id="loginView" hidden>
+  <div class="card">
+    <h1>版本推送中心</h1>
+    <p>shine 星心 · 仅站长可登录</p>
+    <label class="f" for="pwd">管理口令</label>
+    <input id="pwd" type="password" autocomplete="current-password" placeholder="请输入管理口令"/>
+    <div class="actions">
+      <button class="btn" id="btnLogin" style="width:100%">登 录</button>
+    </div>
+    <div class="banner" id="loginErr" hidden></div>
+  </div>
+</div>
+
+<!-- ============ 主界面 ============ -->
+<div id="mainView" hidden>
+  <div class="top">
+    <div class="brand"><span class="dot"></span>shine 星心 <small>版本推送中心</small></div>
+    <div class="grow"></div>
+    <span class="clock" id="clock">—</span>
+    <button class="ghost" id="btnPwd">修改口令</button>
+    <button class="ghost" id="btnLogout">退出</button>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div class="box current">
+        <div class="k">线上正式版</div>
+        <div class="v" id="curVer">—</div>
+        <div class="k" id="curMeta" style="margin:6px 0 0">—</div>
+      </div>
+      <div class="box">
+        <div class="k">安装包体积</div>
+        <div class="v" id="curSize">—</div>
+      </div>
+      <div class="box">
+        <div class="k">累计下载</div>
+        <div class="v" id="curDl">—</div>
+      </div>
+      <div class="box">
+        <div class="k">今日检查更新</div>
+        <div class="v" id="curCheck">—</div>
+      </div>
+    </div>
+
+    <div class="banner hidden" id="pwdBanner">
+      <b>当前仍在使用初始口令。</b>请点右上角「修改口令」立即更换，避免任何人凭初始口令推送安装包。
+    </div>
+
+    <div class="grid">
+      <!-- 上传发布 -->
+      <div class="card">
+        <h2>发布新版本 <span class="hint">上传后一键推送给全部客户端</span></h2>
+
+        <div class="drop" id="drop">
+          <div class="big">点击选择或拖入 APK 文件</div>
+          <div class="sm" id="dropHint">仅接受 shine 星心安装包，最大 120 MB</div>
+        </div>
+        <input type="file" id="file" accept=".apk,application/vnd.android.package-archive" hidden/>
+        <div class="chips" id="chips"></div>
+
+        <label class="f" for="notes">本次更新说明（会显示在用户手机的升级弹窗里）</label>
+        <textarea id="notes" placeholder="例如：&#10;· 修复商品详情页图片偶发加载慢&#10;· 优化升级流程稳定性"></textarea>
+
+        <div class="row">
+          <div>
+            <label class="f" for="channel">发布渠道</label>
+            <select id="channel">
+              <option value="stable">正式版（全部用户）</option>
+              <option value="beta">内测版（手动指定）</option>
+            </select>
+          </div>
+          <div>
+            <label class="f" for="minSup">最低支持版本号</label>
+            <input id="minSup" type="number" min="0" value="0" placeholder="0 表示不强制"/>
+          </div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="force"/>
+          <span>强制更新<em class="d">用户必须升级后才能继续使用；仅在修复严重问题时启用</em></span>
+        </label>
+
+        <div class="prog" id="prog"><i id="progBar"></i></div>
+        <div class="actions">
+          <button class="btn" id="btnUploadPush" disabled>上传并立即推送</button>
+          <button class="btn sub" id="btnUploadOnly" disabled>仅上传，稍后推送</button>
+        </div>
+      </div>
+
+      <!-- 发布须知 -->
+      <div class="card">
+        <h2>发布须知</h2>
+        <ol style="margin:12px 0 0;padding-left:20px;font-size:13px;color:#33473f;line-height:1.9">
+          <li>版本号必须<b>递增</b>：客户端靠 versionCode 判断是否有新版本。</li>
+          <li>安装包必须用<b>同一签名密钥</b>打包，否则老用户无法覆盖安装（系统会拒绝）。</li>
+          <li>推送后 <code>/download/</code> 页面的安装包与版本号会<b>自动同步</b>，无需手动替换。</li>
+          <li>用户打开 App 或手动「检查更新」时收到提示，下载完成后由系统安装器安装。</li>
+          <li>推送错误版本时可随时<b>回滚</b>：把上一版本重新设为线上版本即可。</li>
+        </ol>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--sub)">
+          客户端检查接口<br/>
+          <code id="apiHint">/apk/ota/api/check?vc=6&amp;ch=stable</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- 版本列表 -->
+    <div class="card" style="margin-top:18px">
+      <h2>版本列表 <span class="hint" id="relCount"></span></h2>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>版本</th><th>渠道</th><th>体积</th><th>上线时间</th><th>下载</th><th>状态</th>
+              <th style="text-align:right">操作</th>
+            </tr>
+          </thead>
+          <tbody id="relBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="relEmpty" hidden>还没有上传过安装包，先从上方发布第一个版本。</div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>近 7 天 <span class="hint">检查更新 / 下载次数</span></h2>
+        <div class="bars" id="bars"></div>
+        <div class="legend">
+          <span><i style="background:var(--mint)"></i>检查更新</span>
+          <span><i style="background:#cfe0d8"></i>下载安装包</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>操作日志 <span class="hint">最近 30 条</span></h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 修改口令 ============ -->
+<div class="mask" id="pwdMask">
+  <div class="modal">
+    <h3>修改管理口令</h3>
+    <p class="tip">口令至少 8 位，修改后所有已登录会话会立即失效。</p>
+    <label class="f" for="oldPwd">原口令</label>
+    <input id="oldPwd" type="password" autocomplete="current-password"/>
+    <label class="f" for="newPwd">新口令</label>
+    <input id="newPwd" type="password" autocomplete="new-password"/>
+    <label class="f" for="newPwd2">确认新口令</label>
+    <input id="newPwd2" type="password" autocomplete="new-password"/>
+    <div class="actions">
+      <button class="btn" id="btnPwdSave">保存</button>
+      <button class="btn sub" id="btnPwdCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 编辑版本 ============ -->
+<div class="mask" id="editMask">
+  <div class="modal">
+    <h3 id="editTitle">编辑版本</h3>
+    <p class="tip">修改后立即生效，正在检查更新的客户端会拿到新内容。</p>
+    <label class="f" for="editNotes">更新说明</label>
+    <textarea id="editNotes"></textarea>
+    <div class="row">
+      <div>
+        <label class="f" for="editMin">最低支持版本号</label>
+        <input id="editMin" type="number" min="0"/>
+      </div>
+      <div>
+        <label class="f" for="editChannel">渠道</label>
+        <select id="editChannel">
+          <option value="stable">正式版</option>
+          <option value="beta">内测版</option>
+        </select>
+      </div>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="editForce"/>
+      <span>强制更新<em class="d">低于最低支持版本的用户一律强制升级</em></span>
+    </label>
+    <div class="actions">
+      <button class="btn" id="btnEditSave">保存</button>
+      <button class="btn sub" id="btnEditCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var state = { overview: null, picked: null, editing: null };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function toast(msg, err) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.className = "on" + (err ? " err" : "");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.className = ""; }, 2600);
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    opts.credentials = "same-origin";
+    opts.headers = Object.assign({ "X-OTA-Request": "1" }, opts.headers || {});
+    return fetch(path, opts).then(function (r) {
+      return r.json().catch(function () { return { ok: false, error: "服务端返回异常（" + r.status + "）" }; })
+        .then(function (j) {
+          if (r.status === 401 && j.needLogin) { showLogin(); throw new Error("登录已过期"); }
+          return j;
+        });
+    });
+  }
+
+  function postJSON(path, data, method) {
+    return api(path, {
+      method: method || "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data || {})
+    });
+  }
+
+  // ---------------- 登录 ----------------
+  function showLogin() {
+    $("loginView").hidden = false;
+    $("mainView").hidden = true;
+    setTimeout(function () { $("pwd").focus(); }, 60);
+  }
+  function showMain() {
+    $("loginView").hidden = true;
+    $("mainView").hidden = false;
+    load();
+  }
+
+  $("btnLogin").onclick = function () {
+    var v = $("pwd").value;
+    if (!v) { return; }
+    $("btnLogin").disabled = true;
+    postJSON("/apk/ota/api/login", { password: v }).then(function (j) {
+      $("btnLogin").disabled = false;
+      if (!j.ok) {
+        $("loginErr").hidden = false;
+        $("loginErr").textContent = j.error || "登录失败";
+        return;
+      }
+      $("pwd").value = "";
+      $("loginErr").hidden = true;
+      showMain();
+    }).catch(function () { $("btnLogin").disabled = false; });
+  };
+  $("pwd").addEventListener("keydown", function (e) { if (e.key === "Enter") $("btnLogin").click(); });
+
+  $("btnLogout").onclick = function () {
+    postJSON("/apk/ota/api/logout", {}).then(function () { showLogin(); });
+  };
+
+  // ---------------- 概览 ----------------
+  function load() {
+    return api("/apk/ota/api/overview").then(function (j) {
+      if (!j.ok) { toast(j.error || "加载失败", true); return; }
+      state.overview = j;
+      render(j);
+    });
+  }
+
+  function render(d) {
+    var cur = d.current;
+    $("curVer").innerHTML = cur
+      ? "v" + esc(cur.versionName) + " <small>#" + cur.versionCode + "</small>"
+      : "暂无";
+    $("curMeta").textContent = cur
+      ? "上线于 " + cur.publishedAtText + (cur.force ? " · 强制更新" : "")
+      : "尚未推送任何版本";
+    $("curSize").textContent = cur ? cur.sizeText : "—";
+    $("curDl").textContent = d.stats.totalDownloads;
+    var today = d.stats.days[d.stats.days.length - 1];
+    $("curCheck").textContent = today ? today.checks : 0;
+    $("pwdBanner").classList.toggle("hidden", !d.mustChange);
+    $("clock").textContent = d.now;
+
+    var html = "";
+    d.releases.forEach(function (r) {
+      var badge = r.isCurrent ? '<span class="badge live">线上</span>'
+        : (r.isBeta ? '<span class="badge beta">内测</span>' : '<span class="badge old">历史</span>');
+      if (r.force) badge += ' <span class="badge force">强制</span>';
+      var ops = '<button class="btn mini sub" data-act="edit" data-id="' + r.id + '">编辑</button>';
+      if (!r.isCurrent) {
+        ops += '<button class="btn mini" data-act="push" data-id="' + r.id + '">推送上线</button>';
+        ops += '<button class="btn mini danger" data-act="del" data-id="' + r.id + '">删除</button>';
+      }
+      html += '<tr>' +
+        '<td><div class="vname">v' + esc(r.versionName) + '</div><div class="vcode">versionCode ' + r.versionCode + '</div></td>' +
+        '<td>' + (r.channel === "beta" ? "内测" : "正式") + '</td>' +
+        '<td>' + esc(r.sizeText) + '</td>' +
+        '<td>' + esc(r.publishedAtText || r.uploadedAtText) + '</td>' +
+        '<td>' + (r.downloads || 0) + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td><div class="ops">' + ops + '</div></td>' +
+        '</tr>';
+    });
+    $("relBody").innerHTML = html;
+    $("relEmpty").hidden = d.releases.length > 0;
+    $("relCount").textContent = d.releases.length ? "共 " + d.releases.length + " 个版本" : "";
+    $("apiHint").textContent = "/apk/ota/api/check?vc=" + (cur ? cur.versionCode : 1) + "&ch=stable";
+
+    // 近 7 天
+    var max = 1;
+    d.stats.days.forEach(function (x) { max = Math.max(max, x.checks, x.downloads); });
+    $("bars").innerHTML = d.stats.days.map(function (x) {
+      var h1 = Math.max(2, Math.round(x.checks / max * 96));
+      var h2 = Math.max(2, Math.round(x.downloads / max * 96));
+      return '<div class="col"><div class="pair">' +
+        '<div class="b" style="height:' + h1 + 'px" title="检查 ' + x.checks + ' 次"></div>' +
+        '<div class="b d" style="height:' + h2 + 'px" title="下载 ' + x.downloads + ' 次"></div>' +
+        '</div><div class="lbl">' + esc(x.day) + '</div></div>';
+    }).join("");
+
+    // 日志
+    $("log").innerHTML = d.audit.length ? d.audit.map(function (a) {
+      return '<div class="it"><div class="t">' + esc(a.when.slice(5)) + '</div>' +
+        '<div class="a">' + esc(a.action) + '</div>' +
+        '<div class="d">' + esc(a.detail || "") + '</div></div>';
+    }).join("") : '<div class="empty">暂无记录</div>';
+
+    $("relBody").querySelectorAll("button[data-act]").forEach(function (b) {
+      b.onclick = function () { onRowAction(b.dataset.act, b.dataset.id); };
+    });
+  }
+
+  function findRel(id) {
+    return (state.overview && state.overview.releases || []).filter(function (r) { return r.id === id; })[0];
+  }
+
+  function onRowAction(act, id) {
+    var r = findRel(id);
+    if (!r) return;
+    if (act === "push") {
+      var msg = "确认把 v" + r.versionName + "（#" + r.versionCode + "）推送给" +
+        (r.channel === "beta" ? "内测渠道" : "全部用户") + "？\n\n推送后客户端下次检查更新即可收到。";
+      if (r.versionCode <= ((state.overview.current || {}).versionCode || 0)) {
+        msg += "\n\n注意：该版本号不高于当前线上版本，已升级的用户不会收到此版本。";
+      }
+      if (!confirm(msg)) return;
+      postJSON("/apk/ota/api/publish", { id: id, channel: r.channel }).then(handlePublish);
+    } else if (act === "del") {
+      if (!confirm("确认删除 v" + r.versionName + "？安装包文件将被移除，历史下载链接失效。")) return;
+      api("/apk/ota/api/release/" + id, { method: "DELETE" }).then(function (j) {
+        toast(j.ok ? "已删除" : (j.error || "删除失败"), !j.ok);
+        load();
+      });
+    } else if (act === "edit") {
+      state.editing = id;
+      $("editTitle").textContent = "编辑 v" + r.versionName;
+      $("editNotes").value = r.notes || "";
+      $("editMin").value = r.minSupported || 0;
+      $("editChannel").value = r.channel || "stable";
+      $("editForce").checked = !!r.force;
+      $("editMask").classList.add("on");
+    }
+  }
+
+  function handlePublish(j) {
+    if (j.ok) {
+      var extra = "";
+      if (j.synced && j.synced.synced && j.synced.synced.length) extra = "，下载页已同步";
+      toast("推送成功" + extra);
+      load();
+    } else {
+      toast(j.error || "推送失败", true);
+      if (j.error) alert(j.error);
+    }
+  }
+
+  // ---------------- 上传 ----------------
+  var drop = $("drop"), fileInput = $("file");
+
+  drop.onclick = function () { fileInput.click(); };
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("on"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("on"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault();
+    drop.classList.remove("on");
+    if (e.dataTransfer.files.length) pick(e.dataTransfer.files[0]);
+  });
+  fileInput.onchange = function () { if (fileInput.files.length) pick(fileInput.files[0]); };
+
+  function pick(f) {
+    var maxMB = (state.overview && state.overview.limits.maxUploadMB) || 120;
+    if (!/\.apk$/i.test(f.name)) { return toast("请选择 .apk 安装包", true); }
+    if (f.size > maxMB * 1024 * 1024) { return toast("文件超过 " + maxMB + " MB", true); }
+    state.picked = f;
+    drop.classList.add("has");
+    drop.innerHTML = '<div class="fileline"><span style="font-size:18px">📦</span>' +
+      '<span class="nm">' + esc(f.name) + '</span>' +
+      '<span class="sz">' + (f.size / 1048576).toFixed(1) + ' MB</span>' +
+      '<span style="flex:1"></span><span class="sz">点击可重新选择</span></div>';
+    $("chips").innerHTML = "";
+    $("btnUploadPush").disabled = false;
+    $("btnUploadOnly").disabled = false;
+  }
+
+  function doUpload(publish) {
+    if (!state.picked) return;
+    var fd = new FormData();
+    fd.append("apk", state.picked);
+    fd.append("notes", $("notes").value);
+    fd.append("channel", $("channel").value);
+    fd.append("force", $("force").checked ? "1" : "0");
+    fd.append("minSupported", $("minSup").value || "0");
+    if (publish) fd.append("publish", "1");
+
+    $("btnUploadPush").disabled = true;
+    $("btnUploadOnly").disabled = true;
+    $("prog").classList.add("on");
+    $("progBar").style.width = "2%";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/apk/ota/api/upload");
+    xhr.setRequestHeader("X-OTA-Request", "1");
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable) {
+        $("progBar").style.width = Math.min(99, Math.round(e.loaded / e.total * 100)) + "%";
+      }
+    };
+    xhr.onload = function () {
+      $("progBar").style.width = "100%";
+      var j = {};
+      try { j = JSON.parse(xhr.responseText); } catch (e) {}
+      setTimeout(function () { $("prog").classList.remove("on"); }, 600);
+      if (xhr.status === 401) { showLogin(); return; }
+      if (!j.ok) {
+        toast(j.error || "上传失败", true);
+        if (j.error) alert(j.error);
+        resetUpload();
+        return;
+      }
+      $("chips").innerHTML =
+        '<span class="chip">包名 <b>' + esc(j.meta.package) + '</b></span>' +
+        '<span class="chip">versionCode <b>' + j.release.versionCode + '</b></span>' +
+        '<span class="chip">versionName <b>' + esc(j.release.versionName) + '</b></span>' +
+        '<span class="chip">签名 <b>' + (j.meta.signerSha256 ? esc(j.meta.signerSha256.slice(0, 17)) + "…" : "未识别") + '</b></span>' +
+        '<span class="chip">SHA-256 <b>' + esc(j.release.sha256.slice(0, 12)) + '…</b></span>';
+
+      if (j.published) {
+        toast("已上传并推送 v" + j.release.versionName);
+        resetUpload(true);
+        load();
+      } else if (j.error) {
+        toast(j.error, true);
+        alert("安装包已上传，但推送被拒绝：\n\n" + j.error + "\n\n可点版本列表里的「编辑」修正后再推送。");
+        resetUpload(true);
+        load();
+      } else {
+        toast("已上传 v" + j.release.versionName + "，尚未推送");
+        resetUpload(true);
+        load();
+      }
+    };
+    xhr.onerror = function () {
+      toast("网络中断，上传失败", true);
+      $("prog").classList.remove("on");
+      resetUpload();
+    };
+    xhr.send(fd);
+  }
+
+  function resetUpload(keepChips) {
+    state.picked = null;
+    fileInput.value = "";
+    $("btnUploadPush").disabled = true;
+    $("btnUploadOnly").disabled = true;
+    drop.classList.remove("has");
+    drop.innerHTML = '<div class="big">点击选择或拖入 APK 文件</div>' +
+      '<div class="sm" id="dropHint">仅接受 shine 星心安装包，最大 ' +
+      (((state.overview || {}).limits || {}).maxUploadMB || 120) + ' MB</div>';
+    if (!keepChips) $("chips").innerHTML = "";
+  }
+
+  $("btnUploadPush").onclick = function () { doUpload(true); };
+  $("btnUploadOnly").onclick = function () { doUpload(false); };
+
+  // ---------------- 编辑 ----------------
+  $("btnEditCancel").onclick = function () { $("editMask").classList.remove("on"); };
+  $("btnEditSave").onclick = function () {
+    var id = state.editing;
+    postJSON("/apk/ota/api/release/" + id, {
+      notes: $("editNotes").value,
+      force: $("editForce").checked,
+      minSupported: parseInt($("editMin").value || "0", 10) || 0,
+      channel: $("editChannel").value
+    }, "PATCH").then(function (j) {
+      if (!j.ok) { return toast(j.error || "保存失败", true); }
+      $("editMask").classList.remove("on");
+      toast("已保存");
+      load();
+    });
+  };
+
+  // ---------------- 改口令 ----------------
+  $("btnPwd").onclick = function () {
+    $("oldPwd").value = ""; $("newPwd").value = ""; $("newPwd2").value = "";
+    $("pwdMask").classList.add("on");
+  };
+  $("btnPwdCancel").onclick = function () { $("pwdMask").classList.remove("on"); };
+  $("btnPwdSave").onclick = function () {
+    if ($("newPwd").value !== $("newPwd2").value) { return toast("两次输入的新口令不一致", true); }
+    if ($("newPwd").value.length < 8) { return toast("新口令至少 8 位", true); }
+    postJSON("/apk/ota/api/password", { old: $("oldPwd").value, new: $("newPwd").value })
+      .then(function (j) {
+        if (!j.ok) { return toast(j.error || "修改失败", true); }
+        $("pwdMask").classList.remove("on");
+        toast("口令已更新，请重新登录");
+        setTimeout(showLogin, 900);
+      });
+  };
+
+  // ---------------- 启动 ----------------
+  api("/apk/ota/api/me").then(function (j) {
+    if (j && j.logged) showMain(); else showLogin();
+  }).catch(showLogin);
+
+  setInterval(function () {
+    if ($("mainView").hidden) return;
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    $("clock").textContent = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+      " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }, 1000);
+})();
+</script>
+</body>
+</html>

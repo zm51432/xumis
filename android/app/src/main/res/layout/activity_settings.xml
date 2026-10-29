@@ -119,6 +119,12 @@
             <LinearLayout style="@style/SettingsCard">
 
                 <include
+                    android:id="@+id/row_update"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
                     android:id="@+id/row_version"
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"

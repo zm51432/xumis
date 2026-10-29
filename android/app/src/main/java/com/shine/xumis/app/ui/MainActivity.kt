@@ -6,14 +6,24 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.R
 import com.shine.xumis.app.databinding.ActivityMainBinding
 import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.Permissions
+import com.shine.xumis.app.util.UpdateChecker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
+    private companion object {
+        /** 前台静默检查的最小间隔：6 小时 */
+        const val UPDATE_CHECK_INTERVAL = 6 * 60 * 60 * 1000L
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +74,31 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, PermissionActivity::class.java))
             }
             .show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkUpdateQuietly()
+    }
+
+    /**
+     * 静默检查更新：进入前台时看一次，但 6 小时内不重复请求；
+     * 用户点过「稍后再说」的同一个版本不再弹，除非服务端标了强制更新。
+     */
+    private fun checkUpdateQuietly() {
+        val now = System.currentTimeMillis()
+        if (now - AppPrefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL) return
+        AppPrefs.lastUpdateCheck = now
+        lifecycleScope.launch {
+            val resp = runCatching {
+                withContext(Dispatchers.IO) { UpdateChecker.check(this@MainActivity) }
+            }.getOrNull() ?: return@launch
+            val rel = resp.latest ?: return@launch
+            if (!resp.update) return@launch
+            if (!resp.force && AppPrefs.skippedVersionCode == rel.versionCode) return@launch
+            if (isFinishing) return@launch
+            startActivity(UpdateActivity.intent(this@MainActivity, rel, resp.force))
+        }
     }
 
     private fun switchTo(fragment: Fragment): Boolean {

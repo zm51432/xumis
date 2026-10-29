@@ -31,15 +31,16 @@
     <p class="sub">独立站官方移动客户端，安装即用，无需任何配置。</p>
 
     <ul class="meta">
-      <li>版本 1.4.0</li>
+      <li id="tagVer">版本 1.5.0</li>
       <li>Android 7.0+（含 14）</li>
-      <li>约 20 MB（含离线资源）</li>
+      <li id="tagSize">约 20 MB（含离线资源）</li>
       <li>仅 4 项权限</li>
       <li>适配小米 / OPPO / vivo</li>
     </ul>
 
-    <a class="btn" href="/download/shine-xumis.apk">下载安装包（.apk）</a>
+    <a class="btn" id="dlBtn" href="/download/shine-xumis.apk">下载安装包（.apk）</a>
     <p class="hint">如果微信内打不开，请点右上角「在浏览器中打开」</p>
+    <p class="hint" id="verLine"></p>
 
     <h2>安装步骤</h2>
     <ol>
@@ -56,6 +57,16 @@
       <li>购物车 / 下单 / 我的账户 / 来图定制（内嵌站点，与网页共用同一套账号与订单）</li>
       <li>「设置」按常规 App 分组：通用 / 内容与存储 / 帮助与支持 / 关于，可调网页字号、检查网络、清理缓存</li>
       <li>设置 →「接口自检（50 次）」：连续校验 ping / 商品 / 分类接口</li>
+    </ul>
+
+    <h2>1.5.0 新增：App 内直接升级</h2>
+    <ul>
+      <li><b>发现新版本自动提示</b>：打开 App 时静默检查一次（6 小时内不重复），有新版即在应用内展示更新说明</li>
+      <li><b>一键升级</b>：点「立即更新」后原地下载安装包，进度可见，下载完成自动调起系统安装器</li>
+      <li><b>安装包校验</b>：下载完成按 SHA-256 比对服务端指纹，不一致立即删除，杜绝下载到损坏或被替换的包</li>
+      <li><b>重要更新强制</b>：服务端可把某个版本标为强制更新，客户端不接受「稍后再说」</li>
+      <li><b>手动检查</b>：设置 → 关于 → 检查更新，随时可查，结果显示当前是否为最新版</li>
+      <li><b>升级不丢数据</b>：登录状态、购物车、离线商品册与个人设置全部保留</li>
     </ul>
 
     <h2>1.4.0 新增：系统权限与品牌适配</h2>
@@ -91,9 +102,30 @@
 
     <div class="note">
       App 在后台直连官方商店服务，安装后不需要填写任何地址或账号信息。
-      权限可以随时拒绝，拒绝后只有对应功能不可用，商品浏览、搜索、下单等核心流程照常。
+      权限可以随时拒绝，拒绝后只有对应功能不可用，商品浏览、搜索、下单等核心流程照常。<br/>
+      安装 1.5.0 之后，后续版本都会在 App 内提示并一键升级，不必再回到本页面下载。
     </div>
   </div>
 </div>
+<script>
+  // 版本信息由推送服务发布时写入 /download/version.json，这里读取后覆盖静态文案，
+  // 保证「推送新版本 → 下载页自动是最新的」，不需要每次手改 HTML。
+  (function () {
+    fetch("/download/version.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (v) {
+        if (!v || !v.versionName) return;
+        var ver = document.getElementById("tagVer");
+        if (ver) ver.textContent = "版本 " + v.versionName;
+        var size = document.getElementById("tagSize");
+        if (size && v.sizeText) size.textContent = v.sizeText + "（含离线资源）";
+        var btn = document.getElementById("dlBtn");
+        if (btn && v.apk) btn.href = v.apk;
+        var line = document.getElementById("verLine");
+        if (line) line.textContent = "最新版本 v" + v.versionName + (v.publishedAt ? " · 发布于 " + v.publishedAt : "");
+      })
+      .catch(function () {});
+  })();
+</script>
 </body>
 </html>

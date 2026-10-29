@@ -91,12 +91,31 @@ curl -s https://你的域名/product/1 | grep -o 'og:image" content="[^"]*"'
 
 ---
 
-## 7. 上线前检查清单
+## 7. APK 推送服务（/apk/ota）
+
+安卓客户端的版本发布与一键推送由独立小服务承担，与站点共用同一个域名和证书：
+
+```bash
+scp deploy/ota/{ota_server.py,shine-ota.service,nginx-ota.conf,install.sh} \
+    deploy/ota/web/admin.html root@<server>:/tmp/shine-ota-pkg/
+ssh root@<server> 'bash /tmp/shine-ota-pkg/install.sh'
+```
+
+- 管理台：`https://<域名>/apk/ota/`（口令登录，首次安装会打印初始口令）
+- 客户端接口：`/apk/ota/api/check?vc=<versionCode>`、安装包 `/apk/ota/dl/*.apk`
+- 推送后自动同步 `/var/www/download/` 的安装包与 `version.json`，下载页随之更新
+
+详见 [deploy/ota/README.md](ota/README.md)。
+
+---
+
+## 8. 上线前检查清单
 
 - [ ] HTTPS 可达，HTTP 自动跳 HTTPS
 - [ ] `og:image` / `og:url` 为绝对 https 地址（见第 6 步）
 - [ ] 支付网关已接入（Stripe / 支付宝 / 微信 / PayPal）—— 否则只能展示不能成交
 - [ ] 后台 `/admin` 密码已修改；非演示环境关闭 `app.admin-allow-key`
 - [ ] `/h2-console` 在生产关闭或加 IP 白名单
+- [ ] APK 推送服务初始口令已修改（`/apk/ota/` 顶部横幅会提示）
 - [ ] 补齐内容页：关于我们 / 联系方式 / 隐私政策 / 退换货 / 物流时效
 - [ ] 真实商品多视角图、尺寸表、批发询价入口

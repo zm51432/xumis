@@ -1,0 +1,35 @@
+[Unit]
+Description=shine 星心 APK 版本推送服务 (OTA)
+Documentation=https://shine.xumois.cn/apk/ota/
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/shine-ota
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=OTA_DATA=/var/lib/shine-ota
+Environment=OTA_WEB=/opt/shine-ota/web
+Environment=OTA_HOST=127.0.0.1
+Environment=OTA_PORT=8095
+Environment=OTA_PUBLIC_BASE=https://shine.xumois.cn
+Environment=OTA_DOWNLOAD_DIR=/var/www/download
+Environment=OTA_PACKAGE=com.shine.xumis.app
+Environment=OTA_SITE_NAME=shine 星心
+Environment=OTA_MAX_UPLOAD_MB=120
+ExecStart=/usr/bin/python3 /opt/shine-ota/ota_server.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+ReadWritePaths=/var/lib/shine-ota /var/www/download /opt/shine-ota
+StandardOutput=append:/var/log/shine-ota.log
+StandardError=append:/var/log/shine-ota.log
+
+[Install]
+WantedBy=multi-user.target
