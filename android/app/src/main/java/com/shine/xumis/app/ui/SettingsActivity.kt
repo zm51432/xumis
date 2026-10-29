@@ -14,6 +14,7 @@ import com.shine.xumis.app.databinding.ItemSettingsRowBinding
 import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.OfflineAssets
+import com.shine.xumis.app.util.Permissions
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,10 +43,17 @@ class SettingsActivity : AppCompatActivity() {
 
         setUpGeneral()
         setUpContent()
+        setUpPermission()
         setUpHelp()
         setUpAbout()
 
         refreshRows()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从权限中心回来时刷新「x/4 项已允许」
+        if (::binding.isInitialized) setValue(binding.rowPermissions, Permissions.summary(this))
     }
 
     // ---------------- 通用 ----------------
@@ -142,6 +150,17 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
+    // ---------------- 权限与隐私 ----------------
+
+    private fun setUpPermission() {
+        bind(
+            binding.rowPermissions, R.drawable.ic_shield, "权限管理",
+            "定位、手机相册、手机相机、蓝牙（仅此四项）"
+        ) {
+            startActivity(Intent(this, PermissionActivity::class.java))
+        }
+    }
+
     // ---------------- 帮助与支持 ----------------
 
     private fun setUpHelp() {
@@ -179,6 +198,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun refreshRows() {
         setValue(binding.rowTextZoom, AppPrefs.textZoomLabel())
         setValue(binding.rowVersion, "v${versionName()}（${versionCode()}）")
+        setValue(binding.rowPermissions, Permissions.summary(this))
 
         val snap = CatalogCache.load(this)
         binding.rowCatalog.tvSub.text = if (snap == null) {

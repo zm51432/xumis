@@ -1,7 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 联网：App 与商店服务通信，属于安装即授予的普通权限，不弹窗 -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- ========== 1. 定位：估算运费 / 就近自提点，WebView 地理定位 ========== -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- ========== 2. 相册：来图定制上传参考图、选头像 ========== -->
+    <!-- Android 13+ 用细分媒体权限，不再申请「读写存储」 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Android 14「仅允许访问部分照片」 -->
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+        tools:targetApi="34" />
+    <!-- Android 12 及以下仍需读外部存储；13 起系统自动忽略 -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- ========== 3. 相机：下单现场拍图、扫商品溯源码 ========== -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- ========== 4. 蓝牙：连接蓝牙标签打印机 / 门店近场设备 ========== -->
+    <!-- Android 11 及以下是旧蓝牙权限（安装即授予，不弹窗） -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <!-- Android 12+ 拆成「扫描」与「连接」两个运行时权限 -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="s" />
+
+    <!--
+      硬件声明为「非必需」：小米 / OPPO / vivo 的部分入门机型没有蓝牙，
+      声明 required=true 会被商店判为不兼容而装不上。置 false 后没有该硬件的机器
+      同样能装，App 内对应功能自动隐藏并给出说明。
+    -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+
+    <!--
+      AndroidX 会自动塞一个签名的私有权限（DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION），
+      本应用没有注册任何广播接收器，用不到，这里显式移除，
+      保证安装时的权限清单就是上面四项 + 联网，一条不多。
+    -->
+    <permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
+    <!--
+      Android 11+ 的包可见性：这里只声明「需要看到」的几类应用，
+      用于把用户送到各厂商自己的权限 / 自启动设置页，不涉及任何权限申请。
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <package android:name="com.miui.securitycenter" />
+        <package android:name="com.coloros.safecenter" />
+        <package android:name="com.oppo.safe" />
+        <package android:name="com.vivo.permissionmanager" />
+        <package android:name="com.iqoo.secure" />
+        <package android:name="com.huawei.systemmanager" />
+    </queries>
+
 
     <application
         android:name=".ShineApp"
@@ -11,7 +96,7 @@
         android:label="shine 星心"
         android:theme="@style/Theme.ShineApp"
         android:usesCleartextTraffic="true"
-        tools:targetApi="33">
+        tools:targetApi="34">
 
         <activity
             android:name=".ui.SplashActivity"
@@ -25,9 +110,22 @@
         <activity android:name=".ui.MainActivity" android:exported="false" />
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
+        <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
         <activity android:name=".ui.StatusActivity" android:exported="false" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />
         <activity android:name=".ui.WebViewActivity" android:exported="false" />
+
+        <!-- 拍照上传：把缓存里的临时照片以 content:// 交给相机 App，
+             避免 Android 7+ 直接传 file:// 触发 FileUriExposedException -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

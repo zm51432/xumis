@@ -71,6 +71,18 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
+            <!-- ============ 权限与隐私 ============ -->
+            <TextView style="@style/SettingsSection" android:text="权限与隐私" />
+
+            <LinearLayout style="@style/SettingsCard">
+
+                <include
+                    android:id="@+id/row_permissions"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
             <!-- ============ 帮助与支持 ============ -->
             <TextView style="@style/SettingsSection" android:text="帮助与支持" />
 

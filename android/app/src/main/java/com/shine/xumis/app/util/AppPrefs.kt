@@ -13,6 +13,7 @@ object AppPrefs {
 
     private const val PREFS = "shine_settings"
     private const val KEY_TEXT_ZOOM = "web_text_zoom"
+    private const val KEY_PERM_PROMPTED = "perm_prompted"
 
     private var prefs: SharedPreferences? = null
 
@@ -44,4 +45,14 @@ object AppPrefs {
     }
 
     val textZoomOptions = arrayOf("标准", "大（115%）", "特大（130%）")
+
+    /**
+     * 是否已经引导过权限。只在首次启动弹一次说明，
+     * 之后随时可以从「设置 → 权限管理」进入，避免每次启动都打扰用户。
+     */
+    var permissionPrompted: Boolean
+        get() = store()?.getBoolean(KEY_PERM_PROMPTED, false) ?: false
+        set(value) {
+            store()?.edit()?.putBoolean(KEY_PERM_PROMPTED, value)?.apply()
+        }
 }

@@ -264,3 +264,57 @@
 - 离线商品册页脚为「商品快照 · 生成于 2026-10-30」；售后条款仅保留客服邮箱。
 - 全量 grep `xumois` 后，界面中仅剩客服邮箱 `service@shine.xumois.cn`，代码中仅剩 `UrlUtils.PROD_URL`。
 - 13 项单元测试全绿；APK 20.2 MB，versionCode 4 / versionName 1.3.0。
+
+---
+
+## 2026-10-30 · Android 1.4.0：只保留四项系统权限（定位 / 相册 / 相机 / 蓝牙），适配小米 · OPPO · vivo
+
+> 诉求：APK 需要定位、手机相册、手机相机、蓝牙这四项系统权限，除此外都不要；并且要适配小米、OPPO、vivo 三款手机。
+
+### 一、权限清单（安装时可见，仅此五项）
+
+| 分组 | 声明 | 说明 |
+|---|---|---|
+| 联网 | `INTERNET` | 与商店服务通信，普通权限不弹窗 |
+| 定位 | `ACCESS_FINE_LOCATION`、`ACCESS_COARSE_LOCATION` | 运费估算、就近自提点、站点地图定位 |
+| 相册 | `READ_MEDIA_IMAGES`（13+）、`READ_MEDIA_VISUAL_USER_SELECTED`（14+「仅选中的照片」）、`READ_EXTERNAL_STORAGE`（≤12，maxSdk 32） | 来图定制上传参考图、换头像 |
+| 相机 | `CAMERA` | 下单现场拍图、扫溯源码 |
+| 蓝牙 | `BLUETOOTH_SCAN`（neverForLocation）、`BLUETOOTH_CONNECT`（12+）、`BLUETOOTH`/`BLUETOOTH_ADMIN`（≤11，maxSdk 30） | 蓝牙标签打印机、门店近场设备 |
+
+没有申请：通讯录、短信、通话记录、通知、后台定位、写外部存储、麦克风、读取应用列表等，一条都没有。
+AndroidX 默认会注入的 `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` 也用 `tools:node="remove"` 显式移除了（本应用不注册任何广播）。
+
+### 二、兼容性处理（针对国产 ROM）
+
+- `targetSdk` 33 → **34**：HyperOS / ColorOS 14 / OriginOS 4 底层是 Android 14，只有到 34 才能按新规则申请「仅选中的照片」。
+- 硬件声明全部 `android:required="false"`（camera / location / bluetooth / bluetooth_le 等）：没有蓝牙或摄像头的入门机型照样能装，App 内对应入口自动变为「本机不支持」。
+- `Permissions.Group` 按 `Build.VERSION.SDK_INT` 动态计算权限集合：Android 12 拆分的蓝牙扫描/连接、13 的图片权限、14 的部分授权分别处理。
+- 相册区分 **已允许 / 部分照片**：ColorOS、HyperOS 上用户常只勾几张，不能当成未授权反复弹窗。
+- 定位区分 **精确 / 大致位置**：只给粗略定位时按「部分授权」展示，功能照常。
+- 一键跳转厂商页：小米 `com.miui.securitycenter/…AutoStartManagementActivity`、OPPO/realme `com.coloros.safecenter/…StartupAppListActivity`、vivo/iQOO `com.vivo.permissionmanager/…BgStartUpManagerActivity`、华为/荣耀 `com.huawei.systemmanager/…StartupNormalAppListActivity`，逐个尝试，失败退回本应用详情页；并在清单里加了对应的 `<queries>` 以便 Android 11+ 可见。
+- 首次启动弹一次权限说明，之后只从「设置 → 权限管理」进入，不反复打扰。
+
+### 三、权限是真在用（不是只声明）
+
+- **权限中心** `ui/PermissionActivity`：四项各显示状态，支持一键开启，点每一项可**就地验证**——取一次坐标（GPS/网络，三级兜底）、统计可读相册图片数、调起相机试拍并显示尺寸与体积、扫 6 秒 BLE 列出周边设备。
+- **拍照上传**：网页 `onShowFileChooser` 改为 `ACTION_CHOOSER` + `EXTRA_INITIAL_INTENTS`，把「相机」与「厂商相册」并列，保留各家原生相册选择器；拍照走 `FileProvider`（`cacheDir/captures`），结果回填网页预览。
+- **WebView 定位**：`setGeolocationEnabled(true)` + `onGeolocationPermissionsShowPrompt` 按权限状态放行/申请/拒绝。
+- **网页摄像头**：`onPermissionRequest` 只放行 `RESOURCE_VIDEO_CAPTURE`，麦克风一律拒绝。
+- 拒绝后弹「去设置」引导，文案按品牌写真实菜单路径。
+
+### 四、验证（Android 14 模拟器，逐项实测）
+
+- 一键开启依次弹出 4 个系统弹窗：拍照录像 → 位置 → 附近设备 → 照片和视频，全部允许后状态变 **4/4**。
+- 定位：`纬度 39.90930 / 经度 116.39740 / 精度 ±5m / 来源 GPS`（`adb emu geo fix` 注入）。
+- 相册：推入 1 张测试照片后显示「可读取相册图片 1 张」。
+- 相机：调起 `com.android.camera2` 试拍成功，`1392 × 1856 · 0.1 MB`，落在 `/cache/captures/`。
+- 蓝牙：`已配对 0 台 · 支持 BLE true · 扫描完成，周边暂无蓝牙设备`（模拟器无周边设备，流程正常）。
+- 来图定制上传：选「相机」拍完回填 `upload_….jpg` 并显示预览；选「Media」从相册选图回填 `1000000025.jpg` 并显示预览。
+- 撤销相机权限后点该项 → 系统弹窗选「拒绝」→ 弹出「手机相机权限未开启 / …去设置」，点「去设置」跳到应用详情页（`Permissions: Location, Nearby devices, and Photos and videos`，只有这四项）。
+- 非小米/OPPO/vivo 机型点「后台运行白名单」正确退回本应用设置页。
+- 13 项单元测试全绿；APK 21,308,304 B（20.3 MB），versionCode 5 / versionName 1.4.0。
+
+### 五、文件
+
+- 新增：`util/Permissions.kt`、`util/DeviceProbe.kt`、`ui/PermissionActivity.kt`、`layout/activity_permission.xml`、`res/xml/file_paths.xml`、`drawable/ic_{location,gallery,camera,bluetooth,shield}.xml`
+- 改动：`AndroidManifest.xml`（权限/uses-feature/queries/FileProvider）、`app/build.gradle`（targetSdk 34、versionCode 5 / 1.4.0）、`util/WebViewSetup.kt`（geoAllowDirectly / handlePermissionRequest / chooserIntent / chooserResult / newCaptureFile）、`util/AppPrefs.kt`（首次引导标记）、`ui/{WebFragment,WebViewActivity,MainActivity,SettingsActivity}.kt`、`layout/activity_settings.xml`、`values/colors.xml`（shine_mint_dark）、`deploy/apk/index.html`

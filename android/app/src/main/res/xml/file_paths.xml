@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 相机拍照的临时输出目录（cacheDir/captures） -->
+    <cache-path name="captures" path="captures/" />
+    <!-- 预留：App 内部生成、需要外发给其它应用的文件 -->
+    <files-path name="shared" path="shared/" />
+</paths>
