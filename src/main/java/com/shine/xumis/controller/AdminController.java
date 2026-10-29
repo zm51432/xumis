@@ -298,12 +298,12 @@ public class AdminController {
         if (me == null) {
             return "redirect:/admin/login";
         }
+        model.addAttribute("me", me);
         if (!me.canManageAdmins()) {
             model.addAttribute("forbidden", true);
-            model.addAttribute("me", me);
             return "admin-admins";
         }
-        model.addAttribute("me", me);
+        model.addAttribute("forbidden", false);
         model.addAttribute("admins", adminUserService.findAll());
         model.addAttribute("roles", AdminRole.values());
         model.addAttribute("saved", saved);
