@@ -46,7 +46,8 @@ public class UserAccountService {
 
     /** 注册：邮箱重复或口令过短返回空。成功后生成验证令牌并发送验证邮件（未验证前仍可登录，仅标记未验证）。 */
     @Transactional
-    public Optional<UserAccount> register(String email, String rawPassword, String name) {
+    public Optional<UserAccount> register(String email, String rawPassword, String name,
+                                          String ip, String userAgent) {
         String mail = (email == null) ? "" : email.trim().toLowerCase();
         if (!mail.contains("@") || rawPassword == null || rawPassword.length() < 8) {
             return Optional.empty();
@@ -57,6 +58,12 @@ public class UserAccountService {
         UserAccount u = new UserAccount(mail, PasswordHasher.hash(rawPassword),
                 (name == null || name.isBlank()) ? mail.substring(0, mail.indexOf('@')) : name.trim());
         u.setEmailVerified(false);
+        // 记录注册来源，并把「注册成功即登录」的这条登录也记下来
+        u.setRegisterIp(ip);
+        LocalDateTime now = LocalDateTime.now();
+        u.setLastLoginAt(now);
+        u.setLastLoginIp(ip);
+        u.setLastLoginSource(com.shine.xumis.util.IpUtils.shortUserAgent(userAgent));
         String token = newToken();
         u.setVerifyToken(token);
         u.setVerifyTokenExpiry(LocalDateTime.now().plusHours(VERIFY_TOKEN_HOURS));
@@ -160,8 +167,9 @@ public class UserAccountService {
         return u.getResetTokenExpiry() != null && u.getResetTokenExpiry().isAfter(LocalDateTime.now());
     }
 
+    /** 登录：成功时写入最后登录时间、IP 与来源（设备 · 浏览器） */
     @Transactional
-    public Optional<UserAccount> login(String email, String rawPassword) {
+    public Optional<UserAccount> login(String email, String rawPassword, String ip, String userAgent) {
         Optional<UserAccount> opt = findByEmail(email);
         if (opt.isEmpty()) {
             return Optional.empty();
@@ -171,6 +179,8 @@ public class UserAccountService {
             return Optional.empty();
         }
         u.setLastLoginAt(LocalDateTime.now());
+        u.setLastLoginIp(ip);
+        u.setLastLoginSource(com.shine.xumis.util.IpUtils.shortUserAgent(userAgent));
         userAccountRepository.save(u);
         return Optional.of(u);
     }
@@ -206,6 +216,20 @@ public class UserAccountService {
         return true;
     }
 
+    /** 删除客户账号（仅后台站长可用）。订单按邮箱归属，不受账号删除影响。 */
+    @Transactional
+    public boolean delete(Long id) {
+        if (id == null) {
+            return false;
+        }
+        Optional<UserAccount> opt = userAccountRepository.findById(id);
+        if (opt.isEmpty()) {
+            return false;
+        }
+        userAccountRepository.delete(opt.get());
+        return true;
+    }
+
     @Transactional
     public boolean setEnabled(Long id, boolean enabled) {
         Optional<UserAccount> opt = userAccountRepository.findById(id);
@@ -216,5 +240,9 @@ public class UserAccountService {
         u.setEnabled(enabled);
         userAccountRepository.save(u);
         return true;
+    }
+
+    public Optional<UserAccount> findById(Long id) {
+        return (id == null) ? Optional.empty() : userAccountRepository.findById(id);
     }
 }

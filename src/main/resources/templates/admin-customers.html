@@ -34,6 +34,7 @@
     </div>
 
     <div class="alert-success" th:if="${saved == 'updated'}" th:text="#{admin.adminUpdated}">已更新</div>
+    <div class="alert-success" th:if="${saved == 'deleted'}" th:text="#{admin.customerDeleted}">客户账号已删除</div>
     <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
 
     <!-- 搜索 -->
@@ -52,7 +53,10 @@
                 <th>#</th><th th:text="#{checkout.email}">邮箱</th><th th:text="#{account.nickname}">称呼</th>
                 <th th:text="#{checkout.country}">国家</th><th th:text="#{admin.orderCount}">订单数</th>
                 <th th:text="#{admin.totalSpent}">累计消费(USD)</th><th th:text="#{admin.status}">状态</th>
-                <th th:text="#{admin.lastLogin}">最后登录</th><th th:text="#{admin.ops}">操作</th>
+                <th th:text="#{admin.lastLogin}">最后登录</th>
+                <th th:text="#{admin.loginIp}">登录地址</th>
+                <th th:text="#{admin.loginSource}">来源</th>
+                <th th:text="#{admin.ops}">操作</th>
             </tr>
             </thead>
             <tbody>
@@ -67,7 +71,12 @@
                     <span class="chip" th:classappend="${c.enabled} ? 'chip-on' : ''"
                           th:text="${c.enabled} ? #{admin.enabled} : #{admin.disabled}">启用</span>
                 </td>
-                <td class="muted small" th:text="${c.lastLoginAt != null ? c.lastLoginAt : '-'}">—</td>
+                <td class="nowrap muted small"
+                    th:text="${c.lastLoginAt != null} ? ${#strings.substring(c.lastLoginAt.toString(),0,16).replace('T',' ')} : #{admin.neverLogin}">—</td>
+                <td class="muted small"
+                    th:text="${c.lastLoginIp != null and !c.lastLoginIp.isEmpty()} ? ${c.lastLoginIp} : '-'">—</td>
+                <td class="muted small"
+                    th:text="${c.lastLoginSource != null and !c.lastLoginSource.isEmpty()} ? ${c.lastLoginSource} : '-'">—</td>
                 <td class="nowrap">
                     <form class="inline-form" method="post" th:action="@{|${adminBase}/customers/enabled|}"
                           th:if="${me != null and me.isOwner()}">
@@ -76,10 +85,16 @@
                         <button class="btn btn-ghost btn-sm" type="submit"
                                 th:text="${c.enabled} ? #{admin.disable} : #{admin.enable}">停用</button>
                     </form>
+                    <form class="inline-form" method="post" th:action="@{|${adminBase}/customers/delete|}"
+                          th:if="${me != null and me.isOwner()}"
+                          th:onsubmit="|return confirm('#{admin.confirmDeleteCustomer}');|">
+                        <input type="hidden" name="id" th:value="${c.id}"/>
+                        <button class="btn btn-danger btn-sm" type="submit" th:text="#{admin.delete}">删除</button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(customers)}">
-                <td colspan="9" class="muted" th:text="#{admin.noCustomers}">还没有注册客户</td>
+                <td colspan="11" class="muted" th:text="#{admin.noCustomers}">还没有注册客户</td>
             </tr>
             </tbody>
         </table>

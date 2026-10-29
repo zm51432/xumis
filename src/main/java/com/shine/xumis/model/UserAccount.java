@@ -52,6 +52,18 @@ public class UserAccount {
 
     private LocalDateTime lastLoginAt;
 
+    /** 最后登录 IP（反代部署时取 X-Forwarded-For 首段） */
+    @Column(length = 64)
+    private String lastLoginIp;
+
+    /** 最后登录来源：设备 · 浏览器（由 User-Agent 压缩而来） */
+    @Column(length = 120)
+    private String lastLoginSource;
+
+    /** 注册时的 IP，便于识别批量注册 / 异常来源 */
+    @Column(length = 64)
+    private String registerIp;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -96,4 +108,10 @@ public class UserAccount {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getLastLoginAt() { return lastLoginAt; }
     public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+    public String getLastLoginIp() { return lastLoginIp; }
+    public void setLastLoginIp(String lastLoginIp) { this.lastLoginIp = lastLoginIp; }
+    public String getLastLoginSource() { return lastLoginSource; }
+    public void setLastLoginSource(String lastLoginSource) { this.lastLoginSource = lastLoginSource; }
+    public String getRegisterIp() { return registerIp; }
+    public void setRegisterIp(String registerIp) { this.registerIp = registerIp; }
 }

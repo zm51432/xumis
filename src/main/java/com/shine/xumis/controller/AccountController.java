@@ -80,7 +80,8 @@ public class AccountController {
             model.addAttribute("name", name);
             return "register";
         }
-        var created = userService.register(email, password, name);
+        var created = userService.register(email, password, name,
+                com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"));
         if (created.isEmpty()) {
             model.addAttribute("error", "dupEmail");
             model.addAttribute("email", email);
@@ -124,7 +125,8 @@ public class AccountController {
             return "login";
         }
 
-        var u = userService.login(email, password);
+        var u = userService.login(email, password,
+                com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"));
         if (u.isEmpty()) {
             attemptService.recordFailure(key);
             model.addAttribute("error", true);

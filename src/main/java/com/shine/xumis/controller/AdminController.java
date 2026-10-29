@@ -288,6 +288,20 @@ public class AdminController {
         return "redirect:/admin/customers?saved=updated";
     }
 
+    /** 删除客户账号（仅站长）。订单按邮箱归属，删除账号不会删掉历史订单。 */
+    @PostMapping("/admin/customers/delete")
+    public String deleteCustomer(HttpSession session, @RequestParam(required = false) Long id) {
+        AdminUser me = me(session);
+        if (me == null) {
+            return "redirect:/admin/login";
+        }
+        if (!me.isOwner()) {
+            return "redirect:/admin/customers?err=" + urlEncode("仅站长可删除客户账号");
+        }
+        boolean ok = userService.delete(id);
+        return "redirect:/admin/customers?saved=" + (ok ? "deleted" : "notfound");
+    }
+
     // ==================== 管理员账号（仅站长） ====================
 
     @GetMapping("/admin/admins")
