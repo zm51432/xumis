@@ -1,5 +1,8 @@
 server:
   port: 8080
+  # 反代部署（Nginx/Caddy）时读取 X-Forwarded-*，使后端生成 https 绝对 OG/分享地址，
+  # 否则社交分享拿到的是 http://127.0.0.1:8080/... 导致裂图。无反代时无该头，自动回退真实请求。
+  forward-headers-strategy: native
   servlet:
     context-path: /
     session:

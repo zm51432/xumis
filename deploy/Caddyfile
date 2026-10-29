@@ -1,0 +1,46 @@
+# ============================================================================
+# shine星心 独立站 (xumis) — Caddy 自动 HTTPS 反向代理
+# ----------------------------------------------------------------------------
+# Caddy 会自动向 Let's Encrypt 申请并续期证书，无需手动配 certbot。
+#
+# 运行：
+#   caddy run --config deploy/Caddyfile
+#   # 或作为服务：  caddy start --config deploy/Caddyfile
+#
+# 前置：
+#   - 域名 A 记录指向本机，且 80/443 端口对外可达（Caddy 用 HTTP-01 验证）
+#   - 后端 jar 监听 127.0.0.1:8080
+#   - application.yml 已设置 server.forward-headers-strategy: native
+#     （Caddy 自动注入 X-Forwarded-*，后端据此生成 https 绝对 OG 地址）
+# ============================================================================
+
+example.com, www.example.com {
+
+    # 压缩
+    encode gzip zstd
+
+    # 全局安全头
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'self';"
+        -Server
+    }
+
+    # 静态资源长缓存（Caddy 对匹配路径单独加头）
+    @static path /img/* /css/* /js/* /files/* /static/* /manifest.webmanifest /icon.svg
+    header @static Cache-Control "public, max-age=604800, immutable"
+
+    # 反代到 Spring Boot
+    # Caddy 默认就会带 X-Forwarded-*，后端无需额外配置即可拿到 https 主机
+    reverse_proxy 127.0.0.1:8080 {
+        health_uri     /api/m/ping
+        health_interval 30s
+        health_timeout  5s
+        transport http {
+            read_timeout 60s
+        }
+    }
+}

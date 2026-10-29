@@ -1,0 +1,48 @@
+# ============================================================================
+# shine星心 独立站 (xumis) — systemd 服务单元
+# ----------------------------------------------------------------------------
+# 安装（后端以服务方式常驻，开机自启，崩溃自动重启）：
+#   sudo cp deploy/systemd/xumis.service /etc/systemd/system/xumis.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now xumis
+#
+# 日志：  sudo journalctl -u xumis -f
+#
+# 说明：
+#   - 假设 jar 与上传目录放在 /opt/xumis（按需修改 WorkingDirectory / ExecStart）
+#   - 生产用 MySQL：通过环境变量覆盖库名/账号（见 application.yml）
+#   - SPRING_PROFILES_ACTIVE=prod 启用 prod profile（thymeleaf 缓存等）
+# ============================================================================
+
+[Unit]
+Description=shine星心 独立站 (Spring Boot)
+After=network.target
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/xumis
+
+ExecStart=/usr/bin/java -jar /opt/xumis/shine-xumis.jar
+
+# —— 数据库（按需改；不填则用 h2 演示库）——
+Environment=DB_HOST=127.0.0.1
+Environment=DB_NAME=shine
+Environment=DB_USER=shine
+Environment=DB_PASSWORD=change-me-please
+
+# —— 运行 profile ——
+Environment=SPRING_PROFILES_ACTIVE=prod
+
+# —— 上传目录 / 端口（如改端口，nginx/caddy 也要同步）——
+Environment=UPLOAD_DIR=/opt/xumis/uploads
+Environment=SERVER_PORT=8080
+
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
