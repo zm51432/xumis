@@ -81,6 +81,7 @@ public class AdminController {
         model.addAttribute("countSubs", subscriptionService.countAll());
         model.addAttribute("countPendingReviews", reviewService.pendingCount());
         model.addAttribute("countPaidOrders", orderService.countByStatus("PAID"));
+        model.addAttribute("sales", orderService.salesSummary());
         model.addAttribute("orderStatuses", List.of("PENDING", "PAID", "SHIPPED", "DONE", "CANCELLED"));
         return "admin";
     }
@@ -136,6 +137,8 @@ public class AdminController {
         model.addAttribute("categories", Category.values());
         model.addAttribute("products", productService.findAll());
         model.addAttribute("edit", id != null ? productService.findById(id) : null);
+        // 每个商品的累计售出件数/金额（不含取消订单）
+        model.addAttribute("soldStats", orderService.soldByProduct());
         model.addAttribute("saved", saved);
         model.addAttribute("err", err);
         return "admin-products";

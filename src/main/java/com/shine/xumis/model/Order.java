@@ -46,6 +46,10 @@ public class Order {
     @Column(nullable = false)
     private String currency = "USD";
 
+    /** 支付渠道：PAYPAL / WECHAT / ALIPAY / MASTERCARD（记录客户选择的支付方式） */
+    @Column(length = 20)
+    private String paymentMethod;
+
     @Column(nullable = false)
     private String status = "PENDING";
 
@@ -99,6 +103,8 @@ public class Order {
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }

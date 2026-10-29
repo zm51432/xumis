@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · Admin'">后台</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030b')}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="_csrf" th:content="${csrf}"/>
 </head>
@@ -41,21 +41,35 @@
         </div>
     </div>
 
-    <div class="stat-grid">
+    <div class="stat-grid stat-grid-4">
             <div class="stat"><span class="stat-num" th:text="${countProducts}">0</span><span th:text="#{nav.products}">商品</span></div>
             <div class="stat"><span class="stat-num" th:text="${countOrders}">0</span><span>订单 Orders</span></div>
             <div class="stat"><span class="stat-num" th:text="${countIdeas}">0</span><span>定制 Custom</span></div>
             <div class="stat"><span class="stat-num" th:text="${countInquiries}">0</span><span>询盘 Inquiries</span></div>
             <div class="stat"><span class="stat-num" th:text="${countSubs}">0</span><span>订阅 Subs</span></div>
-            <div class="stat"><span class="stat-num" th:text="${countPendingReviews}">0</span><span>待审评价</span></div>
+            <div class="stat"><span class="stat-num" th:text="${countPendingReviews}">0</span><span th:text="#{admin.pendingReviews}">待审评价</span></div>
+            <div class="stat">
+                <span class="stat-num stat-money" th:text="'$' + ${#numbers.formatDecimal(sales.totalSales,1,2)}">$0.00</span>
+                <span th:text="#{admin.totalSales}">累计销售额(USD)</span>
+            </div>
+            <div class="stat"><span class="stat-num" th:text="${sales.itemCount}">0</span><span th:text="#{admin.soldItems}">售出件数</span></div>
         </div>
+
+        <!-- 销售汇总 -->
+        <p class="sales-line">
+            <span th:text="#{admin.totalSales}">累计销售额</span> <b th:text="'$' + ${#numbers.formatDecimal(sales.totalSales,1,2)}">$0.00</b>
+            · <span th:text="#{admin.paidSales}">已确认收入</span> <b th:text="'$' + ${#numbers.formatDecimal(sales.paidSales,1,2)}">$0.00</b>
+            · <span th:text="#{admin.pendingSales}">待确认</span> <b th:text="'$' + ${#numbers.formatDecimal(sales.pendingSales,1,2)}">$0.00</b>
+            · <span th:text="#{admin.avgOrder}">客单价</span> <b th:text="'$' + ${#numbers.formatDecimal(sales.avgOrderValue,1,2)}">$0.00</b>
+            <span class="muted" th:text="'（' + ${sales.orderCount} + ' ' + #{admin.salesOrders} + '，' + ${sales.itemCount} + ' ' + #{admin.soldUnit} + '，' + #{admin.salesNote} + '）'">（0 笔订单）</span>
+        </p>
 
         <!-- 订单 -->
         <h3 class="block-title">订单 Orders</h3>
         <div class="table-wrap">
         <table class="admin-table">
-            <thead><tr><th>订单号</th><th>客户</th><th>邮箱</th><th>金额(USD)</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
-            <tbody>
+                <thead><tr><th>订单号</th><th>客户</th><th>邮箱</th><th>金额(USD)</th><th>状态</th><th th:text="#{pay.label}">支付渠道</th><th>时间</th><th>操作</th></tr></thead>
+                <tbody>
                 <tr th:each="o : ${orders}">
                     <td th:text="${o.orderNo}">SH...</td>
                     <td th:text="${o.customerName}">-</td>
@@ -64,6 +78,10 @@
                     <td>
                         <span class="status-badge" th:classappend="'st-' + ${#strings.toLowerCase(o.status)}"
                               th:text="#{status.__${o.status}__}">待处理</span>
+                    </td>
+                    <td>
+                        <span th:if="${o.paymentMethod != null}" th:text="#{pay.__${o.paymentMethod}__}">PayPal</span>
+                        <span th:if="${o.paymentMethod == null}" class="muted">-</span>
                     </td>
                     <td th:text="${o.createdAt}">-</td>
                     <td>
@@ -78,7 +96,7 @@
                         </form>
                     </td>
                 </tr>
-                <tr th:if="${#lists.isEmpty(orders)}"><td colspan="7">暂无订单</td></tr>
+                <tr th:if="${#lists.isEmpty(orders)}"><td colspan="8">暂无订单</td></tr>
             </tbody>
         </table>
         </div>

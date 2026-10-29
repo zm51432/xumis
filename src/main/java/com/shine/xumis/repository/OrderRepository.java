@@ -14,6 +14,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"items"})
     Optional<Order> findByOrderNo(String orderNo);
 
+    /** 预加载明细：后台统计销售额/售出件数需要遍历 items */
+    @EntityGraph(attributePaths = {"items"})
     List<Order> findAllByOrderByCreatedAtDesc();
 
     /** 我的订单：按账号 ID 或下单邮箱（兼容游客下单）。预加载明细，便于判断是否买过某商品 */

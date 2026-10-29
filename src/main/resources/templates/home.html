@@ -8,7 +8,7 @@
     <title th:text="${storeName} + ' · ' + #{nav.home}">shine星心</title>
     <meta name="description" th:content="${storeName} + ' · ' + #{home.subtitle}"/>
     <meta name="keywords" content="饰品,手工品,来图定制,外贸独立站,jewelry,handmade,custom"/>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030b')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
@@ -61,20 +61,36 @@
     </div>
 </div>
 
-<!-- 品牌故事 + 特色 -->
+<!-- 品牌故事 + 特色（设计稿：左文案 + 右侧 2×2 白色卡片） -->
 <div class="container section">
     <div class="story reveal">
         <div class="story-grid">
-            <div>
-                <h2 class="section-title" th:text="#{home.customTitle}">把你的想法交给我们</h2>
-                <p class="sub" th:text="#{home.customDesc}">上传参考图与描述，我们为你手工实现专属饰品与礼品。</p>
-                <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
+            <div class="story-text">
+                <h2 class="story-title" th:text="#{home.customTitle}">把你的想法交给我们</h2>
+                <p class="story-sub" th:text="#{home.customDesc}">上传参考图与描述，我们为你手工实现专属饰品与礼品。</p>
+                <a class="story-cta" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
             </div>
-            <div class="features">
-                <div class="feature"><div class="ico">🌸</div><h4>温柔手作</h4><p>每一件饰品与手工品，都由匠人细致打磨。</p></div>
-                <div class="feature"><div class="ico">🎨</div><h4>来图定制</h4><p>上传你的灵感，我们为你实现专属设计。</p></div>
-                <div class="feature"><div class="ico">🌍</div><h4>跨境直发</h4><p>支持全球配送，外贸结算便捷透明。</p></div>
-                <div class="feature"><div class="ico">💌</div><h4>贴心服务</h4><p>询盘快速响应，售后无忧。</p></div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="fc-ico">🌸</div>
+                    <h4>温柔手作</h4>
+                    <p>每一件饰品与手工品，都由匠人细致打磨。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-ico">🎨</div>
+                    <h4>来图定制</h4>
+                    <p>上传你的灵感，我们为你实现专属设计。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-ico">🌍</div>
+                    <h4>跨境直发</h4>
+                    <p>支持全球配送，外贸结算便捷透明。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-ico">❤️</div>
+                    <h4>贴心服务</h4>
+                    <p>询盘快速响应，售后无忧。</p>
+                </div>
             </div>
         </div>
     </div>

@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{checkout.title}">结算</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030b')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
@@ -71,6 +71,26 @@
                         th:text="${c.code + ' ' + c.symbol}"
                         th:selected="${c.code == currencyCode}">USD</option>
             </select>
+
+            <label th:text="#{checkout.paymentMethod}">支付方式</label>
+            <div class="pay-methods">
+                <label class="pay-opt">
+                    <input type="radio" name="paymentMethod" value="PAYPAL" checked/>
+                    <span class="pay-ico">🌐</span><span th:text="#{pay.PAYPAL}">PayPal</span>
+                </label>
+                <label class="pay-opt">
+                    <input type="radio" name="paymentMethod" value="WECHAT"/>
+                    <span class="pay-ico">💚</span><span th:text="#{pay.WECHAT}">微信支付</span>
+                </label>
+                <label class="pay-opt">
+                    <input type="radio" name="paymentMethod" value="ALIPAY"/>
+                    <span class="pay-ico">🔵</span><span th:text="#{pay.ALIPAY}">支付宝</span>
+                </label>
+                <label class="pay-opt">
+                    <input type="radio" name="paymentMethod" value="MASTERCARD"/>
+                    <span class="pay-ico">💳</span><span th:text="#{pay.MASTERCARD}">万事达卡</span>
+                </label>
+            </div>
 
             <button class="btn btn-block" type="submit" th:text="#{checkout.place}">提交订单</button>
             <a class="muted small" style="text-align:center;margin-top:6px;"

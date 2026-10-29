@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · 商品管理'">商品管理</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030b')}"/>
     <meta name="theme-color" content="#8ec9b6"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="_csrf" th:content="${csrf}"/>
@@ -166,6 +166,7 @@
                 <thead>
                 <tr>
                     <th>图片</th><th>名称</th><th>分类</th><th>价格</th><th>库存</th>
+                    <th th:text="#{admin.sold}">已售</th>
                     <th>精选</th><th>定制</th><th>操作</th>
                 </tr>
                 </thead>
@@ -181,6 +182,12 @@
                     <td th:text="${p.category != null} ? ${p.category.label} : '-'">-</td>
                     <td th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price, 1, 2)}">$0.00</td>
                     <td th:text="${p.stock}">0</td>
+                    <td class="nowrap">
+                        <span class="strong" th:text="${soldStats.get(p.id) != null} ? ${soldStats.get(p.id).quantity} : 0">0</span>
+                        <span class="muted small" th:text="#{admin.soldUnit}">件</span>
+                        <div class="muted small"
+                             th:text="'$' + ${#numbers.formatDecimal(soldStats.get(p.id) != null ? soldStats.get(p.id).amount : 0, 1, 2)}">$0.00</div>
+                    </td>
                     <td>
                         <form class="inline-form" method="post" th:action="@{|${adminBase}/product/toggle|}">
                             <input type="hidden" name="id" th:value="${p.id}"/>
@@ -207,7 +214,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(products)}">
-                    <td colspan="8" class="muted">还没有商品，用上面的表单创建第一个吧～</td>
+                    <td colspan="9" class="muted">还没有商品，用上面的表单创建第一个吧～</td>
                 </tr>
                 </tbody>
             </table>

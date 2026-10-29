@@ -127,6 +127,7 @@ public class CartController {
                         @RequestParam(required = false) String address,
                         @RequestParam(required = false) String note,
                         @RequestParam String currency,
+                        @RequestParam(required = false) String paymentMethod,
                         HttpSession session,
                         Model model) {
         if (cartService.isEmpty(session)) {
@@ -147,6 +148,8 @@ public class CartController {
         order.setAddress(address);
         order.setNote(note);
         order.setCurrency(currency);
+        // 记录客户选择的支付渠道（仅接受白名单内的值，避免被塞入任意字符串）
+        order.setPaymentMethod(normalizePayment(paymentMethod));
         order.setStatus("PENDING");
         // 登录用户下单：订单归属账号，便于在「我的账户」回看
         var user = AccountController.currentUser(session);
@@ -227,5 +230,16 @@ public class CartController {
         String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         int rnd = 100 + new java.security.SecureRandom().nextInt(900);
         return "SH" + stamp + rnd;
+    }
+
+    /** 支持的支付渠道白名单 */
+    private static final java.util.Set<String> PAY_METHODS =
+            java.util.Set.of("PAYPAL", "WECHAT", "ALIPAY", "MASTERCARD");
+
+    /** 规范化支付渠道：仅接受白名单内的值，其余视为未选择（null） */
+    private static String normalizePayment(String m) {
+        if (m == null) return null;
+        String u = m.trim().toUpperCase();
+        return PAY_METHODS.contains(u) ? u : null;
     }
 }

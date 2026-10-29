@@ -14,11 +14,6 @@
         <span th:text="${storeName}">shine星心</span>
         <small th:text="${storeNameEn}">shine Star-Heart</small>
     </a>
-    <!-- 搜索框：作为导航中间一栏，始终居中 -->
-    <form class="nav-search" th:action="@{/products}" method="get">
-        <input type="text" name="q" th:placeholder="#{search.placeholder}" aria-label="search"/>
-        <button type="submit" aria-label="search">🔍</button>
-    </form>
     <button class="hamburger" aria-label="menu" onclick="toggleMenu()">
         <span></span><span></span><span></span>
     </button>

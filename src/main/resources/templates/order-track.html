@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{track.title}">订单查询</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030b')}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="_csrf" th:content="${csrf}"/>
@@ -105,6 +105,8 @@
                 <strong th:text="#{checkout.country}">国家</strong>：<span th:text="${order.country}">—</span></li>
             <li th:if="${order.address != null and order.address != ''}">
                 <strong th:text="#{checkout.address}">地址</strong>：<span th:text="${order.address}">—</span></li>
+            <li th:if="${order.paymentMethod != null and order.paymentMethod != ''}">
+                <strong th:text="#{pay.label}">支付渠道</strong>：<span th:text="#{pay.__${order.paymentMethod}__}">PayPal</span></li>
         </ul>
 
         <p class="muted small" th:text="#{track.contact}">有任何问题欢迎联系我们，我们会尽快回复。</p>

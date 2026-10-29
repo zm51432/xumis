@@ -5,6 +5,7 @@ import com.shine.xumis.model.Category;
 import com.shine.xumis.model.Product;
 import com.shine.xumis.model.RestockRequest;
 import com.shine.xumis.repository.RestockRepository;
+import com.shine.xumis.service.OrderService;
 import com.shine.xumis.service.ProductService;
 import com.shine.xumis.service.ReviewService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,12 +25,14 @@ public class StorefrontController {
     private final ProductService productService;
     private final ReviewService reviewService;
     private final RestockRepository restockRepository;
+    private final OrderService orderService;
 
     public StorefrontController(ProductService productService, ReviewService reviewService,
-                               RestockRepository restockRepository) {
+                               RestockRepository restockRepository, OrderService orderService) {
         this.productService = productService;
         this.reviewService = reviewService;
         this.restockRepository = restockRepository;
+        this.orderService = orderService;
     }
 
     @GetMapping("/")
@@ -108,6 +111,9 @@ public class StorefrontController {
     @GetMapping("/order-success")
     public String orderSuccess(@RequestParam(value = "no", required = false) String orderNo, Model model) {
         model.addAttribute("orderNo", orderNo);
+        if (orderNo != null && !orderNo.isBlank()) {
+            model.addAttribute("order", orderService.findByOrderNo(orderNo));
+        }
         return "order-success";
     }
 
