@@ -52,8 +52,7 @@
             <label><span th:text="#{checkout.country}">国家/地区</span> <span class="req">*</span></label>
             <select name="country" required>
                 <option value="" th:text="#{checkout.countryHint}">请选择</option>
-                <option th:each="c : ${#strings.arraySplit('United States,Canada,United Kingdom,Germany,France,Italy,Spain,Australia,Japan,South Korea,Singapore,中国大陆,中国香港,中国台湾,Other', ',')}"
-                        th:value="${c}" th:text="${c}"
+                <option th:each="c : ${countries}" th:value="${c}" th:text="${c}"
                         th:selected="${user != null and user.country != null and c == user.country}">US</option>
             </select>
 

@@ -22,6 +22,18 @@ public class GlobalModelAdvice {
     public static final String STORE_NAME = "shine星心";
     public static final String STORE_NAME_EN = "shine Star-Heart";
 
+    /** 国家/地区下拉选项（所有需要填写国家的表单统一使用，保证与已存数据一致） */
+    public static final List<String> COUNTRIES = List.of(
+            "中国大陆", "中国香港", "中国澳门", "中国台湾",
+            "United States", "Canada", "United Kingdom",
+            "Germany", "France", "Italy", "Spain", "Netherlands",
+            "Australia", "New Zealand",
+            "Japan", "South Korea", "Singapore",
+            "Malaysia", "Thailand", "Vietnam", "Indonesia", "Philippines",
+            "India", "Brazil", "Mexico", "Russia",
+            "United Arab Emirates", "Other"
+    );
+
     private final CurrencyService currencyService;
     private final CartService cartService;
 
@@ -35,6 +47,7 @@ public class GlobalModelAdvice {
         model.addAttribute("storeName", STORE_NAME);
         model.addAttribute("storeNameEn", STORE_NAME_EN);
         model.addAttribute("categories", Arrays.asList(Category.values()));
+        model.addAttribute("countries", COUNTRIES);
 
         // 站点绝对基址：供 OG / 结构化数据 / canonical 生成绝对地址，
         // 否则社交分享与搜索引擎拿到的会是相对路径，图片与链接失效。

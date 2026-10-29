@@ -47,7 +47,11 @@
                 </div>
                 <div class="field">
                     <label th:text="#{checkout.country}">国家/地区</label>
-                    <input type="text" name="country" th:value="${me.country}"/>
+                    <select name="country">
+                        <option value="" th:text="#{checkout.countryHint}">请选择</option>
+                        <option th:each="c : ${countries}" th:value="${c}" th:text="${c}"
+                                th:selected="${me.country != null and c == me.country}"></option>
+                    </select>
                 </div>
                 <div class="field">
                     <label th:text="#{checkout.address}">收货地址</label>

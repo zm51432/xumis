@@ -38,7 +38,10 @@
             </div>
             <div class="field">
                 <label th:text="#{form.country}">国家/地区</label>
-                <input type="text" th:field="*{country}" th:placeholder="#{form.country}"/>
+                <select th:field="*{country}">
+                    <option value="" th:text="#{checkout.countryHint}">请选择</option>
+                    <option th:each="c : ${countries}" th:value="${c}" th:text="${c}"></option>
+                </select>
             </div>
             <div class="field">
                 <label th:text="#{form.category}">期望分类</label>
