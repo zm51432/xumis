@@ -4,6 +4,10 @@
 > 全程不需要手工安装 JDK、Maven，也不需要管理员/root 权限；
 > **数据库使用 MySQL 8，需先启动本机 MySQL**（脚本会预检并提示；没有 MySQL 时可用 `--h2` 临时预览）。
 > 依赖与上传文件都落在项目目录里，**删除整个目录即卸载**。
+>
+> **路径说明**：服务端代码位于 `server/` 子目录（与 `android/`、`deploy/` 平级）。
+> 下文命令里直接出现的 `start.sh` / `install.ps1` / `start.bat` / `.tools` / `target` / `runtime`
+> 都是相对 `server/` 而言，**执行前请先 `cd server`**。
 
 ---
 
@@ -11,13 +15,13 @@
 
 | 路径 | 作用 | 是否入库 |
 |------|------|----------|
-| `start.sh` | Linux / macOS 一键脚本 | ✅ |
-| `start.bat` | Windows 双击启动入口 | ✅ |
-| `install.ps1` | Windows 安装 + 构建 + 启动 | ✅ |
+| `server/start.sh` | Linux / macOS 一键脚本 | ✅ |
+| `server/start.bat` | Windows 双击启动入口 | ✅ |
+| `server/install.ps1` | Windows 安装 + 构建 + 启动 | ✅ |
 | `.tools/jdk17` | 自动下载的 JDK 17（缺失时才有） | ❌ |
 | `.tools/maven` | 自动下载的 Maven 3.9.9（缺失时才有） | ❌ |
 | `uploads/` | 客户上传图 + 后台商品图 | ❌ |
-| `sql/init.sql` | MySQL 建库脚本（应用也会自动建库，可选执行） | ✅ |
+| `server/sql/init.sql` | MySQL 建库脚本（应用也会自动建库，可选执行） | ✅ |
 | `runtime/logs` | 运行日志 `app.log`、`app.err.log` | ❌ |
 | `runtime/app.pid` | 进程号，用于 `--stop` / `-Stop` | ❌ |
 | `target/shine-xumis.jar` | 构建产物 | ❌ |

@@ -7,15 +7,15 @@
 ## 1. 构建产物
 
 ```bash
-cd xumis
-export JAVA_HOME=$PWD/.tools/jdk17/jdk-17.0.2.jdk/Contents/Home
-export PATH=$JAVA_HOME/bin:$PWD/.tools/maven/bin:$PATH
+cd xumis/server           # 服务端工程根目录（pom.xml 所在处）
+export JAVA_HOME=$PWD/../.tools/jdk17/jdk-17.0.2.jdk/Contents/Home
+export PATH=$JAVA_HOME/bin:$PWD/../.tools/maven/bin:$PATH
 
 mvn -o package -DskipTests
-# 产物：target/shine-xumis.jar
+# 产物：server/target/shine-xumis.jar
 ```
 
-把 `target/shine-xumis.jar` 传到服务器（如 `/opt/xumis/`）。
+把 `server/target/shine-xumis.jar` 传到服务器（如 `/opt/xumis/`）。
 
 ---
 

@@ -27,7 +27,9 @@ services:
       retries: 20
 
   app:
-    build: .
+    build:
+      context: ./server
+      dockerfile: Dockerfile
     container_name: shine-app
     restart: unless-stopped
     depends_on:

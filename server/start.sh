@@ -22,6 +22,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 TOOLS_DIR="$SCRIPT_DIR/.tools"
+# 仓库按 server/ + android/ 分类后，JDK/Maven 缓存可能仍留在仓库根的 .tools
+if [ ! -d "$TOOLS_DIR" ] && [ -d "$SCRIPT_DIR/../.tools" ]; then
+  TOOLS_DIR="$(cd "$SCRIPT_DIR/../.tools" && pwd)"
+fi
 JDK_DIR="$TOOLS_DIR/jdk17"
 MVN_DIR="$TOOLS_DIR/maven"
 RUNTIME_DIR="$SCRIPT_DIR/runtime"

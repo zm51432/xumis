@@ -24,18 +24,18 @@
 脚本会自动准备 JDK 17 与 Maven（下载到项目内 `.tools/`），编译并启动，数据库与上传文件也全部落在项目目录。
 
 ```bash
-# Linux / macOS
-chmod +x start.sh && ./start.sh
+# Linux / macOS（脚本位于 server/ 目录）
+cd server && chmod +x start.sh && ./start.sh
 
-# Windows：双击 start.bat，或
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Start
+# Windows：双击 server\start.bat，或
+powershell -ExecutionPolicy Bypass -File .\server\install.ps1 -Start
 ```
 
 | 脚本 | 平台 | 说明 |
 |------|------|------|
-| `start.sh` | Linux / macOS | 支持 `--port=`、`--skip-build`、`--prod`、`--stop`、`--help` |
-| `start.bat` | Windows | 双击运行，可传端口：`start.bat 9090` |
-| `install.ps1` | Windows (PowerShell) | `-Start` / `-Stop` / `-SkipBuild` / `-Port` |
+| `server/start.sh` | Linux / macOS | 支持 `--port=`、`--skip-build`、`--prod`、`--stop`、`--help` |
+| `server/start.bat` | Windows | 双击运行，可传端口：`start.bat 9090` |
+| `server/install.ps1` | Windows (PowerShell) | `-Start` / `-Stop` / `-SkipBuild` / `-Port` |
 | `docker-compose.yml` | 任意（需 Docker） | 应用 + MySQL 8，一条命令起全套 |
 
 > **每一步在做什么、失败如何排查**，见 **ONECLICK.md**。
@@ -45,8 +45,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Start
 ## 2.1 手动构建与运行
 
 ```bash
-# 进入项目根目录（含 pom.xml）
-cd xumis
+# 进入服务端目录（含 pom.xml）
+cd xumis/server
 
 # 方式一：直接运行（默认连接本机 MySQL，需先启动 MySQL）
 mvn spring-boot:run
@@ -68,7 +68,7 @@ java -jar target/shine-xumis.jar
 ### 3.1 准备 MySQL
 
 ```bash
-mysql -u root -p < sql/init.sql      # 建库 + utf8mb4
+mysql -u root -p < server/sql/init.sql      # 建库 + utf8mb4
 ```
 
 或直接执行：

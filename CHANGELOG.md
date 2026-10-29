@@ -1,5 +1,39 @@
 # 变更记录 CHANGELOG
 
+## 2026-10-30（第五次）— 仓库按职责重组为五类目录
+
+**目标**：把「网站服务端 / 安卓客户端 / 部署运维 / 文档 / 归档」分清，仓库一眼能看出结构；
+同时清掉入库的编译产物（`archive/*.class`）与仓库根残留的 21MB 安装包。
+
+### 目录调整
+
+| 调整前 | 调整后 | 说明 |
+|---|---|---|
+| `pom.xml`、`src/`、`sql/`、`start.sh`、`start.bat`、`install.ps1`、`Dockerfile`、`.dockerignore` | `server/` 下同名文件 | 网站服务端整体归入 `server/`，Maven 工程根随之迁移 |
+| `DEPLOYMENT.md`、`ONECLICK.md`、`独立站用户痛点50问自解.md` | `docs/` 下同名文件 | 文档集中 |
+| `archive/personal-site/*.class` | 已删除 | 编译产物不入库（源码与 `run.bat` 保留） |
+| 仓库根 `shine.apk`（21MB） | 已移除 | 安装包由推送服务托管，不入库 |
+
+保持不变：`android/`（客户端）、`deploy/`（nginx / systemd / 下载页 / OTA 服务）、`archive/`（归档）。
+`docker-compose.yml` 保留在仓库根（`build.context` 指向 `./server`），`docker compose up -d --build` 用法不变。
+
+### 随之更新的引用
+
+- `server/start.sh`、`server/install.ps1`：`.tools` 查找增加回退——`server/.tools` 不存在时
+  自动使用仓库根的 `.tools`，避免老环境的 JDK / Maven 缓存失效重下。
+- `docker-compose.yml`：构建上下文改为 `./server`。
+- 根 `README.md`：重写为项目总览（五类目录导航 + 服务端 / 客户端 / 推送服务 / 文档四段）。
+- `docs/DEPLOYMENT.md`、`docs/ONECLICK.md`、`deploy/README.md`：命令路径同步为 `server/...`，
+  ONECLICK 顶部加「路径说明」提示先 `cd server`。
+- 新增 `server/README.md`：服务端三条启动路径与目录说明。
+
+### 验证
+
+- `cd server && mvn -o -DskipTests compile` 通过（91 个 class，离线）。
+- `bash -n server/start.sh` 语法通过；`.tools` 回退逻辑实测解析到仓库根 `.tools`。
+- `android/`、`deploy/` 内无跨目录相对路径依赖，重组不影响 Gradle 与部署脚本。
+
+
 ## 2026-10-30（第四次）— APK 版本推送服务 + 客户端应用内升级（1.5.0）
 
 **目标**：在服务器上部署一套发布管理台，站长上传新安装包并**一键推送**，已安装的客户端

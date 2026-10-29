@@ -32,6 +32,11 @@ $ErrorActionPreference = "Stop"
 # ---------- 路径 ----------
 $Root      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ToolsDir  = Join-Path $Root ".tools"
+# 仓库按 server/ + android/ 分类后，JDK/Maven 缓存可能仍留在仓库根的 .tools
+if (-not (Test-Path $ToolsDir)) {
+    $RootTools = Join-Path (Split-Path -Parent $Root) ".tools"
+    if (Test-Path $RootTools) { $ToolsDir = $RootTools }
+}
 $JdkDir    = Join-Path $ToolsDir "jdk17"
 $MvnDir    = Join-Path $ToolsDir "maven"
 $Runtime   = Join-Path $Root "runtime"
