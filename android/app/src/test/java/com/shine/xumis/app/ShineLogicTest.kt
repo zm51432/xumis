@@ -73,6 +73,40 @@ class ShineLogicTest {
         assertEquals("http://x:8080/api/m/ping", UrlUtils.join("http://x:8080", "api/m/ping"))
     }
 
+    /** 出厂默认必须指向线上服务器，否则真机装上就连不上 */
+    @Test fun normalizeBase_default_is_prod() {
+        assertEquals("https://shine.xumois.cn/", UrlUtils.normalizeBase(""))
+        assertEquals("https://shine.xumois.cn/", UrlUtils.normalizeBase("   "))
+        assertEquals("https://shine.xumois.cn/", UrlUtils.normalizeBase(UrlUtils.PROD_URL))
+    }
+
+    @Test fun normalizeBase_protocol_and_slash() {
+        // 线上域名不给协议时补 https
+        assertEquals("https://shine.xumois.cn/", UrlUtils.normalizeBase("shine.xumois.cn"))
+        // 显式 http 保持原样（仅调试用）
+        assertEquals("http://shine.xumois.cn/", UrlUtils.normalizeBase("http://shine.xumois.cn"))
+        // IP / 局域网补 http
+        assertEquals("http://10.0.2.2:8080/", UrlUtils.normalizeBase("10.0.2.2:8080"))
+        assertEquals("http://192.168.1.8:8080/", UrlUtils.normalizeBase("192.168.1.8:8080"))
+        // 已有结尾斜杠不重复追加
+        assertEquals("https://shine.xumois.cn/", UrlUtils.normalizeBase("https://shine.xumois.cn/"))
+    }
+
+    /** 归一化后拼出的接口地址必须能直接请求线上后端 */
+    @Test fun api_base_built_from_prod() {
+        val base = UrlUtils.normalizeBase(UrlUtils.PROD_URL)
+        assertEquals("https://shine.xumois.cn/api/m/ping", UrlUtils.join(base, "api/m/ping"))
+        assertEquals("https://shine.xumois.cn/cart", UrlUtils.join(base, "cart"))
+    }
+
+    @Test fun ping_parse_with_db_fields() {
+        val json = """{"ok":true,"service":"shine-xumis","ts":1,"dbOk":true,"dbMs":7,"ms":7}"""
+        val p = gson.fromJson(json, PingResponse::class.java)
+        assertTrue(p.ok == true)
+        assertEquals(true, p.dbOk)
+        assertEquals(7L, p.dbMs ?: -1L)
+    }
+
     @Test fun selfCheck_logic() {
         assertTrue(selfCheck(true, listOf(MobileProduct(id = 1)), listOf(CategoryItem("A", "a"))))
         assertFalse(selfCheck(false, listOf(MobileProduct(id = 1)), listOf(CategoryItem("A", "a"))))
