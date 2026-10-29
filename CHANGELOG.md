@@ -1,5 +1,61 @@
 # 变更记录 CHANGELOG
 
+## 2026-10-30（第三次）— APK 直连线上服务器，服务端到端打通
+
+**目标**：Android 客户端装到手机上即可直接使用线上服务，不需要任何手工配置；原生接口与内嵌站点页面全部指向 `https://shine.xumois.cn`。
+
+### 1. 默认服务器地址改为线上（关键修复）
+
+- `util/ServerConfig.kt`：`DEFAULT_URL` 从 `http://10.0.2.2:8080`（模拟器回环）改为 `https://shine.xumois.cn`。
+  - 之前真机安装后必然连接失败，因为 `10.0.2.2` 只在模拟器里指向宿主机。
+- 新增**升级迁移**：老版本把 `10.0.2.2:8080` 存进 SharedPreferences，升级后仍是旧值。现在启动时若发现「恰好等于旧默认值」就清掉回落新默认值，用户自己改过的地址不受影响。
+- 地址归一化抽为纯函数 `UrlUtils.normalizeBase()`：
+  - 空值 → 线上地址；
+  - 不写协议时，`xumois.cn` 域名补 `https`，IP/局域网补 `http`；
+  - 统一补结尾斜杠。
+
+### 2. 设置页升级
+
+- 新增「测试连接」按钮：真实调用 `ping` + `products`，回显服务名、数据库状态、接口地址与耗时，不再只是"保存一个地址"。
+- 「恢复默认」改为恢复**线上服务器**；保存后自动跑一次连接测试。
+- 文案改为线上口径，不再提示"模拟器地址"。
+
+### 3. 内嵌站点（购物车/我的/来图定制/下单）补全能力
+
+新增 `util/WebViewSetup.kt` 统一配置，`WebFragment` 与 `WebViewActivity` 共用：
+
+- 开启 JS、DOM Storage、Database、混合内容兼容模式，保证站点脚本与登录态正常。
+- 开启 Cookie（含第三方）并在退出时 flush，购物车/登录态不会丢。
+- **实现文件选择** `WebChromeClient.onShowFileChooser`：这是之前最影响体验的缺口——站点「来图定制」上传参考图在 WebView 里点了没反应，现在会正常拉起系统文件选择器。
+- 站内返回优先回退 WebView 历史，到栈底才交回 Activity；回调绑定 `viewLifecycleOwner`，切换 Tab 自动注销，避免返回被处理两遍。
+- 非 http(s) 协议（`tel:` / `mailto:` / 支付宝唤端等）交给系统处理，不再在 WebView 里报错。
+
+### 4. 数据模型与测试
+
+- `PingResponse` 补齐后端实际返回的 `dbOk` / `dbMs` / `ms` 字段（设置页与自检页可展示数据库状态）。
+- 单测新增 4 组：默认地址必须是线上、协议与斜杠归一化、由基址拼出的接口地址、ping 含数据库字段。
+- **单测抓到一个真实 bug**：`normalizeBase("")` 原先直接返回常量 `PROD_URL`（不带结尾斜杠），会让 `apiBase()` 拼成 `https://shine.xumois.cnapi/m/`。已改为走统一的补斜杠逻辑，13 项测试全部通过。
+
+### 5. 版本与发布
+
+- `versionCode 1 → 2`，`versionName 1.0.0 → 1.1.0`（沿用同一 debug 签名，可直接覆盖安装旧版本，无需卸载）。
+- 新增下载页 `https://shine.xumois.cn/download/`，安装包 `https://shine.xumois.cn/download/shine-xumis.apk`。
+  - Nginx 片段 `deploy/apk/nginx-download.conf`（`.apk` 指定 `application/vnd.android.package-archive`，带 `Content-Disposition`）。
+  - `deploy/apk/remote-publish.sh`：幂等挂载 include、备份站点配置、`nginx -t` 校验后 reload。
+- 仓库根目录 `shine.apk` 更新为本次构建产物。
+
+### 验证结果
+
+| 项目 | 结果 |
+|---|---|
+| 单元测试 | 13 项通过 / 0 失败 |
+| APK 元信息 | `com.shine.xumis.app` 1.1.0 (code 2)，minSdk 24，targetSdk 33 |
+| APK 内默认地址 | 存在 `https://shine.xumois.cn`，`10.0.2.2` 仅作调试常量 |
+| `/api/m/ping` | 200，`{"ok":true,"dbOk":true}` |
+| `/api/m/products`、`/products/1`、`/categories`、`/search` | 全部 200，返回 12 件商品，价格排序生效 |
+| WebView 页面 `/cart`、`/product/1`、`/custom`、`/login` | 200（`/account` 未登录 302 → `/login`，符合预期） |
+| 下载地址 | 200，`Content-Type` 正确，本地与线上 SHA-256 一致 |
+
 ## 2026-10-30（第二次）— 登录与注册合并为一个页面
 
 **目标**：把原来分开的 `/login` 与 `/register` 两个页面合并成一个带「登录 / 注册」标签切换的页面，减少一次跳转。

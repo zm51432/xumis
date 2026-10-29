@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>shine 星心 App 下载</title>
+<style>
+  :root{--mint:#7fc5ac;--mint-deep:#4c9b81;--bg:#f7faf8;--line:#e3ece7;--text:#243b34;--sub:#6b7f78}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+  .wrap{max-width:720px;margin:0 auto;padding:32px 20px 56px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px;box-shadow:0 10px 30px rgba(76,155,129,.08)}
+  h1{margin:0 0 6px;font-size:26px}
+  .sub{color:var(--sub);margin:0 0 22px;font-size:14px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px;padding:0;list-style:none}
+  .meta li{background:#eef7f2;color:var(--mint-deep);border-radius:999px;padding:6px 14px;font-size:13px}
+  .btn{display:block;text-align:center;background:var(--mint-deep);color:#fff;text-decoration:none;font-size:17px;font-weight:600;padding:15px 20px;border-radius:999px;box-shadow:0 8px 20px rgba(76,155,129,.28)}
+  .btn:active{transform:translateY(1px)}
+  .hint{font-size:12.5px;color:var(--sub);text-align:center;margin:10px 0 0}
+  h2{font-size:16px;margin:30px 0 10px}
+  ol,ul{margin:0;padding-left:20px;font-size:14px;color:#33473f}
+  li{margin:6px 0}
+  code{background:#eef7f2;border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--mint-deep)}
+  .note{margin-top:26px;padding:14px 16px;background:#f2f8f5;border:1px solid var(--line);border-radius:14px;font-size:13px;color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>shine 星心 · Android App</h1>
+    <p class="sub">独立站官方移动客户端，接口已直连线上服务器。</p>
+
+    <ul class="meta">
+      <li>版本 1.1.0</li>
+      <li>Android 7.0+</li>
+      <li>约 7 MB</li>
+      <li>接口：shine.xumois.cn</li>
+    </ul>
+
+    <a class="btn" href="/download/shine-xumis.apk">下载安装包（.apk）</a>
+    <p class="hint">如果微信内打不开，请点右上角「在浏览器中打开」</p>
+
+    <h2>安装步骤</h2>
+    <ol>
+      <li>点击上面的按钮下载 <code>shine-xumis.apk</code></li>
+      <li>在通知栏或文件管理里点开安装包</li>
+      <li>如提示「禁止安装未知来源应用」，按提示允许浏览器/文件管理器安装</li>
+      <li>打开 App，启动页显示「连接成功」即代表接口已打通</li>
+    </ol>
+
+    <h2>已内置的服务能力</h2>
+    <ul>
+      <li>首页商品流、分类、搜索、排序（原生界面）</li>
+      <li>商品详情：图片、价格、库存、材质、定制标识</li>
+      <li>购物车 / 下单 / 我的账户 / 来图定制（内嵌站点，与网页共用同一套账号与订单）</li>
+      <li>「服务器设置」页可一键测试连接，显示服务名、数据库状态与接口耗时</li>
+      <li>菜单 →「接口自检」：连续 50 次校验 ping / 商品 / 分类接口</li>
+    </ul>
+
+    <div class="note">
+      服务器地址出厂即为 <code>https://shine.xumois.cn</code>，无需任何配置。
+      仅有本地调试时才需要在「服务器设置」里改成 <code>http://10.0.2.2:8080</code>（模拟器）或电脑内网地址。
+    </div>
+  </div>
+</div>
+</body>
+</html>

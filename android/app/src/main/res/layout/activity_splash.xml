@@ -8,7 +8,7 @@
         android:text="shine 星心" android:textSize="34sp" android:textStyle="bold" android:textColor="@color/shine_pink"/>
 
     <TextView android:id="@+id/tv_sub" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="独立站移动测试客户端" android:textSize="14sp" android:layout_marginTop="6dp" android:textColor="@color/shine_sub"/>
+        android:text="连接线上商店 shine.xumois.cn" android:textSize="14sp" android:layout_marginTop="6dp" android:textColor="@color/shine_sub"/>
 
     <ProgressBar android:id="@+id/pb" android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:layout_marginTop="28dp" style="?android:attr/progressBarStyleLarge"/>
