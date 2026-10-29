@@ -6,6 +6,7 @@ import com.shine.xumis.service.CartService;
 import com.shine.xumis.service.CurrencyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -37,6 +38,10 @@ public class GlobalModelAdvice {
     private final CurrencyService currencyService;
     private final CartService cartService;
 
+    /** 后台入口基址：未配置 app.admin-path 时为 /admin，配置后为隐藏别名（见 AdminPathFilter） */
+    @Value("${app.admin-path:}")
+    private String adminPath;
+
     public GlobalModelAdvice(CurrencyService currencyService, CartService cartService) {
         this.currencyService = currencyService;
         this.cartService = cartService;
@@ -48,6 +53,7 @@ public class GlobalModelAdvice {
         model.addAttribute("storeNameEn", STORE_NAME_EN);
         model.addAttribute("categories", Arrays.asList(Category.values()));
         model.addAttribute("countries", COUNTRIES);
+        model.addAttribute("adminBase", adminBase());
 
         // 站点绝对基址：供 OG / 结构化数据 / canonical 生成绝对地址，
         // 否则社交分享与搜索引擎拿到的会是相对路径，图片与链接失效。
@@ -72,6 +78,15 @@ public class GlobalModelAdvice {
         if (u instanceof com.shine.xumis.model.UserAccount user) {
             model.addAttribute("user", user);
         }
+    }
+
+    /** 后台入口基址（隐藏别名启用时为别名，否则 /admin） */
+    private String adminBase() {
+        String p = (adminPath == null) ? "" : adminPath.trim();
+        if (p.isEmpty() || p.equals("admin") || p.equals("/admin")) {
+            return "/admin";
+        }
+        return p.startsWith("/") ? p : "/" + p;
     }
 
     /** 根据请求拼出站点绝对基址（与 SeoController.baseUrl 保持一致） */

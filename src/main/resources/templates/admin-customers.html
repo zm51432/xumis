@@ -26,8 +26,8 @@
                       th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
                       th:text="${me.role.label}">站长</span>
             </span>
-            <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
-            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">← 返回仪表盘</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
                 <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
             </form>
         </div>
@@ -37,7 +37,7 @@
     <div class="alert-error" th:if="${err != null and err != ''}" th:text="${err}">出错了</div>
 
     <!-- 搜索 -->
-    <form class="toolbar" method="get" th:action="@{/admin/customers}" style="margin-bottom:14px;">
+    <form class="toolbar" method="get" th:action="@{|${adminBase}/customers|}" style="margin-bottom:14px;">
         <div class="toolbar-search">
             <input type="text" name="q" th:value="${q}" th:placeholder="#{admin.searchCustomer}" placeholder="按邮箱/姓名搜索"/>
             <button type="submit" th:text="#{search.button}">搜索</button>
@@ -69,7 +69,7 @@
                 </td>
                 <td class="muted small" th:text="${c.lastLoginAt != null ? c.lastLoginAt : '-'}">—</td>
                 <td class="nowrap">
-                    <form class="inline-form" method="post" th:action="@{/admin/customers/enabled}"
+                    <form class="inline-form" method="post" th:action="@{|${adminBase}/customers/enabled|}"
                           th:if="${me != null and me.isOwner()}">
                         <input type="hidden" name="id" th:value="${c.id}"/>
                         <input type="hidden" name="enabled" th:value="${!c.enabled}"/>

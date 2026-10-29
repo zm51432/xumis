@@ -20,8 +20,8 @@
             <p class="sub" th:text="#{admin.adminsDesc}">创建账号、分配角色（站长 / 运营 / 只读）</p>
         </div>
         <div class="admin-head-actions">
-            <a class="btn btn-ghost btn-sm" th:href="@{/admin}">← 返回仪表盘</a>
-            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">← 返回仪表盘</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
                 <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
             </form>
         </div>
@@ -43,7 +43,7 @@
         <!-- 新增账号 -->
         <div class="panel">
             <h3 class="block-title" th:text="#{admin.newAdmin}">新增管理员</h3>
-            <form class="admin-form" method="post" th:action="@{/admin/admins/create}">
+            <form class="admin-form" method="post" th:action="@{|${adminBase}/admins/create|}">
                 <div class="form-grid">
                     <div class="field">
                         <label th:text="#{admin.username}">用户名</label>
@@ -89,7 +89,7 @@
                     <td><span class="strong" th:text="${a.username}">admin</span></td>
                     <td th:text="${a.displayName}">—</td>
                     <td>
-                        <form class="inline-form" method="post" th:action="@{/admin/admins/role}">
+                        <form class="inline-form" method="post" th:action="@{|${adminBase}/admins/role|}">
                             <input type="hidden" name="id" th:value="${a.id}"/>
                             <select name="role" onchange="this.form.submit()" th:attr="disabled=${a.id == me.id}">
                                 <option th:each="r : ${roles}" th:value="${r.name()}"
@@ -104,14 +104,14 @@
                     </td>
                     <td class="muted small" th:text="${a.lastLoginAt != null ? a.lastLoginAt : '-'}">—</td>
                     <td class="nowrap">
-                        <form class="inline-form" method="post" th:action="@{/admin/admins/enabled}"
+                        <form class="inline-form" method="post" th:action="@{|${adminBase}/admins/enabled|}"
                               th:if="${a.id != me.id}">
                             <input type="hidden" name="id" th:value="${a.id}"/>
                             <input type="hidden" name="enabled" th:value="${!a.enabled}"/>
                             <button class="btn btn-ghost btn-sm" type="submit"
                                     th:text="${a.enabled} ? #{admin.disable} : #{admin.enable}">停用</button>
                         </form>
-                        <form class="inline-form" method="post" th:action="@{/admin/admins/delete}"
+                        <form class="inline-form" method="post" th:action="@{|${adminBase}/admins/delete|}"
                               th:if="${a.id != me.id}"
                               onsubmit="return confirm('确定删除该管理员账号？此操作不可撤销');">
                             <input type="hidden" name="id" th:value="${a.id}"/>
@@ -127,7 +127,7 @@
         <!-- 修改自己的密码 -->
         <div class="panel">
             <h3 class="block-title" th:text="#{admin.changePwd}">修改我的密码</h3>
-            <form class="admin-form" method="post" th:action="@{/admin/password}">
+            <form class="admin-form" method="post" th:action="@{|${adminBase}/password|}">
                 <div class="form-grid">
                     <div class="field">
                         <label th:text="#{admin.oldPassword}">当前密码</label>

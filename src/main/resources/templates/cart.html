@@ -18,8 +18,19 @@
 <div class="container section">
     <h2 class="section-title" th:text="#{cart.title}">购物车</h2>
 
-        <div class="alert-error" th:if="${param.invalid != null}" th:text="#{cart.invalid}">部分商品已下架或缺货，已从购物车移除</div>
-<div th:if="${isEmpty}" class="empty-cart">
+    <!-- 顶部醒目提示条 -->
+    <div class="cart-notice" th:if="${not isEmpty}">
+        <span class="cn-icon">🛒</span>
+        <span th:text="#{cart.countTip}">购物车共</span>
+        <b th:text="${cartCount}">0</b>
+        <span th:text="#{cart.countUnit}">件商品</span>
+    </div>
+    <div class="cart-notice warn" th:if="${param.invalid != null}">
+        <span class="cn-icon">⚠️</span>
+        <span th:text="#{cart.invalid}">部分商品已下架或缺货，已从购物车移除</span>
+    </div>
+
+    <div th:if="${isEmpty}" class="empty-cart">
         <div class="empty-icon">🛒</div>
         <p class="strong" th:text="#{cart.empty}">购物车还是空的</p>
         <p class="muted" th:text="#{cart.emptyHint}">去挑选喜欢的饰品与手工品吧～</p>

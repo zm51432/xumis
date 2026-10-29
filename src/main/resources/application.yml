@@ -83,6 +83,9 @@ app:
   admin-allow-key: false  # 默认关闭：后台必须走账号登录，避免"钥匙挂门上"
   admin-username: admin   # 首次启动自动创建的站长账号
   admin-password: Admin@12345   # 默认口令，登录后务必立即修改
+  # 后台隐藏入口：留空时后台地址为 /admin；设置后（如 /console-x7q9）后台只走该地址，
+  # 直接访问 /admin 返回 404，且页面链接自动使用新地址（前端导航本身不暴露后台入口）
+  admin-path: ${ADMIN_PATH:}
   mobile-api-key: ""       # 手机端 /api/m/** 访问密钥；留空=开发期免校验，生产务必设置
   # 多币种展示（基准币种为 USD，price 字段以 USD 存储；展示价 = price × rate）
   currencies:

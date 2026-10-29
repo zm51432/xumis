@@ -4,6 +4,7 @@ import com.shine.xumis.model.Product;
 import com.shine.xumis.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -17,6 +18,10 @@ import java.util.List;
 public class SeoController {
 
     private final ProductService productService;
+
+    /** 后台隐藏入口（见 AdminPathFilter）；未启用时为 /admin */
+    @Value("${app.admin-path:}")
+    private String adminPath;
 
     public SeoController(ProductService productService) {
         this.productService = productService;
@@ -44,7 +49,11 @@ public class SeoController {
 
     @GetMapping(value = "/robots.txt", produces = "text/plain")
     public void robots(HttpServletResponse response) throws IOException {
-        String txt = "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /h2-console\nDisallow: /cart/checkout\nSitemap: /sitemap.xml\n";
+        String p = (adminPath == null) ? "" : adminPath.trim();
+        String adminDisallow = (p.isEmpty() || p.equals("admin") || p.equals("/admin"))
+                ? "/admin" : (p.startsWith("/") ? p : "/" + p);
+        String txt = "User-agent: *\nAllow: /\nDisallow: " + adminDisallow
+                + "\nDisallow: /h2-console\nDisallow: /cart/checkout\nSitemap: /sitemap.xml\n";
         write(response, "text/plain", txt);
     }
 

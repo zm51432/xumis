@@ -14,6 +14,11 @@
         <span th:text="${storeName}">shine星心</span>
         <small th:text="${storeNameEn}">shine Star-Heart</small>
     </a>
+    <!-- 搜索框：作为导航中间一栏，始终居中 -->
+    <form class="nav-search" th:action="@{/products}" method="get">
+        <input type="text" name="q" th:placeholder="#{search.placeholder}" aria-label="search"/>
+        <button type="submit" aria-label="search">🔍</button>
+    </form>
     <button class="hamburger" aria-label="menu" onclick="toggleMenu()">
         <span></span><span></span><span></span>
     </button>
@@ -22,11 +27,6 @@
         <a th:href="@{/products}" th:text="#{nav.products}">商品</a>
         <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
         <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
-        <a th:href="@{/admin}" th:text="#{nav.admin}">后台</a>
-        <form class="nav-search" action="/products" method="get">
-            <input type="text" name="q" th:placeholder="#{search.placeholder}" aria-label="search"/>
-            <button type="submit" aria-label="search">🔍</button>
-        </form>
         <select class="currency-select" onchange="setCurrency(this.value)" aria-label="currency">
             <option th:each="c : ${currencies}"
                     th:value="${c.code}"
@@ -34,7 +34,8 @@
                     th:selected="${c.code == currencyCode}">USD $</option>
         </select>
         <a class="cart-link" th:href="@{/cart}">🛒
-            <span class="badge" th:text="${cartCount}">0</span>
+            <span class="badge" th:classappend="${cartCount != null and cartCount > 0} ? 'badge-live' : 'badge-zero'"
+                  th:text="${cartCount}">0</span>
         </a>
         <a th:if="${user == null}" th:href="@{/login}" th:text="#{account.login}">登录</a>
         <a th:if="${user == null}" class="nav-register" th:href="@{/register}" th:text="#{account.register}">注册</a>

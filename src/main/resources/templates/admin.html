@@ -28,11 +28,11 @@
                       th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
                       th:text="${me.role.label}">站长</span>
             </span>
-            <a class="btn btn-sm" th:href="@{/admin/products}">📦 商品管理</a>
-            <a class="btn btn-ghost btn-sm" th:href="@{/admin/customers}">👥 客户管理</a>
+            <a class="btn btn-sm" th:href="@{|${adminBase}/products|}">📦 商品管理</a>
+            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/customers|}">👥 客户管理</a>
             <a class="btn btn-ghost btn-sm" th:if="${me != null and me.canManageAdmins()}"
-               th:href="@{/admin/admins}">👤 账号权限</a>
-            <form method="post" th:action="@{/admin/logout}" style="display:inline;">
+               th:href="@{|${adminBase}/admins|}">👤 账号权限</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
                 <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
             </form>
         </div>
@@ -63,7 +63,7 @@
                     </td>
                     <td th:text="${o.createdAt}">-</td>
                     <td>
-                        <form class="inline-form" method="post" th:action="@{/admin/order/status}"
+                        <form class="inline-form" method="post" th:action="@{|${adminBase}/order/status|}"
                               th:if="${me != null and me.canWrite()}">
                             <input type="hidden" name="id" th:value="${o.id}"/>
                             <select name="status" onchange="this.form.submit()">
