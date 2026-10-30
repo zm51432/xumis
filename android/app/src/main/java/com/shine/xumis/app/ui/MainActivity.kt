@@ -21,9 +21,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private companion object {
-        /** 前台静默检查的最小间隔：6 小时 */
+        /** 前台静默检查的最小间隔：6 小时（只在检查成功后计时） */
         const val UPDATE_CHECK_INTERVAL = 6 * 60 * 60 * 1000L
+        const val KEY_TAB = "selected_tab"
+
+        /** 四个 Tab 的 Fragment 标签：切回来时复用同一个实例，不重建 WebView */
+        const val TAG_HOME = "tab_home"
+        const val TAG_SEARCH = "tab_search"
+        const val TAG_CART = "tab_cart"
+        const val TAG_ACCOUNT = "tab_account"
     }
+
+    private var checkingUpdate = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,23 +42,55 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> switchTo(HomeFragment())
-                R.id.nav_search -> switchTo(SearchFragment())
-                R.id.nav_cart -> switchTo(CartFragment())
-                R.id.nav_account -> switchTo(AccountFragment())
+                R.id.nav_home, R.id.nav_search, R.id.nav_cart, R.id.nav_account ->
+                    showTab(item.itemId)
                 else -> false
             }
         }
 
-        if (savedInstanceState == null) {
-            binding.bottomNav.selectedItemId = R.id.nav_home
-        }
+        // 恢复上次停留的 Tab：转屏或从后台被杀后重建，高亮和内容保持一致
+        val startTab = savedInstanceState?.getInt(KEY_TAB, R.id.nav_home) ?: R.id.nav_home
+        binding.bottomNav.selectedItemId = startTab
 
         AppPrefs.init(applicationContext)
         if (savedInstanceState == null && !AppPrefs.permissionPrompted) {
             AppPrefs.permissionPrompted = true
             showPermissionIntro()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_TAB, binding.bottomNav.selectedItemId)
+    }
+
+    /**
+     * 切换 Tab：已有实例就 show/hide，没有才创建。
+     * 这样购物车、我的这类 WebView 页面切回来还在原位置，不会重新加载。
+     */
+    private fun showTab(itemId: Int): Boolean {
+        val (tag, factory) = when (itemId) {
+            R.id.nav_home -> TAG_HOME to { HomeFragment() as Fragment }
+            R.id.nav_search -> TAG_SEARCH to { SearchFragment() as Fragment }
+            R.id.nav_cart -> TAG_CART to { CartFragment() as Fragment }
+            R.id.nav_account -> TAG_ACCOUNT to { AccountFragment() as Fragment }
+            else -> return false
+        }
+
+        val fm = supportFragmentManager
+        val tx = fm.beginTransaction()
+        for (t in listOf(TAG_HOME, TAG_SEARCH, TAG_CART, TAG_ACCOUNT)) {
+            fm.findFragmentByTag(t)?.let { if (!it.isHidden) tx.hide(it) }
+        }
+
+        val existing = fm.findFragmentByTag(tag)
+        if (existing == null) {
+            tx.add(R.id.container, factory(), tag)
+        } else {
+            tx.show(existing)
+        }
+        tx.commit()
+        return true
     }
 
     /**
@@ -82,30 +123,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 静默检查更新：进入前台时看一次，但 6 小时内不重复请求；
+     * 静默检查更新：进入前台时看一次，6 小时内不重复请求；
      * 用户点过「稍后再说」的同一个版本不再弹，除非服务端标了强制更新。
+     *
+     * 注意：时间戳在**请求成功后**才写入。之前是请求前就写，
+     * 网络抖一下就要干等 6 小时才会再查。
      */
     private fun checkUpdateQuietly() {
+        if (checkingUpdate) return
         val now = System.currentTimeMillis()
         if (now - AppPrefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL) return
-        AppPrefs.lastUpdateCheck = now
+        checkingUpdate = true
         lifecycleScope.launch {
             val resp = runCatching {
                 withContext(Dispatchers.IO) { UpdateChecker.check(this@MainActivity) }
-            }.getOrNull() ?: return@launch
+            }.getOrNull()
+            checkingUpdate = false
+            if (resp == null) return@launch
+
+            AppPrefs.lastUpdateCheck = System.currentTimeMillis()
             val rel = resp.latest ?: return@launch
             if (!resp.update) return@launch
             if (!resp.force && AppPrefs.skippedVersionCode == rel.versionCode) return@launch
-            if (isFinishing) return@launch
+            if (isFinishing || isDestroyed) return@launch
             startActivity(UpdateActivity.intent(this@MainActivity, rel, resp.force))
         }
-    }
-
-    private fun switchTo(fragment: Fragment): Boolean {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.container, fragment)
-            .commit()
-        return true
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

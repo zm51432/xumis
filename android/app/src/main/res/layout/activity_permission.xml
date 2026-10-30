@@ -10,10 +10,11 @@
         android:id="@+id/top_app_bar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/shine_pink"
+        android:background="@color/shine_bg"
         app:title="权限与兼容性"
-        app:titleTextColor="@android:color/white"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        app:titleTextColor="@color/shine_text"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="@color/shine_text" />
 
     <ScrollView
         android:layout_width="match_parent"

@@ -67,5 +67,12 @@ object CrashGuard {
     fun lastCrash(ctx: Context): String? =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LAST_TRACE, null)
 
+    /** 提示过一次就清掉，避免每次启动都弹 */
+    fun clearLastCrash(ctx: Context) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .remove(KEY_LAST_TRACE)
+            .apply()
+    }
+
     fun crashCount(ctx: Context): Int = if (File(ctx.filesDir, FILE).exists()) 1 else 0
 }

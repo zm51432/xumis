@@ -10,10 +10,11 @@
         android:id="@+id/top_app_bar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/shine_pink"
+        android:background="@color/shine_bg"
         app:title="设置"
-        app:titleTextColor="@android:color/white"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        app:titleTextColor="@color/shine_text"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="@color/shine_text" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -81,6 +82,18 @@
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_privacy"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_terms"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <!-- ============ 帮助与支持 ============ -->
@@ -108,6 +121,12 @@
 
                 <include
                     android:id="@+id/row_policies"
+                    layout="@layout/item_settings_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/row_services"
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />

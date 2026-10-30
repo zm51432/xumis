@@ -13,8 +13,10 @@ import com.shine.xumis.app.databinding.ActivitySettingsBinding
 import com.shine.xumis.app.databinding.ItemSettingsRowBinding
 import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.CatalogCache
+import com.shine.xumis.app.util.Docs
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
+import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.UpdateChecker
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
@@ -161,6 +163,14 @@ class SettingsActivity : AppCompatActivity() {
         ) {
             startActivity(Intent(this, PermissionActivity::class.java))
         }
+
+        // 断网也能看的本地文档，不依赖网页
+        bind(binding.rowPrivacy, R.drawable.ic_doc, "隐私政策", "我们收集什么、怎么用、如何删除") {
+            startActivity(DocActivity.intent(this, Docs.PRIVACY))
+        }
+        bind(binding.rowTerms, R.drawable.ic_doc, "服务条款", "下单、支付、配送与退换规则") {
+            startActivity(DocActivity.intent(this, Docs.TERMS))
+        }
     }
 
     // ---------------- 帮助与支持 ----------------
@@ -177,6 +187,14 @@ class SettingsActivity : AppCompatActivity() {
         }
         bind(binding.rowPolicies, R.drawable.ic_doc, "配送与售后条款", "发货、跨境运费、退换与支付说明") {
             openOffline(OfflineAssets.POLICIES, "配送与售后条款")
+        }
+        // 站内的来图定制、询盘等入口在完整网页里，这里给一个统一出口
+        bind(binding.rowServices, R.drawable.ic_browser, "更多服务", "来图定制、询盘联系等站内页面") {
+            startActivity(
+                Intent(this, WebViewActivity::class.java)
+                    .putExtra("url", ServerConfig.siteBase())
+                    .putExtra("title", "更多服务")
+            )
         }
     }
 

@@ -4,25 +4,74 @@
     android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/shine_bg">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-        android:orientation="vertical" android:padding="10dp">
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
 
-        <EditText android:id="@+id/et_query" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="搜索商品名称" android:inputType="text" android:imeOptions="actionSearch"
-            android:backgroundTint="@color/shine_pink"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="8dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingTop="10dp">
 
-            <Spinner android:id="@+id/spinner_cat" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-            <Spinner android:id="@+id/spinner_sort" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:layout_marginStart="8dp" android:entries="@array/sort_entries"/>
-            <Button android:id="@+id/btn_search" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="搜索" android:layout_marginStart="8dp"/>
+                <EditText android:id="@+id/et_query" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="44dp" android:hint="搜索商品名称" android:inputType="text"
+                    android:imeOptions="actionSearch" android:maxLines="1" android:textSize="14sp"
+                    android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"
+                    android:background="@drawable/bg_input" android:paddingStart="14dp"
+                    android:paddingEnd="14dp" android:importantForAutofill="no"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_search" android:layout_width="wrap_content"
+                    android:layout_height="44dp" android:layout_marginStart="8dp"
+                    android:text="搜索" android:textSize="14sp" android:insetTop="0dp"
+                    android:insetBottom="0dp" android:textColor="@color/shine_on_red"
+                    app:backgroundTint="@color/shine_pink" app:cornerRadius="12dp"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginTop="6dp" android:paddingStart="12dp" android:paddingEnd="12dp">
+
+                <Spinner android:id="@+id/spinner_cat" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+                <Spinner android:id="@+id/spinner_sort" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:layout_marginStart="6dp"
+                    android:entries="@array/sort_entries"/>
+
+                <TextView android:id="@+id/tv_count" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginStart="8dp"
+                    android:textSize="12sp" android:textColor="@color/shine_sub"/>
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_results"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_marginTop="6dp" android:paddingStart="6dp" android:paddingEnd="6dp"
+                android:paddingBottom="12dp" android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" app:spanCount="2"/>
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_results"
-            android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="8dp"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" app:spanCount="2"/>
-    </LinearLayout>
+        <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone"
+            android:orientation="vertical" android:gravity="center" android:paddingStart="32dp"
+            android:paddingEnd="32dp">
+
+            <ImageView android:layout_width="56dp" android:layout_height="56dp"
+                android:src="@drawable/ic_search" android:alpha="0.45"/>
+
+            <TextView android:id="@+id/tv_empty_title" style="@style/EmptyTitle"
+                android:layout_marginTop="12dp" android:text="没有找到相关商品"/>
+
+            <TextView android:id="@+id/tv_empty_body" style="@style/EmptyBody"
+                android:text="换个关键词，或把分类改成「全部分类」再试"/>
+
+            <Button android:id="@+id/btn_clear" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="14dp"
+                android:text="清空条件" android:textColor="@color/shine_pink"
+                android:backgroundTint="@color/shine_red_soft" android:visibility="gone"/>
+        </LinearLayout>
+
+        <ProgressBar android:id="@+id/pb_more" android:layout_width="24dp" android:layout_height="24dp"
+            android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="16dp"
+            android:indeterminateTint="@color/shine_pink" android:visibility="gone"/>
+    </FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

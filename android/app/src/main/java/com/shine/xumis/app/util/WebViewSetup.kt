@@ -66,7 +66,8 @@ object WebViewSetup {
      */
     fun client(
         context: Context,
-        onOffline: ((String, String) -> Unit)? = null
+        onOffline: ((String, String) -> Unit)? = null,
+        appShell: Boolean = false
     ): WebViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val uri = request.url
@@ -80,6 +81,14 @@ object WebViewSetup {
             } catch (e: Exception) {
                 false
             }
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+            if (!appShell) return
+            if (view == null || url == null) return
+            if (url.startsWith("file:")) return // 内置离线页本来就是给 App 用的，不用改
+            view.evaluateJavascript(APP_SHELL_CSS_JS, null)
         }
 
         override fun onReceivedError(
@@ -109,6 +118,38 @@ object WebViewSetup {
             onOffline?.invoke(url, "http")
         }
     }
+
+    /**
+     * 站内页面的「App 外壳」样式（只用于 App 内嵌的购物车/我的）。
+     *
+     * 站点自带一条顶部导航和一条底部 dock，套进 App 后会与原生顶栏、底栏叠成两层，
+     * 竖向空间被吃掉一大截，看起来也像页面错位。这里把它们隐藏；
+     * 站内其它入口（来图定制、询盘）走设置里的「更多服务」，那边是完整网页。
+     */
+    private const val APP_SHELL_CSS_JS = """
+(function(){
+  if (window.__shineAppShell) return;
+  window.__shineAppShell = 1;
+  var css = '.nav,.mobile-nav,.footer{display:none !important}'
+          + 'body{padding-top:0 !important;padding-bottom:0 !important}'
+          // 站点的 CSS 变量是全局的，这里把页面底色/文字/主色映射成 App 的淡黄+红，
+          // 免得原生顶栏和站点内容一黄一绿拼在一起。
+          + ':root{'
+          + '--bg:#FFF9E6;--cream:#FFF3C4;--line:#F2E0B0;'
+          + '--ink:#3B2A1E;--ink-soft:#6B5545;--muted:#8B7355;'
+          + '--mint:#FFD54F;--mint-deep:#D32F2F;--mint-soft:#FDEAEA;}'
+          // 站点主按钮写死了浅绿渐变，只改变量还会留半截绿，这里直接改渐变本身
+          + '.btn{background:linear-gradient(135deg,#E53935,#B71C1C) !important;'
+          + 'box-shadow:0 8px 20px rgba(211,47,47,.22) !important;}'
+          + '.btn-ghost{background:#fff !important;color:#D32F2F !important;'
+          + 'border-color:#F2C4C4 !important;}'
+          + '.filter.active{background:linear-gradient(135deg,#E53935,#B71C1C) !important;color:#fff !important;}';
+  var s = document.createElement('style');
+  s.id = 'shine-app-shell';
+  s.appendChild(document.createTextNode(css));
+  (document.head || document.documentElement).appendChild(s);
+})();
+"""
 
     // ---------------- 定位授权 ----------------
 

@@ -5,9 +5,11 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivitySplashBinding
 import com.shine.xumis.app.util.CatalogCache
+import com.shine.xumis.app.util.CrashGuard
 import com.shine.xumis.app.util.OfflineAssets
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,6 +33,29 @@ class SplashActivity : AppCompatActivity() {
         binding.btnRetry.setOnClickListener { checkServer() }
         binding.btnOffline.visibility = View.GONE
         checkServer()
+        notifyLastCrash()
+    }
+
+    /**
+     * 上次异常退出时给个明确提示。
+     * 之前是静默重启，用户只知道「闪退了一下」，也不知道去哪看原因。
+     */
+    private fun notifyLastCrash() {
+        val trace = CrashGuard.lastCrash(this) ?: return
+        // 只提示一次，看完就清掉，避免每次启动都弹
+        CrashGuard.clearLastCrash(this)
+        val whenText = trace.lineSequence().firstOrNull { it.startsWith("时间：") }?.removePrefix("时间：") ?: ""
+        MaterialAlertDialogBuilder(this)
+            .setTitle("上次运行出了点问题")
+            .setMessage(
+                "App 在 ${whenText.ifBlank { "上次使用时" }} 意外退出，现在已经恢复正常。\n\n" +
+                    "如果是重复出现，可以在「设置 → 运行状态」里查看并复制错误日志发给我们。"
+            )
+            .setNegativeButton("知道了", null)
+            .setPositiveButton("查看日志") { _, _ ->
+                startActivity(Intent(this, StatusActivity::class.java))
+            }
+            .show()
     }
 
     private fun checkServer() {

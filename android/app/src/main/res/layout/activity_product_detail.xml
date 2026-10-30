@@ -6,49 +6,91 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
-        android:background="@color/shine_pink" app:titleTextColor="@android:color/white" app:title="商品详情"
-        app:navigationIcon="?attr/homeAsUpIndicator"/>
+        android:background="@color/shine_bg" app:titleTextColor="@color/shine_text" app:title="商品详情"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="@color/shine_text" />
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true">
+
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="16dp">
+            android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="4dp" android:paddingBottom="20dp">
 
-            <ImageView android:id="@+id/img_product" android:layout_width="match_parent" android:layout_height="240dp"
-                android:scaleType="centerCrop" android:background="@color/shine_pink"/>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/img_product" android:layout_width="match_parent" android:layout_height="260dp"
+                android:scaleType="centerCrop" android:background="@color/shine_yellow_soft"
+                app:shapeAppearanceOverlay="@style/RoundedImage"/>
 
-            <TextView android:id="@+id/tv_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="22sp" android:textStyle="bold" android:textColor="@color/shine_text" android:layout_marginTop="12dp"/>
+            <TextView android:id="@+id/tv_title" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="20sp" android:textStyle="bold" android:textColor="@color/shine_text"
+                android:layout_marginTop="14dp" android:lineSpacingExtra="2dp"/>
 
-            <TextView android:id="@+id/tv_price" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="20sp" android:textColor="@color/shine_pink" android:textStyle="bold" android:layout_marginTop="6dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp">
+
+                <TextView android:id="@+id/tv_price" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:textSize="23sp"
+                    android:textColor="@color/shine_pink" android:textStyle="bold"/>
+
+                <TextView android:id="@+id/tv_stock" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textSize="12sp"
+                    android:textColor="@color/shine_amber_text" android:background="@drawable/bg_badge_soft"
+                    android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="3dp"
+                    android:paddingBottom="3dp"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/tv_custom" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="支持来图定制" android:textColor="@color/shine_amber_text"
+                android:textStyle="bold" android:textSize="12sp" android:background="@drawable/bg_badge_soft"
+                android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="3dp"
+                android:paddingBottom="3dp" android:layout_marginTop="8dp" android:visibility="gone"/>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="10dp">
-                <TextView android:id="@+id/tv_cat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/shine_sub"/>
-                <TextView android:id="@+id/tv_stock" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:textColor="@color/shine_sub" android:layout_marginStart="16dp"/>
+                <TextView android:id="@+id/tv_cat" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/shine_sub" android:textSize="13sp"/>
+                <TextView android:id="@+id/tv_material" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/shine_sub" android:textSize="13sp" android:layout_marginStart="14dp"/>
             </LinearLayout>
 
-            <TextView android:id="@+id/tv_material" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textColor="@color/shine_sub" android:layout_marginTop="4dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/shine_yellow_line" android:layout_marginTop="16dp"/>
 
-            <TextView android:id="@+id/tv_custom" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="支持来图定制" android:textColor="@color/shine_mint" android:textStyle="bold"
-                android:layout_marginTop="6dp" android:visibility="gone"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="商品描述" android:textSize="14sp" android:textStyle="bold"
+                android:textColor="@color/shine_text" android:layout_marginTop="14dp"/>
 
             <TextView android:id="@+id/tv_desc" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:textColor="@color/shine_text" android:layout_marginTop="12dp" android:lineSpacingMultiplier="1.3"/>
+                android:textColor="@color/shine_text" android:textSize="14sp" android:layout_marginTop="8dp"
+                android:lineSpacingExtra="5dp"/>
 
             <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_gravity="center" android:layout_marginTop="12dp"/>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:layout_marginTop="16dp">
-                <Button android:id="@+id/btn_buy" android:layout_width="0dp" android:layout_weight="1"
-                    android:layout_height="wrap_content" android:text="去网页加购/购买"/>
-                <Button android:id="@+id/btn_cart" android:layout_width="0dp" android:layout_weight="1"
-                    android:layout_height="wrap_content" android:text="查看购物车" android:layout_marginStart="8dp"/>
-            </LinearLayout>
+                android:layout_gravity="center" android:layout_marginTop="16dp"/>
         </LinearLayout>
     </ScrollView>
+
+    <!-- 底部固定操作栏：拇指可达，内容再长也不用滚到底找按钮 -->
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/shine_yellow_line"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:background="@color/shine_surface"
+        android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cart" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp"
+            android:text="查看购物车" android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
+            android:textColor="@color/shine_pink" app:strokeColor="@color/shine_pink"
+            app:cornerRadius="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_buy" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="48dp" android:layout_marginStart="10dp" android:text="去购买"
+            android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
+            android:textColor="@color/shine_on_red" app:backgroundTint="@color/shine_pink"
+            app:cornerRadius="12dp"/>
+    </LinearLayout>
 </LinearLayout>

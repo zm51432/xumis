@@ -127,6 +127,7 @@
         <activity android:name=".ui.StatusActivity" android:exported="false" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />
         <activity android:name=".ui.WebViewActivity" android:exported="false" />
+        <activity android:name=".ui.DocActivity" android:exported="false" />
 
         <!-- 拍照上传：把缓存里的临时照片以 content:// 交给相机 App，
              避免 Android 7+ 直接传 file:// 触发 FileUriExposedException -->

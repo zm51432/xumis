@@ -7,25 +7,59 @@
     <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-            android:orientation="vertical" android:padding="8dp">
+            android:orientation="vertical">
 
             <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:visibility="gone"
-                android:background="#FFF0F4" android:padding="10dp" android:layout_margin="6dp"
-                android:textSize="12sp" android:textColor="@color/shine_pink_dark"
+                android:background="@color/shine_yellow_soft" android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:paddingTop="9dp" android:paddingBottom="9dp"
+                android:textSize="12sp" android:textColor="@color/shine_amber_text"
                 android:text="离线数据 · 正在展示上次缓存的商品，联网后下拉刷新"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
-                android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:paddingStart="12dp" android:paddingEnd="12dp"
+                android:paddingTop="4dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="全部商品" android:textSize="19sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"/>
+
+                <TextView android:id="@+id/tv_count" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginTop="2dp"
+                    android:textSize="12sp" android:textColor="@color/shine_sub"/>
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
                 android:layout_width="match_parent" android:layout_height="match_parent"
+                android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingTop="4dp"
+                android:paddingBottom="12dp" android:clipToPadding="false"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2"/>
         </LinearLayout>
 
-        <Button android:id="@+id/btn_retry" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="重试" android:layout_gravity="center" android:visibility="gone"/>
+        <!-- 空态：没有商品 / 加载失败 -->
+        <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone"
+            android:orientation="vertical" android:gravity="center" android:paddingStart="32dp"
+            android:paddingEnd="32dp">
+
+            <ImageView android:layout_width="56dp" android:layout_height="56dp"
+                android:src="@drawable/ic_placeholder" android:alpha="0.55"/>
+
+            <TextView android:id="@+id/tv_empty_title" style="@style/EmptyTitle"
+                android:layout_marginTop="12dp" android:text="这里还没有商品"/>
+
+            <TextView android:id="@+id/tv_empty_body" style="@style/EmptyBody"
+                android:text="下拉刷新试一次，或稍后再来看看"/>
+
+            <Button android:id="@+id/btn_retry" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="14dp"
+                android:text="重新加载" android:textColor="@color/shine_on_red"
+                android:backgroundTint="@color/shine_pink" android:visibility="gone"/>
+        </LinearLayout>
+
+        <ProgressBar android:id="@+id/pb_more" android:layout_width="24dp" android:layout_height="24dp"
+            android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="16dp"
+            android:indeterminateTint="@color/shine_pink" android:visibility="gone"/>
     </FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

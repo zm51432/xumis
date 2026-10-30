@@ -1,9 +1,23 @@
 <resources>
-    <color name="shine_pink">#FF6F91</color>
-    <color name="shine_pink_dark">#E25C7E</color>
-    <color name="shine_mint">#9ED9C4</color>
-    <color name="shine_mint_dark">#3F9C7C</color>
-    <color name="shine_bg">#FFF6F2</color>
-    <color name="shine_text">#3A2C2C</color>
-    <color name="shine_sub">#8A7A7A</color>
+    <!--
+      配色取自线上 1.5.3 APK 的资源表，与已发布版本保持一致：
+        淡黄底 #FFF9E6 / 主色红 #D32F2F / 辅助黄 #FFD54F / 深棕字 #3B2A1E
+      变量名沿用旧名（shine_pink / shine_mint），避免改动大量布局引用。
+    -->
+    <color name="shine_pink">#FFD32F2F</color>
+    <color name="shine_pink_dark">#FFB71C1C</color>
+    <color name="shine_mint">#FFFFD54F</color>
+    <color name="shine_mint_dark">#FFB26A00</color>
+
+    <color name="shine_bg">#FFFFF9E6</color>
+    <color name="shine_surface">#FFFFFFFF</color>
+    <color name="shine_text">#FF3B2A1E</color>
+    <color name="shine_sub">#FF8B7355</color>
+
+    <!-- 1.5.3 的层次色 -->
+    <color name="shine_yellow_soft">#FFFFF3C4</color>
+    <color name="shine_yellow_line">#FFF2E0B0</color>
+    <color name="shine_red_soft">#FFFDEAEA</color>
+    <color name="shine_amber_text">#FF9C5B00</color>
+    <color name="shine_on_red">#FFFFFFFF</color>
 </resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" android:background="@color/shine_bg"
+        android:elevation="0dp" app:titleTextColor="@color/shine_text"
+        app:navigationIconTint="@color/shine_text" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="18dp">
+
+            <TextView android:id="@+id/tv_body" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="14sp"
+                android:textColor="@color/shine_text" android:lineSpacingExtra="6dp"
+                android:textIsSelectable="true"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" android:textSize="12sp"
+                android:textColor="@color/shine_sub" android:gravity="center"
+                android:text="如有疑问请联系 zm51432@qq.com"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

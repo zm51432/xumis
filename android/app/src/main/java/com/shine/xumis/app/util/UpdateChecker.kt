@@ -111,24 +111,73 @@ object UpdateChecker {
 
     fun updateDir(ctx: Context): File = File(ctx.filesDir, "updates").apply { mkdirs() }
 
-    /** 下载安装包，边下边回报百分比；返回校验通过的本地文件 */
+    /**
+     * 下载安装包，边下边回报百分比；返回校验通过的本地文件。
+     *
+     * 支持断点续传：先写到 `.part`，中断后再进来用 Range 从断点继续。
+     * 之前是每次开头就把已下载的文件删掉，20MB 的包在弱网上断了只能从头再来。
+     */
     @Throws(IOException::class)
     fun download(ctx: Context, rel: Release, onProgress: (Int) -> Unit): File {
         if (!isTrustedUrl(rel.url)) throw IOException("安装包地址不受信任")
-        val dir = updateDir(ctx)
-        dir.listFiles()?.forEach { if (it.isFile && it.name.endsWith(".apk")) it.delete() }
-        val target = File(dir, "shine-" + rel.versionCode + ".apk")
 
-        val req = Request.Builder().url(rel.url).header("Accept", "*/*").build()
-        client.newCall(req).execute().use { resp ->
+        val dir = updateDir(ctx)
+        val target = File(dir, "shine-" + rel.versionCode + ".apk")
+        val part = File(dir, target.name + ".part")
+
+        // 只清理其它版本的残留，本版本的 .part 要留着续传
+        dir.listFiles()?.forEach { f ->
+            if (f.isFile && f.name != part.name && f.name != target.name &&
+                (f.name.endsWith(".apk") || f.name.endsWith(".part"))
+            ) {
+                f.delete()
+            }
+        }
+
+        // 已经下完并校验过的，直接复用
+        if (target.exists() && target.length() > 0 && rel.size > 0 && target.length() == rel.size) {
+            if (rel.sha256.isBlank() || sha256(target).equals(rel.sha256, ignoreCase = true)) {
+                onProgress(100)
+                return target
+            }
+            target.delete()
+        }
+
+        var resumeFrom = if (part.exists()) part.length() else 0L
+        val totalHint = if (rel.size > 0) rel.size else 0L
+        // 断点文件比目标还大，说明对不上，重下
+        if (totalHint > 0 && resumeFrom >= totalHint) {
+            part.delete()
+            resumeFrom = 0L
+        }
+
+        val builder = Request.Builder().url(rel.url).header("Accept", "*/*")
+        if (resumeFrom > 0) builder.header("Range", "bytes=" + resumeFrom + "-")
+
+        client.newCall(builder.build()).execute().use { resp ->
             if (!resp.isSuccessful) throw IOException("HTTP " + resp.code)
+
+            val partial = resp.code == 206
+            if (!partial) resumeFrom = 0L // 服务端不支持续传，从头写
+
             val body = resp.body ?: throw IOException("响应为空")
-            val total = if (body.contentLength() > 0) body.contentLength() else rel.size
+            val remain = if (body.contentLength() > 0) body.contentLength() else 0L
+            val total = when {
+                totalHint > 0 -> totalHint
+                partial -> resumeFrom + remain
+                else -> remain
+            }
+
+            var done = resumeFrom
+            var last = -1
+            if (total > 0 && done > 0) {
+                last = (done * 100 / total).toInt()
+                onProgress(last)
+            }
+
             body.byteStream().use { input ->
-                target.outputStream().use { output ->
+                java.io.FileOutputStream(part, resumeFrom > 0).use { output ->
                     val buf = ByteArray(64 * 1024)
-                    var done = 0L
-                    var last = -1
                     while (true) {
                         val n = input.read(buf)
                         if (n <= 0) break
@@ -142,28 +191,43 @@ object UpdateChecker {
                             }
                         }
                     }
+                    output.flush()
                 }
             }
         }
-        onProgress(100)
 
-        if (target.length() <= 0) {
-            target.delete()
+        if (part.length() <= 0) {
+            part.delete()
             throw IOException("下载内容为空")
         }
-        if (rel.size > 0 && target.length() != rel.size) {
-            val got = target.length()
-            target.delete()
+        if (rel.size > 0 && part.length() != rel.size) {
+            val got = part.length()
+            // 没下完：保留 .part 供下次续传，只提示
+            if (got < rel.size) throw IOException("下载中断（" + got + " / " + rel.size + "），已保留进度，可重试继续")
+            part.delete()
             throw IOException("安装包大小不一致（" + got + " / " + rel.size + "），请重试")
         }
         if (rel.sha256.isNotBlank()) {
-            val actual = sha256(target)
+            val actual = sha256(part)
             if (!actual.equals(rel.sha256, ignoreCase = true)) {
-                target.delete()
+                part.delete()
                 throw IOException("安装包校验失败，已删除，请重试")
             }
         }
+
+        if (target.exists()) target.delete()
+        if (!part.renameTo(target)) {
+            part.copyTo(target, overwrite = true)
+            part.delete()
+        }
+        onProgress(100)
         return target
+    }
+
+    /** 是否有可续传的断点（给界面显示「继续下载」用） */
+    fun partialSize(ctx: Context, versionCode: Int): Long {
+        val part = File(updateDir(ctx), "shine-" + versionCode + ".apk.part")
+        return if (part.exists()) part.length() else 0L
     }
 
     private fun sha256(file: File): String {

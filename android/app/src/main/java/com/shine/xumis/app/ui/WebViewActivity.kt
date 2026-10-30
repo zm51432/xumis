@@ -64,9 +64,9 @@ class WebViewActivity : AppCompatActivity() {
         intent.getStringExtra("title")?.let { binding.topAppBar.title = it }
 
         WebViewSetup.apply(binding.web)
-        binding.web.webViewClient = WebViewSetup.client(this) { bad, reason ->
+        binding.web.webViewClient = WebViewSetup.client(this, onOffline = { bad, reason ->
             binding.web.loadUrl(OfflineAssets.indexUrl(bad, reason))
-        }
+        })
         binding.web.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
                 webView: WebView?,

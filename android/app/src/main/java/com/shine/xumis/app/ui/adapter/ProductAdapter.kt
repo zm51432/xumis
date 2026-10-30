@@ -17,11 +17,24 @@ class ProductAdapter(
 
     private val items = mutableListOf<MobileProduct>()
 
+    /** 首次加载 / 下拉刷新：整体替换 */
     fun submit(list: List<MobileProduct>) {
         items.clear()
         items.addAll(list)
         notifyDataSetChanged()
     }
+
+    /** 翻页加载：追加到末尾，只刷新新增部分，避免整屏闪一下 */
+    fun append(list: List<MobileProduct>) {
+        if (list.isEmpty()) return
+        val start = items.size
+        items.addAll(list)
+        notifyItemRangeInserted(start, list.size)
+    }
+
+    fun size(): Int = items.size
+
+    fun all(): List<MobileProduct> = items.toList()
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val img: ImageView = view.findViewById(R.id.item_img)
@@ -29,6 +42,7 @@ class ProductAdapter(
         val price: TextView = view.findViewById(R.id.item_price)
         val cat: TextView = view.findViewById(R.id.item_cat)
         val badge: TextView = view.findViewById(R.id.item_badge)
+        val stock: TextView = view.findViewById(R.id.item_stock)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -40,12 +54,18 @@ class ProductAdapter(
         val p = items[position]
         holder.name.text = p.title()
         holder.price.text = p.priceText()
-        holder.cat.text = p.category ?: ""
-        if (p.featured == true) {
-            holder.badge.visibility = View.VISIBLE
-        } else {
-            holder.badge.visibility = View.GONE
-        }
+
+        val cat = p.category?.takeIf { it.isNotBlank() }
+        holder.cat.text = cat ?: ""
+        holder.cat.visibility = if (cat == null) View.GONE else View.VISIBLE
+
+        holder.badge.visibility = if (p.featured == true) View.VISIBLE else View.GONE
+
+        // 缺货标在价格右侧，比原来只在详情页提示更早一步
+        val stockText = p.stockText()
+        holder.stock.text = stockText
+        holder.stock.visibility = if (stockText.isBlank()) View.GONE else View.VISIBLE
+
         val imgUrl = p.fullImageUrl()
         if (imgUrl != null) {
             Glide.with(holder.img.context)

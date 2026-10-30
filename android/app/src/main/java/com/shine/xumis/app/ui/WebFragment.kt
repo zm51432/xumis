@@ -77,9 +77,9 @@ open class WebFragment : Fragment() {
         val ctx = requireContext()
         WebViewSetup.apply(binding.web)
         // 主文档加载失败（断网/超时/5xx）时切到内置离线页，避免整屏白页
-        binding.web.webViewClient = WebViewSetup.client(ctx) { url, reason ->
+        binding.web.webViewClient = WebViewSetup.client(ctx, { url, reason ->
             _binding?.web?.loadUrl(OfflineAssets.indexUrl(url, reason))
-        }
+        }, appShell = true)
         binding.web.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
                 webView: WebView?,
