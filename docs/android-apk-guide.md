@@ -48,10 +48,10 @@
 ### 3.1 从 GitHub Releases 下载
 
 1. 打开本仓库的 **Releases** 页面。
-2. 在最新发布（如 `v1.5.0`）的 **Assets** 中找到 **`shine.apk`**，下载到手机（或先下到电脑再传到手机）。
+2. 在最新发布（标签 **`apk-v1.5.0`**）的 **Assets** 中找到 **`shine.apk`**，下载到手机（或先下到电脑再传到手机）。
 3. 直接下载地址示例：
    ```
-   https://github.com/zm51432/xumis/releases/download/v1.5.0/shine.apk
+   https://github.com/zm51432/xumis/releases/download/apk-v1.5.0/shine.apk
    ```
 
 ### 3.2 安装（允许未知来源）
