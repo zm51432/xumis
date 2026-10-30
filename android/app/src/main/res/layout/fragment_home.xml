@@ -9,6 +9,24 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <!-- 首页滚动公告条：与网站一致，把店铺要紧的事在顶部滚动展示 -->
+            <LinearLayout android:id="@+id/ticker" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:background="@color/shine_yellow_soft" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="16dp" android:layout_height="16dp"
+                    android:layout_marginStart="12dp" android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_add" android:tint="@color/shine_pink"
+                    android:contentDescription="公告" />
+
+                <TextView android:id="@+id/ticker_text" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:singleLine="true"
+                    android:ellipsize="marquee" android:marqueeRepeatLimit="marquee_forever"
+                    android:scrollHorizontally="true" android:paddingTop="7dp" android:paddingBottom="7dp"
+                    android:paddingEnd="16dp" android:textColor="@color/shine_text"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
+
             <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:visibility="gone"
                 android:background="@color/shine_yellow_soft" android:paddingStart="14dp" android:paddingEnd="14dp"

@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.shine.xumis.app.R
 import com.shine.xumis.app.api.ApiClient
+import com.shine.xumis.app.api.CartApi
+import com.shine.xumis.app.api.HotApi
 import com.shine.xumis.app.databinding.FragmentHomeBinding
 import com.shine.xumis.app.model.MobileProduct
 import com.shine.xumis.app.model.ProductPage
@@ -22,12 +24,18 @@ import kotlinx.coroutines.launch
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private val adapter = ProductAdapter { openDetail(it) }
+    private val adapter = ProductAdapter(
+        onClick = { openDetail(it) },
+        onAddCart = { addToCart(it) }
+    )
 
     private companion object {
         const val PAGE_SIZE = 20
         /** 提前 4 个位置开始预加载，滚到底时下一页已经就位 */
         const val PREFETCH_DISTANCE = 4
+        /** 首页滚动公告内容（与网站公告同源，App 内也滚动展示） */
+        const val TICKER_TEXT =
+            "shine 星心 · 每周上新 手工饰品　|　全场满 \$99 跨境包邮　|　支持来图定制　|　下单前可先看「已售」数量挑口碑款　|　"
     }
 
     private var page = 0
@@ -44,6 +52,10 @@ class HomeFragment : Fragment() {
         binding.rv.adapter = adapter
         binding.swipe.setOnRefreshListener { load(reset = true) }
         binding.btnRetry.setOnClickListener { load(reset = true) }
+
+        // 滚动公告：选中后才会跑马灯滚动
+        binding.tickerText.text = TICKER_TEXT
+        binding.tickerText.isSelected = true
 
         // 滚到底部附近自动加载下一页；没有更多时不再请求
         binding.rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -81,9 +93,18 @@ class HomeFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
+                // 热销榜（销量映射）：拉不到也不影响主流程，降级为默认顺序
+                val salesMap = if (reset) runCatching { HotApi.loadSalesMap() }.getOrDefault(emptyMap()) else null
+
                 val res = ApiClient.api().products(page, PAGE_SIZE)
-                val list = res.content ?: emptyList()
+                var list = res.content ?: emptyList()
                 totalPages = (res.totalPages ?: 1).coerceAtLeast(1)
+
+                // 首页优先按销量排序：把销量补进商品并降序；翻页页保持服务端顺序
+                if (reset && salesMap != null && salesMap.isNotEmpty()) {
+                    list = list.map { it.copy(sales = salesMap[it.id] ?: it.sales) }
+                        .sortedByDescending { it.sales ?: 0 }
+                }
 
                 if (reset) {
                     adapter.submit(list)
@@ -160,6 +181,23 @@ class HomeFragment : Fragment() {
         val intent = Intent(requireContext(), ProductDetailActivity::class.java)
         intent.putExtra("product_id", p.id ?: 0L)
         startActivity(intent)
+    }
+
+    /** 首页卡片加购：原生调用，带 loading 态，加完刷新角标 */
+    private fun addToCart(p: MobileProduct) {
+        val id = p.id ?: return
+        adapter.setAdding(id, true)
+        lifecycleScope.launch {
+            try {
+                val count = CartApi.add(id)
+                CartApi.publish(count)
+                Toast.makeText(requireContext(), "已加入购物车（$count 件）", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                adapter.setAdding(id, false)
+            }
+        }
     }
 
     override fun onDestroyView() {

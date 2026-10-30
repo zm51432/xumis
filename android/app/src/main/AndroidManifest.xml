@@ -102,8 +102,8 @@
     <application
         android:name=".ShineApp"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:roundIcon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="shine 星心"
         android:theme="@style/Theme.ShineApp"
         android:usesCleartextTraffic="true"
