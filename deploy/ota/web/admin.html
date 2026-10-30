@@ -63,6 +63,22 @@
   .badge.force{background:var(--warn-soft);color:var(--warn)}
   .badge.new{background:var(--mint-soft);color:var(--mint-deep)}
 
+  /* ---------- 签名基线 ---------- */
+  .signerbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:14px;padding:11px 15px;border-radius:14px;
+    background:#fff;border:1px solid var(--line);font-size:12.5px;color:var(--sub);
+  }
+  .signerbar .tag{
+    font-weight:700;color:var(--mint-deep);background:var(--mint-soft);
+    border-radius:999px;padding:2px 9px;font-size:11.5px;
+  }
+  .signerbar code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    color:#33473f;background:#f5f8f6;border-radius:7px;padding:2px 8px;
+  }
+  .signerbar .warn{color:var(--warn);font-weight:600}
+
   /* ---------- 上传 ---------- */
   .drop{
     margin-top:14px;border:1.5px dashed #cfe0d8;border-radius:16px;background:#fbfdfc;
@@ -210,6 +226,13 @@
 
     <div class="banner hidden" id="pwdBanner">
       <b>当前仍在使用初始口令。</b>请点右上角「修改口令」立即更换，避免任何人凭初始口令推送安装包。
+    </div>
+
+    <div class="signerbar">
+      <span class="tag">签名基线</span>
+      <code id="signerFp">—</code>
+      <span id="signerSrc"></span>
+      <span class="hint" style="margin-left:auto">只有用这条证书签的包才能直接推送，换签的包会被拦下</span>
     </div>
 
     <div class="grid">
@@ -452,6 +475,11 @@
     var today = d.stats.days[d.stats.days.length - 1];
     $("curCheck").textContent = today ? today.checks : 0;
     $("pwdBanner").classList.toggle("hidden", !d.mustChange);
+    var sg = d.signer || {};
+    $("signerFp").textContent = sg.trustedShort || "未设置";
+    $("signerSrc").innerHTML = sg.trusted
+      ? (sg.inferred ? "按当前线上版本推定" : "来源 " + esc(sg.source || "手动设置"))
+      : '<span class="warn">尚未设置，换签的包会被拦下</span>';
     $("clock").textContent = d.now;
 
     var html = "";
@@ -460,6 +488,9 @@
         : (r.isBeta ? '<span class="badge beta">内测</span>' : '<span class="badge old">历史</span>');
       if (r.force) badge += ' <span class="badge force">强制</span>';
       var ops = '<button class="btn mini sub" data-act="edit" data-id="' + r.id + '">编辑</button>';
+      if (r.signerSha256 && r.signerSha256 !== ((d.signer || {}).trusted || "")) {
+        ops += '<button class="btn mini sub" data-act="trust" data-id="' + r.id + '">设为签名基线</button>';
+      }
       if (!r.isCurrent) {
         ops += '<button class="btn mini" data-act="push" data-id="' + r.id + '">推送上线</button>';
         ops += '<button class="btn mini danger" data-act="del" data-id="' + r.id + '">删除</button>';
@@ -517,7 +548,18 @@
         msg += "\n\n注意：该版本号不高于当前线上版本，已升级的用户不会收到此版本。";
       }
       if (!confirm(msg)) return;
-      postJSON("/apk/ota/api/publish", { id: id, channel: r.channel }).then(handlePublish);
+      state.pushId = id;
+      state.pushChannel = r.channel;
+      postJSON("/apk/ota/api/publish", { id: id, channel: r.channel }).then(function (j) { handlePublish(j); });
+    } else if (act === "trust") {
+      var fp = r.signerSha256 || "";
+      if (!fp) return toast("该版本未识别到签名证书", true);
+      if (!confirm("把 v" + r.versionName + " 的签名证书设为推送基线？\n\n" +
+        fp + "\n\n设置后只有用这条证书签的包才能直接推送。")) return;
+      postJSON("/apk/ota/api/trust-signer", { id: id }).then(function (j) {
+        toast(j.ok ? "签名基线已更新" : (j.error || "设置失败"), !j.ok);
+        load();
+      });
     } else if (act === "del") {
       if (!confirm("确认删除 v" + r.versionName + "？安装包文件将被移除，历史下载链接失效。")) return;
       api("/apk/ota/api/release/" + id, { method: "DELETE" }).then(function (j) {
@@ -535,16 +577,28 @@
     }
   }
 
-  function handlePublish(j) {
+  function handlePublish(j, retried) {
     if (j.ok) {
       var extra = "";
       if (j.synced && j.synced.synced && j.synced.synced.length) extra = "，下载页已同步";
       toast("推送成功" + extra);
       load();
-    } else {
-      toast(j.error || "推送失败", true);
-      if (j.error) alert(j.error);
+      return;
     }
+    // 签名与基线不一致：确认后允许换签推送（会把基线切到该版本）
+    if (!retried && /签名不一致/.test(j.error || "") && state.pushId) {
+      if (confirm("签名与本服务记录的基线不一致。\n\n" + j.error +
+        "\n\n如果确认这就是新的正式发布密钥，可以继续推送，基线会切到该版本。是否继续？")) {
+        postJSON("/apk/ota/api/publish", {
+          id: state.pushId, channel: state.pushChannel, allowResign: true
+        }).then(function (j2) { handlePublish(j2, true); });
+        return;
+      }
+      toast("已取消推送");
+      return;
+    }
+    toast(j.error || "推送失败", true);
+    if (j.error) alert(j.error);
   }
 
   // ---------------- 上传 ----------------
@@ -622,6 +676,18 @@
         resetUpload(true);
         load();
       } else if (j.error) {
+        if (/签名不一致/.test(j.error) && confirm(
+          "安装包已上传，但签名与基线不一致。\n\n" + j.error +
+          "\n\n如果确认这是新的正式发布密钥，继续推送会把基线切到该版本。是否继续？")) {
+          state.pushId = j.release.id;
+          state.pushChannel = j.release.channel;
+          postJSON("/apk/ota/api/publish", {
+            id: j.release.id, channel: j.release.channel, allowResign: true
+          }).then(function (j2) { handlePublish(j2, true); });
+          resetUpload(true);
+          load();
+          return;
+        }
         toast(j.error, true);
         alert("安装包已上传，但推送被拒绝：\n\n" + j.error + "\n\n可点版本列表里的「编辑」修正后再推送。");
         resetUpload(true);

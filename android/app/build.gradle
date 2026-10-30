@@ -3,6 +3,19 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// ---------------------------------------------------------------- 正式签名
+// 密钥库与口令放在 android/keystore.properties（已在 .gitignore 中忽略）。
+// 缺失时 release 退化为 unsigned（便于在无密钥的机器上跑 CI 编译），
+// 但打包发布必须有这两个文件，否则用户无法覆盖升级。
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+def hasReleaseKey = keystorePropsFile.exists()
+if (hasReleaseKey) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+    hasReleaseKey = keystoreProps['storeFile'] != null &&
+            rootProject.file(keystoreProps['storeFile']).exists()
+}
+
 android {
     namespace 'com.shine.xumis.app'
     // targetSdk 34：小米 HyperOS / OPPO ColorOS 14 / vivo OriginOS 4 底层均为 Android 14，
@@ -13,15 +26,37 @@ android {
         applicationId 'com.shine.xumis.app'
         minSdk 24
         targetSdk 34
-        versionCode 6
-        versionName '1.5.0'
+        versionCode 7
+        versionName '1.5.1'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    signingConfigs {
+        // debug 也用正式密钥签名：真机上「调试包 → 正式包」可以互相覆盖，
+        // 升级链路（OTA 签名校验、系统安装器覆盖安装）在测试阶段就与线上一致。
+        debug {
+            if (hasReleaseKey) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+        release {
+            if (hasReleaseKey) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKey) signingConfig signingConfigs.release
         }
     }
 
@@ -36,6 +71,13 @@ android {
 
     buildFeatures {
         viewBinding true
+    }
+
+    // 离线构建环境无法解析 lint-gradle，release 的 lintVital 会直接失败；
+    // 发布前用 `./gradlew lint` 单独跑（有网络时）。
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
     }
 
     packagingOptions {

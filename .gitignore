@@ -31,3 +31,12 @@ Thumbs.db
 
 # 安装包为构建产物，发布走 APK 推送服务（deploy/ota），不入库
 /shine.apk
+
+# 正式签名密钥与口令（shine 星心：android/keys/shine-release.jks）
+*.jks
+*.keystore
+keystore.properties
+
+# Python 缓存
+__pycache__/
+*.pyc

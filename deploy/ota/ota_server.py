@@ -352,6 +352,9 @@ class Store(object):
         st.setdefault("current", {"stable": None, "beta": None})
         st.setdefault("audit", [])
         st.setdefault("releases", [])
+        # 签名基线：正式发布密钥的证书指纹。设置后所有推送都以它为准，
+        # 比「与当前线上版本比对」更稳——线上版本被删或回滚都不会漂移。
+        st.setdefault("signer", {"trusted": "", "source": "", "updatedAt": 0})
 
     def _load(self, name, default):
         p = os.path.join(self.dir, name)
@@ -505,6 +508,7 @@ class Ota(object):
             "size": rel.get("size", 0),
             "sizeText": human_size(rel.get("size", 0)),
             "sha256": rel.get("sha256", ""),
+            "signerSha256": rel.get("signerSha256", ""),
             "notes": rel.get("notes", ""),
             "force": bool(rel.get("force")),
             "minSupported": int(rel.get("minSupported") or 0),
@@ -577,33 +581,86 @@ class Ota(object):
             "audit": st["audit"][:30],
             "limits": {"maxUploadMB": int(self.cfg["max_upload"] // (1024 * 1024))},
             "mustChange": bool(self.store.admin.get("mustChange")),
+            "signer": self.signer_info(),
+        }
+
+    def signer_info(self):
+        """签名基线（正式发布密钥指纹）的展示信息。"""
+        s = self.store.state.get("signer") or {}
+        trusted = s.get("trusted") or ""
+        if not trusted:
+            cur = self.store.current("stable")
+            trusted = (cur or {}).get("signerSha256") or ""
+            src = ("v%s" % cur.get("versionName")) if cur else ""
+            inferred = bool(trusted)
+        else:
+            src = s.get("source") or ""
+            inferred = False
+        return {
+            "trusted": trusted,
+            "trustedShort": (trusted[:23] + "…") if trusted else "",
+            "source": src,
+            "inferred": inferred,
+            "updatedAt": s.get("updatedAt", 0),
+            "updatedAtText": iso(s.get("updatedAt", 0)) if s.get("updatedAt") else "",
         }
 
     # ---- 发布 ----
 
-    def publish(self, rid, channel="stable", sync=True):
+    def publish(self, rid, channel="stable", sync=True, allow_resign=False):
         st = self.store.state
         rel = self.store.find(rid)
         if not rel:
             raise ValueError("版本不存在")
         channel = "beta" if channel == "beta" else "stable"
         cur = self.store.current(channel)
-        # 签名一致性：换签的包在老用户机上无法覆盖安装
-        if cur and rel.get("signerSha256") and cur.get("signerSha256") \
-                and rel["signerSha256"] != cur["signerSha256"]:
-            raise ValueError(
-                "签名不一致：当前线上版本证书指纹 %s，本包为 %s。"
-                "换签后老用户无法覆盖安装，请用同一签名密钥重新打包。"
-                % (cur["signerSha256"][:23], rel["signerSha256"][:23])
-            )
+        # 签名一致性：换签的包在老用户机上无法覆盖安装。
+        # 优先用「签名基线」（正式密钥指纹），没设基线时才退回与当前线上版本比对。
+        expected = (st.get("signer") or {}).get("trusted") or \
+            ((cur or {}).get("signerSha256") or "")
+        got = (rel.get("signerSha256") or "").strip()
+        resigned = False
+        if expected and got and got != expected:
+            if not allow_resign:
+                raise ValueError(
+                    "签名不一致：线上基线证书指纹 %s，本包为 %s。"
+                    "换签后老用户无法覆盖安装。若确认这是新的正式密钥，"
+                    "请在「签名基线」里把该版本设为基线，或勾选「确认换签后继续推送」。"
+                    % (expected[:23], got[:23])
+                )
+            resigned = True
         with self.store.lock:
             rel["publishedAt"] = now_ts()
             rel["channel"] = channel
             st["current"][channel] = rid
-            if channel == "stable":
-                # 稳定版发布后，下载页指向的安装包同步更新
-                pass
+            if resigned:
+                st["signer"] = {
+                    "trusted": got,
+                    "source": "v%s(%d)" % (rel.get("versionName"), rel.get("versionCode", 0)),
+                    "updatedAt": now_ts(),
+                }
+            # 首次推送即把签名锁定为基线：此后任何换签都必须显式确认
+            auto_locked = False
+            if not (st.get("signer") or {}).get("trusted") and got:
+                st["signer"] = {
+                    "trusted": got,
+                    "source": "v%s(%d)" % (rel.get("versionName"), rel.get("versionCode", 0)),
+                    "updatedAt": now_ts(),
+                }
+                auto_locked = True
             self.store.save()
+        if resigned:
+            self.store.audit(
+                "换签推送",
+                "v%s 证书 %s… 已设为新基线" % (rel.get("versionName"), got[:23]),
+                "",
+            )
+        elif auto_locked:
+            self.store.audit(
+                "建立签名基线",
+                "v%s 证书 %s…" % (rel.get("versionName"), got[:23]),
+                "",
+            )
         synced = None
         if sync and channel == "stable":
             synced = self.sync_download_page(rel)
@@ -899,12 +956,37 @@ class Handler(BaseHTTPRequestHandler):
             body = self.read_json()
             rid = body.get("id")
             ch = body.get("channel", "stable")
+            allow = bool(body.get("allowResign"))
             try:
-                rel, synced = self.ota.publish(rid, ch)
+                rel, synced = self.ota.publish(rid, ch, allow_resign=allow)
             except ValueError as exc:
                 return self.send_json({"ok": False, "error": str(exc)}, 400)
             self.store.audit("推送上线", "v%s → %s 渠道" % (rel.get("versionName"), ch), self.client_ip())
             return self.send_json({"ok": True, "release": self.ota.public_release(rel), "synced": synced})
+
+        if path == PREFIX + "/api/trust-signer":
+            body = self.read_json()
+            rid = (body.get("id") or "").strip()
+            rel = self.store.find(rid) if rid else self.store.current("stable")
+            if not rel:
+                return self.send_json({"ok": False, "error": "版本不存在"}, 404)
+            fp = (rel.get("signerSha256") or "").strip()
+            if not fp:
+                return self.send_json(
+                    {"ok": False, "error": "该版本未识别到签名证书，无法设为基线"}, 400)
+            with self.store.lock:
+                self.store.state["signer"] = {
+                    "trusted": fp,
+                    "source": "v%s(%d)" % (rel.get("versionName"), rel.get("versionCode", 0)),
+                    "updatedAt": now_ts(),
+                }
+                self.store.save()
+            self.store.audit(
+                "设置签名基线",
+                "v%s(%d) · %s…" % (rel.get("versionName"), rel.get("versionCode", 0), fp[:23]),
+                self.client_ip(),
+            )
+            return self.send_json({"ok": True, "signer": self.ota.signer_info()})
 
         if path == PREFIX + "/api/password":
             body = self.read_json()
@@ -1045,6 +1127,19 @@ class Handler(BaseHTTPRequestHandler):
         # 同版本号已存在则替换文件，保留历史条目
         exists = next((r for r in self.store.state["releases"]
                        if r.get("versionCode") == meta["versionCode"]), None)
+        # 同版本重传且换了密钥：先把「旧包的指纹」锁成基线，否则下面替换后
+        # 就没有可比对的对象了（publish 时会变成自己跟自己比，直接放行）。
+        old_fp = (exists or {}).get("signerSha256") or ""
+        new_fp = meta.get("signerSha256") or ""
+        if exists and old_fp and new_fp and old_fp != new_fp \
+                and not (self.store.state.get("signer") or {}).get("trusted"):
+            with self.store.lock:
+                self.store.state["signer"] = {
+                    "trusted": old_fp,
+                    "source": "v%s(%d) 原包" % (exists.get("versionName"), exists.get("versionCode", 0)),
+                    "updatedAt": now_ts(),
+                }
+                self.store.save()
         rid = exists["id"] if exists else secrets.token_hex(5)
         fname = "shine-%s-%d-%s.apk" % (safe_name(meta.get("versionName") or "app"),
                                         meta["versionCode"], rid)
@@ -1087,8 +1182,9 @@ class Handler(BaseHTTPRequestHandler):
                            "signerSource": rel["signerSource"], "sha256": rel["sha256"]}}
 
         if (fields.get("publish") or "").lower() in ("1", "true", "on"):
+            allow = (fields.get("allowResign") or "").lower() in ("1", "true", "on")
             try:
-                rel2, synced = self.ota.publish(rel["id"], rel["channel"])
+                rel2, synced = self.ota.publish(rel["id"], rel["channel"], allow_resign=allow)
             except ValueError as exc:
                 result["published"] = False
                 result["error"] = str(exc)
@@ -1098,6 +1194,9 @@ class Handler(BaseHTTPRequestHandler):
             result["synced"] = synced
             self.store.audit("推送上线", "v%s → %s 渠道" % (rel["versionName"], rel["channel"]), self.client_ip())
         result["release"] = self.ota.public_release(rel)
+        sg = self.ota.signer_info()
+        result["signer"] = sg
+        result["signerMatched"] = bool(sg.get("trusted") and sg["trusted"] == (rel.get("signerSha256") or ""))
         return self.send_json(result)
 
 

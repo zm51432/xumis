@@ -10,3 +10,9 @@ captures/
 .cxx/
 navigation/
 output-metadata.json
+
+# 正式签名密钥与口令：绝不入库
+keystore.properties
+keys/
+*.jks
+*.keystore
