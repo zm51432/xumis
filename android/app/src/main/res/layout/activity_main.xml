@@ -16,5 +16,6 @@
         android:id="@+id/bottom_nav" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:background="@color/shine_surface"
         app:itemIconTint="@color/nav_item_color" app:itemTextColor="@color/nav_item_color"
+        app:itemTextAppearanceActive="@style/BottomNavTextActive"
         app:labelVisibilityMode="labeled" app:menu="@menu/bottom_nav_menu"/>
 </LinearLayout>

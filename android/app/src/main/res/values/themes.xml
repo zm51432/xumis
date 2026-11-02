@@ -23,6 +23,12 @@
         <item name="cornerSize">12dp</item>
     </style>
 
+    <!-- 底部导航：选中文字加粗放大，强化当前位置 -->
+    <style name="BottomNavTextActive" parent="">
+        <item name="android:textSize">12.5sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!-- 空态/错误态的插图标题 -->
     <style name="EmptyTitle">
         <item name="android:layout_width">wrap_content</item>

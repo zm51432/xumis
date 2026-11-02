@@ -12,11 +12,11 @@
             <!-- 首页滚动公告条：与网站一致，把店铺要紧的事在顶部滚动展示 -->
             <LinearLayout android:id="@+id/ticker" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:orientation="horizontal"
-                android:background="@color/shine_yellow_soft" android:gravity="center_vertical">
+                android:background="@drawable/bg_ticker" android:gravity="center_vertical">
 
                 <ImageView android:layout_width="16dp" android:layout_height="16dp"
                     android:layout_marginStart="12dp" android:layout_marginEnd="6dp"
-                    android:src="@drawable/ic_add" android:tint="@color/shine_pink"
+                    android:src="@drawable/ic_announce" android:tint="@color/shine_pink"
                     android:contentDescription="公告" />
 
                 <TextView android:id="@+id/ticker_text" android:layout_width="match_parent"
@@ -39,8 +39,10 @@
                 android:paddingTop="4dp">
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="全部商品" android:textSize="19sp" android:textStyle="bold"
-                    android:textColor="@color/shine_text"/>
+                    android:text="热销好物" android:textSize="19sp" android:textStyle="bold"
+                    android:textColor="@color/shine_text"
+                    android:drawableStart="@drawable/ic_flame" android:drawablePadding="6dp"
+                    android:gravity="center_vertical"/>
 
                 <TextView android:id="@+id/tv_count" android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:layout_marginTop="2dp"

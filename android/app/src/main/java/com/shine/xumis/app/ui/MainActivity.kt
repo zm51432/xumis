@@ -51,6 +51,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 再次点同一个 Tab：首页回滚到顶部，其余不动（常见 App 手势，避免误触）
+        binding.bottomNav.setOnItemReselectedListener { item ->
+            if (item.itemId == R.id.nav_home) {
+                (supportFragmentManager.findFragmentByTag(TAG_HOME) as? HomeFragment)?.scrollToTop()
+            }
+        }
+
         // 恢复上次停留的 Tab：转屏或从后台被杀后重建，高亮和内容保持一致
         val startTab = savedInstanceState?.getInt(KEY_TAB, R.id.nav_home) ?: R.id.nav_home
         binding.bottomNav.selectedItemId = startTab
@@ -80,40 +87,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(KEY_TAB, binding.bottomNav.selectedItemId)
-    }
-
-    /**
-     * 切换 Tab：已有实例就 show/hide，没有才创建。
-     * 这样购物车、我的这类 WebView 页面切回来还在原位置，不会重新加载。
-     */
-    private fun showTab(itemId: Int): Boolean {
-        val (tag, factory) = when (itemId) {
-            R.id.nav_home -> TAG_HOME to { HomeFragment() as Fragment }
-            R.id.nav_search -> TAG_SEARCH to { SearchFragment() as Fragment }
-            R.id.nav_cart -> TAG_CART to { CartFragment() as Fragment }
-            R.id.nav_account -> TAG_ACCOUNT to { AccountFragment() as Fragment }
-            else -> return false
-        }
-
-        val fm = supportFragmentManager
-        val tx = fm.beginTransaction()
-        for (t in listOf(TAG_HOME, TAG_SEARCH, TAG_CART, TAG_ACCOUNT)) {
-            fm.findFragmentByTag(t)?.let { if (!it.isHidden) tx.hide(it) }
-        }
-
-        val existing = fm.findFragmentByTag(tag)
-        if (existing == null) {
-            tx.add(R.id.container, factory(), tag)
-        } else {
-            tx.show(existing)
-        }
-        tx.commit()
-        return true
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

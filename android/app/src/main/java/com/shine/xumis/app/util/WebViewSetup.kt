@@ -159,7 +159,21 @@ object WebViewSetup {
           + '.btn{background:linear-gradient(135deg,#E53935,#B71C1C) !important;'
           + 'box-shadow:0 8px 20px rgba(211,47,47,.22) !important;color:#fff !important;}'
           + '.btn-ghost{background:#fff !important;color:#D32F2F !important;border-color:#F2C4C4 !important;}'
-          + '.filter.active{background:linear-gradient(135deg,#E53935,#B71C1C) !important;color:#fff !important;}';
+          + '.filter.active{background:linear-gradient(135deg,#E53935,#B71C1C) !important;color:#fff !important;}'
+          // ⑤ 通用质感：去掉点击高亮、平滑滚动、输入框圆角 + 聚焦红边、卡片圆角阴影
+          + '*{-webkit-tap-highlight-color:transparent !important}'
+          + 'html{scroll-behavior:smooth}body{-webkit-overflow-scrolling:touch}'
+          + 'input,textarea,select{border-radius:10px !important;border:1px solid var(--line,#F2E0B0) !important;'
+          + 'padding:10px 12px !important;font-size:16px !important;background:#fff !important;'
+          + 'color:var(--ink,#3B2A1E) !important}'
+          + 'input:focus,textarea:focus,select:focus{outline:none !important;border-color:#D32F2F !important;'
+          + 'box-shadow:0 0 0 3px rgba(211,47,47,.12) !important}'
+          + '.card,.panel,.box{border-radius:14px !important;box-shadow:0 6px 18px rgba(211,47,47,.06) !important;'
+          + 'border:1px solid var(--line,#F2E0B0) !important;background:#fff !important;overflow:hidden}'
+          + '.product img,.goods img,.item img,.prod img,.thumb img,.thumbnail,'
+          + '.goods-img,.product-img{border-radius:10px !important}'
+          // ⑥ 隐藏站点残留的在线客服 / 浮层（与 App 原生体验无关，且常挡住内容）
+          + '.floating-chat,.chat-btn,.chat-widget,.kefu,.customer-service,.cs-panel,.messenger{display:none !important}';
   var s = document.createElement('style');
   s.id = 'shine-app-shell';
   s.appendChild(document.createTextNode(css));
