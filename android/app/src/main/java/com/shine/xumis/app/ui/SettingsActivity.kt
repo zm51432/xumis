@@ -16,7 +16,6 @@ import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.Docs
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
-import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.UpdateChecker
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
@@ -129,7 +128,7 @@ class SettingsActivity : AppCompatActivity() {
         bind(
             binding.rowCatalog, R.drawable.ic_storage, "离线商品缓存",
             "正在统计…"
-        ) { openOffline(OfflineAssets.CATALOG, "离线商品册") }
+        ) { startActivity(Intent(this, OfflineCatalogActivity::class.java)) }
 
         bind(
             binding.rowOffline, R.drawable.ic_image, "离线资源",
@@ -150,7 +149,7 @@ class SettingsActivity : AppCompatActivity() {
                     "断网时首页、商品册与条款均可正常浏览。"
             )
             .setNegativeButton("关闭", null)
-            .setPositiveButton("打开商品册") { _, _ -> openOffline(OfflineAssets.CATALOG, "离线商品册") }
+            .setPositiveButton("打开商品册") { _, _ -> startActivity(Intent(this, OfflineCatalogActivity::class.java)) }
             .show()
     }
 
@@ -186,15 +185,18 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, AboutActivity::class.java))
         }
         bind(binding.rowPolicies, R.drawable.ic_doc, "配送与售后条款", "发货、跨境运费、退换与支付说明") {
-            openOffline(OfflineAssets.POLICIES, "配送与售后条款")
+            startActivity(Intent(this, PoliciesActivity::class.java))
         }
-        // 站内的来图定制、询盘等入口在完整网页里，这里给一个统一出口
-        bind(binding.rowServices, R.drawable.ic_browser, "更多服务", "来图定制、询盘联系等站内页面") {
-            startActivity(
-                Intent(this, WebViewActivity::class.java)
-                    .putExtra("url", ServerConfig.siteBase())
-                    .putExtra("title", "更多服务")
-            )
+        // 来图定制、询盘均改为原生表单，不再跳站内网页
+        bind(binding.rowServices, R.drawable.ic_browser, "来图定制与询盘", "定制需求、咨询联系（原生提交）") {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("选择服务")
+                .setItems(arrayOf("来图定制", "询盘联系")) { _, which ->
+                    if (which == 0) startActivity(Intent(this, CustomIdeaActivity::class.java))
+                    else startActivity(Intent(this, InquiryActivity::class.java))
+                }
+                .setNegativeButton("取消", null)
+                .show()
         }
     }
 
@@ -302,14 +304,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun setValue(row: ItemSettingsRowBinding, text: String) {
         row.tvValue.text = text
         row.tvValue.visibility = if (text.isBlank()) View.GONE else View.VISIBLE
-    }
-
-    private fun openOffline(url: String, title: String) {
-        startActivity(
-            Intent(this, WebViewActivity::class.java)
-                .putExtra("url", url)
-                .putExtra("title", title)
-        )
     }
 
     private fun versionName(): String = try {

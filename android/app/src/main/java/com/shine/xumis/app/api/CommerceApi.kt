@@ -4,7 +4,9 @@ import com.shine.xumis.app.util.ServerConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -53,6 +55,22 @@ data class OrderSummary(
     val total: Double,
     val currency: String,
     val createdAt: String,
+    val items: List<OrderItemSummary>
+)
+
+data class OrderDetail(
+    val orderNo: String,
+    val status: String,
+    val total: Double,
+    val currency: String,
+    val createdAt: String,
+    val paymentMethod: String?,
+    val customerName: String?,
+    val email: String?,
+    val phone: String?,
+    val country: String?,
+    val address: String?,
+    val note: String?,
     val items: List<OrderItemSummary>
 )
 
@@ -241,6 +259,77 @@ object CommerceApi {
         val j = JSONObject(post("auth/password", FormBody.Builder()
             .add("oldPassword", oldPassword).add("newPassword", newPassword).build()))
         if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "修改失败"))
+    }
+
+    suspend fun orderDetail(orderNo: String): OrderDetail {
+        val j = JSONObject(get("orders/" + orderNo))
+        val arr = j.optJSONArray("items") ?: JSONArray()
+        val items = ArrayList<OrderItemSummary>(arr.length())
+        for (k in 0 until arr.length()) {
+            val it = arr.getJSONObject(k)
+            items.add(
+                OrderItemSummary(
+                    name = it.optString("name"), quantity = it.optInt("quantity"),
+                    price = it.optDouble("price"), imageUrl = fullImg(it.optString("imageUrl"))
+                )
+            )
+        }
+        return OrderDetail(
+            orderNo = j.optString("orderNo"), status = j.optString("status"),
+            total = j.optDouble("total"), currency = j.optString("currency"),
+            createdAt = j.optString("createdAt"),
+            paymentMethod = j.optString("paymentMethod").takeIf { it.isNotBlank() },
+            customerName = j.optString("customerName").takeIf { it.isNotBlank() },
+            email = j.optString("email").takeIf { it.isNotBlank() },
+            phone = j.optString("phone").takeIf { it.isNotBlank() },
+            country = j.optString("country").takeIf { it.isNotBlank() },
+            address = j.optString("address").takeIf { it.isNotBlank() },
+            note = j.optString("note").takeIf { it.isNotBlank() },
+            items = items
+        )
+    }
+
+    suspend fun forgotPassword(email: String) {
+        post("auth/forgot-password", FormBody.Builder().add("email", email).build())
+    }
+
+    suspend fun resetPassword(token: String, password: String) {
+        val j = JSONObject(post("auth/reset-password", FormBody.Builder()
+            .add("token", token).add("password", password)
+            .add("confirmPassword", password).build()))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "重置失败"))
+    }
+
+    suspend fun customIdea(customerName: String, email: String, country: String?, description: String, expectCategory: String?) {
+        val fb = FormBody.Builder()
+            .add("customerName", customerName).add("email", email)
+            .add("ideaDescription", description)
+        country?.takeIf { it.isNotBlank() }?.let { fb.add("country", it) }
+        expectCategory?.takeIf { it.isNotBlank() }?.let { fb.add("expectCategory", it) }
+        val j = JSONObject(post("custom-ideas", fb.build()))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "提交失败"))
+    }
+
+    suspend fun inquiry(name: String, email: String, subject: String?, message: String) {
+        val body = JSONObject().apply {
+            put("name", name); put("email", email)
+            put("subject", subject ?: ""); put("message", message)
+        }
+        val j = JSONObject(postJson("inquiries", body))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "提交失败"))
+    }
+
+    private suspend fun postJson(path: String, body: JSONObject): String = withContext(Dispatchers.IO) {
+        val req = Request.Builder()
+            .url(base() + path)
+            .header("Content-Type", "application/json")
+            .post(body.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+        NativeSession.client.newCall(req).execute().use { resp ->
+            val b = resp.body?.string() ?: ""
+            if (!resp.isSuccessful) throw apiError(b)
+            b
+        }
     }
 
     private fun parseUser(u: JSONObject) = AuthUser(

@@ -34,10 +34,10 @@ class AboutActivity : AppCompatActivity() {
         binding.tvFaq.text = FAQ
 
         binding.btnCatalog.setOnClickListener {
-            openAsset("离线商品册", OfflineAssets.CATALOG)
+            startActivity(Intent(this, OfflineCatalogActivity::class.java))
         }
         binding.btnPolicies.setOnClickListener {
-            openAsset("配送与售后条款", OfflineAssets.POLICIES)
+            startActivity(Intent(this, PoliciesActivity::class.java))
         }
         binding.btnShareApp.setOnClickListener {
             startActivity(
@@ -87,10 +87,6 @@ class AboutActivity : AppCompatActivity() {
         }
     }
 
-    private fun openAsset(title: String, url: String) {
-        startActivity(Intent(this, WebViewActivity::class.java).putExtra("url", url).putExtra("title", title))
-    }
-
     private fun versionName(): String = try {
         packageManager.getPackageInfo(packageName, 0).versionName ?: "-"
     } catch (e: Exception) {
@@ -114,10 +110,10 @@ class AboutActivity : AppCompatActivity() {
             可以。首页会展示上次缓存的商品列表，并标注缓存时间；「离线商品册」内置 12 件商品的图片、材质与描述，配送与售后条款也随包安装。
 
             3. 下单、支付在哪里完成？
-            商品详情页点「去网页加购/购买」进入站点完整流程，支持 PayPal、微信支付、支付宝、万事达卡四种渠道。
+            商品详情页点「加入购物车 / 立即购买」即可原生完成下单，支持 PayPal、微信支付、支付宝、信用卡四种渠道。
 
             4. 登录状态会丢吗？
-            App 与站点共用同一套 Cookie，切到购物车、我的账户仍在登录态；重启 App 后依然保留。
+            购物车、结算、我的账户均为原生页面，登录态跨页保留；重启 App 后依然保留。
 
             5. 怎么确认服务端正常？
             本页上方显示实时连接状态；「运行状态」页可以跑 5 轮检测或 50 次压力自检，并保留历史结果。

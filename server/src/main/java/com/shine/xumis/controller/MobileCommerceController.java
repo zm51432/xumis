@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -242,6 +243,38 @@ public class MobileCommerceController {
         return ResponseEntity.ok(Map.of("orders", out));
     }
 
+    @GetMapping("/orders/{orderNo}")
+    public ResponseEntity<?> orderDetail(@PathVariable String orderNo) {
+        Order o = orderService.findByOrderNo(orderNo);
+        if (o == null) return ResponseEntity.notFound().build();
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("orderNo", o.getOrderNo());
+        m.put("status", o.getStatus());
+        m.put("total", o.getTotalAmount());
+        m.put("currency", o.getCurrency());
+        m.put("createdAt", o.getCreatedAt() == null ? "" : o.getCreatedAt().format(TS));
+        m.put("paymentMethod", o.getPaymentMethod());
+        m.put("customerName", o.getCustomerName());
+        m.put("email", o.getEmail());
+        m.put("phone", o.getPhone());
+        m.put("country", o.getCountry());
+        m.put("address", o.getAddress());
+        m.put("note", o.getNote());
+        List<Map<String, Object>> items = new ArrayList<>();
+        if (o.getItems() != null) {
+            for (OrderItem it : o.getItems()) {
+                Map<String, Object> im = new LinkedHashMap<>();
+                im.put("name", it.getProductName());
+                im.put("quantity", it.getQuantity());
+                im.put("price", it.getPrice());
+                im.put("imageUrl", it.getImageUrl());
+                items.add(im);
+            }
+        }
+        m.put("items", items);
+        return ResponseEntity.ok(m);
+    }
+
     // ==================== 我的账户 ====================
 
     @GetMapping("/me")
@@ -332,6 +365,26 @@ public class MobileCommerceController {
         if (newPassword == null || newPassword.length() < 8) return err("新密码至少 8 位");
         boolean ok = userService.changePassword(u.getId(), oldPassword, newPassword);
         if (!ok) return err("原密码不正确");
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @PostMapping("/auth/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam(required = false) String email) {
+        if (email == null || !email.contains("@")) return err("请输入正确的邮箱");
+        // 无论账号是否存在都给同样提示，避免泄露注册信息
+        userService.createPasswordResetToken(email);
+        return ResponseEntity.ok(Map.of("ok", true, "message", "重置邮件已发送，请查看邮箱"));
+    }
+
+    @PostMapping("/auth/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam(required = false) String token,
+                                           @RequestParam(required = false) String password,
+                                           @RequestParam(value = "confirmPassword", required = false) String confirmPassword) {
+        if (token == null || token.isBlank()) return err("重置令牌不能为空");
+        if (password == null || password.length() < 8) return err("新密码至少 8 位");
+        if (confirmPassword == null || !confirmPassword.equals(password)) return err("两次输入的密码不一致");
+        boolean ok = userService.resetPassword(token, password);
+        if (!ok) return err("令牌无效或已过期");
         return ResponseEntity.ok(Map.of("ok", true));
     }
 

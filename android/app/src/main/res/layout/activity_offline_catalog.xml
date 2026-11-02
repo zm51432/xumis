@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_bg" android:elevation="0dp"
+        app:title="离线商品册" app:titleTextColor="@color/shine_text" app:navigationIconTint="@color/shine_text"/>
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingTop="4dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" app:spanCount="2"/>
+
+        <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center" android:orientation="vertical"
+            android:gravity="center" android:paddingStart="32dp" android:paddingEnd="32dp" android:visibility="gone">
+            <ImageView android:layout_width="56dp" android:layout_height="56dp"
+                android:src="@drawable/ic_placeholder" android:alpha="0.55"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" android:text="暂无离线商品缓存" android:textSize="15sp"
+                android:textStyle="bold" android:textColor="@color/shine_text"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:text="联网浏览首页后会自动缓存商品" android:textSize="13sp"
+                android:textColor="@color/shine_sub"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

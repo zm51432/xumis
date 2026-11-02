@@ -1,5 +1,6 @@
 package com.shine.xumis.app.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -46,6 +47,10 @@ class OrdersActivity : AppCompatActivity() {
                         }
                         card.total.text = "合计 " + o.currency + " " +
                             String.format(java.util.Locale.US, "%.2f", o.total)
+                        card.root.setOnClickListener {
+                            startActivity(Intent(this@OrdersActivity, OrderDetailActivity::class.java)
+                                .putExtra("order_no", o.orderNo))
+                        }
                         binding.ordersContainer.addView(card.root)
                     }
                 }

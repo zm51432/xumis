@@ -91,9 +91,12 @@ class SearchFragment : Fragment() {
         // 想看某个词再敲，列表会被搜索结果替换。
         if (adapter.size() == 0) doSearch(reset = true)
 
-        // 进页面就把键盘叫起来（1.5.3 修的那个「首点才弹输入法」）
-        binding.etQuery.requestFocus()
-        binding.etQuery.post { showKeyboard() }
+        // 进页面就把键盘叫起来（首点即弹，不再需要先下拉/点一下才响应）
+        binding.etQuery.isFocusableInTouchMode = true
+        binding.etQuery.postDelayed({
+            binding.etQuery.requestFocus()
+            showKeyboard()
+        }, 250)
     }
 
     private fun setupCategorySpinner() {
