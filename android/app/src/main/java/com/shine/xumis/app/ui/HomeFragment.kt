@@ -33,9 +33,9 @@ class HomeFragment : Fragment() {
         const val PAGE_SIZE = 20
         /** 提前 4 个位置开始预加载，滚到底时下一页已经就位 */
         const val PREFETCH_DISTANCE = 4
-        /** 首页滚动公告内容（与网站公告同源，App 内也滚动展示） */
+        /** 首页滚动公告内容（店铺口号，重复以形成跑马灯滚动） */
         const val TICKER_TEXT =
-            "shine 星心 · 每周上新 手工饰品　|　全场满 \$99 跨境包邮　|　支持来图定制　|　下单前可先看「已售」数量挑口碑款　|　"
+            "只看销量，不看评论。　　只看销量，不看评论。　　只看销量，不看评论。　　只看销量，不看评论。"
     }
 
     private var page = 0
