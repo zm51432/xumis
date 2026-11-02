@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.shine.xumis.app.api.ApiClient
+import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.databinding.FragmentSearchBinding
 import com.shine.xumis.app.model.CategoryItem
 import com.shine.xumis.app.model.MobileProduct
@@ -28,7 +29,10 @@ import kotlinx.coroutines.launch
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    private val adapter = ProductAdapter { openDetail(it) }
+    private val adapter = ProductAdapter(
+        onClick = { openDetail(it) },
+        onAddCart = { addToCart(it) }
+    )
     private val categories = mutableListOf<CategoryItem>()
 
     private companion object {
@@ -222,6 +226,23 @@ class SearchFragment : Fragment() {
         val intent = Intent(requireContext(), ProductDetailActivity::class.java)
         intent.putExtra("product_id", p.id ?: 0L)
         startActivity(intent)
+    }
+
+    /** 列表里点加购按钮：原生加购，带 loading 态，加完刷新角标 */
+    private fun addToCart(p: MobileProduct) {
+        val id = p.id ?: return
+        adapter.setAdding(id, true)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val count = CartApi.add(id)
+                CartApi.publish(count)
+                Toast.makeText(requireContext(), "已加入购物车（$count 件）", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                adapter.setAdding(id, false)
+            }
+        }
     }
 
     override fun onDestroyView() {

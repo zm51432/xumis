@@ -14,11 +14,16 @@ import android.webkit.WebView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.databinding.FragmentWebBinding
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
 import com.shine.xumis.app.util.ServerConfig
 import com.shine.xumis.app.util.WebViewSetup
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -35,6 +40,8 @@ open class WebFragment : Fragment() {
     private var cameraOut: File? = null
     private var geoOrigin: String? = null
     private var geoCallback: GeolocationPermissions.Callback? = null
+    /** 切回来时是否需要刷新（加购/其它改动置位） */
+    private var dirty = true
 
     private val fileChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val cb = filePathCallback
@@ -121,6 +128,14 @@ open class WebFragment : Fragment() {
         }
         binding.web.loadUrl(url())
 
+        // 购物车有变动（首页/详情页加购）时自动刷新本页，让购物车里能看到刚加的商品；
+        // 用 repeatOnLifecycle 跟随视图生命周期，切页/销毁时自动注销，不会重复注册。
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                CartApi.changes.collect { dirty = true; reloadWeb() }
+            }
+        }
+
         // 站内返回：先回退 WebView 历史，到底了再交给 Activity。
         // 绑定 viewLifecycleOwner，切页/销毁时自动注销，避免多次注册导致返回被处理两遍。
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -149,6 +164,19 @@ open class WebFragment : Fragment() {
         binding.web.destroy()
         _binding = null
         super.onDestroyView()
+    }
+
+    /** 切回本页时若有未刷新的改动（加购等），重新加载以拿到最新内容 */
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden && dirty) {
+            dirty = false
+            reloadWeb()
+        }
+    }
+
+    protected fun reloadWeb() {
+        _binding?.web?.reload()
     }
 }
 

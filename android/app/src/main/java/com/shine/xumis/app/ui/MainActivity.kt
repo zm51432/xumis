@@ -6,9 +6,12 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.R
+import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.databinding.ActivityMainBinding
 import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.Permissions
@@ -57,6 +60,60 @@ class MainActivity : AppCompatActivity() {
             AppPrefs.permissionPrompted = true
             showPermissionIntro()
         }
+
+        observeCartBadge()
+    }
+
+    /**
+     * 购物车角标：加购成功后 CartApi 会广播最新件数，这里把数字挂到底栏的购物车图标上。
+     * 跟随 STARTED 生命周期，切到后台自动停收。
+     */
+    private fun observeCartBadge() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                CartApi.changes.collect { count ->
+                    val badge = binding.bottomNav.getOrCreateBadge(R.id.nav_cart)
+                    badge.isVisible = count > 0
+                    badge.number = count
+                    badge.backgroundColor = getColor(R.color.shine_pink)
+                    badge.badgeTextColor = getColor(R.color.shine_on_red)
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_TAB, binding.bottomNav.selectedItemId)
+    }
+
+    /**
+     * 切换 Tab：已有实例就 show/hide，没有才创建。
+     * 这样购物车、我的这类 WebView 页面切回来还在原位置，不会重新加载。
+     */
+    private fun showTab(itemId: Int): Boolean {
+        val (tag, factory) = when (itemId) {
+            R.id.nav_home -> TAG_HOME to { HomeFragment() as Fragment }
+            R.id.nav_search -> TAG_SEARCH to { SearchFragment() as Fragment }
+            R.id.nav_cart -> TAG_CART to { CartFragment() as Fragment }
+            R.id.nav_account -> TAG_ACCOUNT to { AccountFragment() as Fragment }
+            else -> return false
+        }
+
+        val fm = supportFragmentManager
+        val tx = fm.beginTransaction()
+        for (t in listOf(TAG_HOME, TAG_SEARCH, TAG_CART, TAG_ACCOUNT)) {
+            fm.findFragmentByTag(t)?.let { if (!it.isHidden) tx.hide(it) }
+        }
+
+        val existing = fm.findFragmentByTag(tag)
+        if (existing == null) {
+            tx.add(R.id.container, factory(), tag)
+        } else {
+            tx.show(existing)
+        }
+        tx.commit()
+        return true
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -21,7 +21,9 @@ data class MobileProduct(
     val stock: Int? = null,
     val featured: Boolean? = null,
     val description: String? = null,
-    @SerializedName("inStock") val inStock: Boolean? = null
+    @SerializedName("inStock") val inStock: Boolean? = null,
+    /** 累计销量（用于首页「按销量排序」与「已售」展示；后端接口不返回时由热销榜补齐） */
+    @SerializedName("sales") val sales: Int? = null
 ) {
     /** 展示名称：优先 displayName，其次中文名 */
     fun title(): String = displayName ?: name ?: "商品"
@@ -40,5 +42,12 @@ data class MobileProduct(
         inStock == false -> "暂时缺货"
         stock != null && stock!! > 0 -> "现货 $stock 件"
         else -> "现货"
+    }
+
+    /** 已售文本：热销榜或商品字段里有销量时显示「已售 N 件」 */
+    fun soldText(): String? {
+        val s = sales ?: return null
+        if (s <= 0) return null
+        return "已售 $s 件"
     }
 }

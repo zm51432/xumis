@@ -120,29 +120,45 @@ object WebViewSetup {
     }
 
     /**
-     * 站内页面的「App 外壳」样式（只用于 App 内嵌的购物车/我的）。
+     * 站内页面的「App 外壳」样式（用于 App 内嵌的购物车 / 我的账户）。
      *
-     * 站点自带一条顶部导航和一条底部 dock，套进 App 后会与原生顶栏、底栏叠成两层，
-     * 竖向空间被吃掉一大截，看起来也像页面错位。这里把它们隐藏；
+     * 站点自带一条顶部导航（含品牌 + 滚动公告 + 汉堡菜单）、一条底部 dock、一个页脚，
+     * 套进 App 后会与原生顶栏、底栏叠成两层，竖向空间被吃掉一大截，看起来也像页面错位，
+     * 账户页的信息因此被挤得看不全。这里把它们隐藏；
      * 站内其它入口（来图定制、询盘）走设置里的「更多服务」，那边是完整网页。
+     *
+     * 另外：站点购物车用了 min-width:560px 的表格，手机上会横向溢出、右侧被切掉，
+     * 这里把表格改成卡片式，既不溢出也更好点按。
      */
     private const val APP_SHELL_CSS_JS = """
 (function(){
   if (window.__shineAppShell) return;
   window.__shineAppShell = 1;
-  var css = '.nav,.mobile-nav,.footer{display:none !important}'
+  var css = ''
+          // ① 隐藏站点自带的顶栏 / 底部 dock / 页脚 / 同意浮层：否则和 App 原生顶栏、底栏叠成两层
+          + '.nav,.mobile-nav,.footer,.cookie-bar,.consent,.modal-backdrop{display:none !important}'
           + 'body{padding-top:0 !important;padding-bottom:0 !important}'
-          // 站点的 CSS 变量是全局的，这里把页面底色/文字/主色映射成 App 的淡黄+红，
-          // 免得原生顶栏和站点内容一黄一绿拼在一起。
+          // ② 购物车表格在手机上会溢出（min-width:560px），改卡片式
+          + '.table-wrap{overflow:visible !important;padding:0 10px}'
+          + '.cart-table,.cart-table tbody,.cart-table tr,.cart-table td{display:block !important;width:auto !important}'
+          + '.cart-table thead{display:none !important}'
+          + '.cart-table tr{display:flex !important;flex-wrap:wrap;align-items:center;gap:8px;'
+          + 'border:1px solid var(--line,#F2E0B0);border-radius:12px;padding:10px;margin:0 0 10px;background:#fff}'
+          + '.cart-table td{border:none !important;padding:4px 0 !important}'
+          + '.cart-table td.cart-prod{flex:1 1 100% !important;display:flex !important;align-items:center;gap:10px}'
+          + '.cart-prod img{width:56px !important;height:56px !important;border-radius:10px;object-fit:cover}'
+          + '.cart-table td.price{flex:1 1 auto !important;font-weight:700;color:var(--mint-deep,#D32F2F)}'
+          + '.cart-foot{display:flex !important;justify-content:space-between;align-items:center;'
+          + 'padding:14px 10px;position:sticky;bottom:0;background:#FFF9E6}'
+          // ③ 配色映射：站点变量是全局的，改成 App 的暖黄底 + 红主色
           + ':root{'
           + '--bg:#FFF9E6;--cream:#FFF3C4;--line:#F2E0B0;'
           + '--ink:#3B2A1E;--ink-soft:#6B5545;--muted:#8B7355;'
           + '--mint:#FFD54F;--mint-deep:#D32F2F;--mint-soft:#FDEAEA;}'
-          // 站点主按钮写死了浅绿渐变，只改变量还会留半截绿，这里直接改渐变本身
+          // ④ 主按钮写死了浅绿渐变，只改变量会留半截绿，直接改渐变本身
           + '.btn{background:linear-gradient(135deg,#E53935,#B71C1C) !important;'
-          + 'box-shadow:0 8px 20px rgba(211,47,47,.22) !important;}'
-          + '.btn-ghost{background:#fff !important;color:#D32F2F !important;'
-          + 'border-color:#F2C4C4 !important;}'
+          + 'box-shadow:0 8px 20px rgba(211,47,47,.22) !important;color:#fff !important;}'
+          + '.btn-ghost{background:#fff !important;color:#D32F2F !important;border-color:#F2C4C4 !important;}'
           + '.filter.active{background:linear-gradient(135deg,#E53935,#B71C1C) !important;color:#fff !important;}';
   var s = document.createElement('style');
   s.id = 'shine-app-shell';

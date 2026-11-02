@@ -38,6 +38,12 @@
                     android:textColor="@color/shine_amber_text" android:background="@drawable/bg_badge_soft"
                     android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="3dp"
                     android:paddingBottom="3dp"/>
+
+                <TextView android:id="@+id/tv_sold" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textSize="12sp"
+                    android:textColor="@color/shine_amber_text" android:background="@drawable/bg_badge_soft"
+                    android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="3dp"
+                    android:paddingBottom="3dp" android:layout_marginStart="8dp" android:visibility="gone"/>
             </LinearLayout>
 
             <TextView android:id="@+id/tv_custom" android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -82,13 +88,13 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cart" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp"
-            android:text="查看购物车" android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
+            android:text="加入购物车" android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
             android:textColor="@color/shine_pink" app:strokeColor="@color/shine_pink"
             app:cornerRadius="12dp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_buy" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="48dp" android:layout_marginStart="10dp" android:text="去购买"
+            android:layout_height="48dp" android:layout_marginStart="10dp" android:text="立即购买"
             android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
             android:textColor="@color/shine_on_red" app:backgroundTint="@color/shine_pink"
             app:cornerRadius="12dp"/>
