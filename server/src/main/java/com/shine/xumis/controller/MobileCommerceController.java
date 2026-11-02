@@ -323,6 +323,18 @@ public class MobileCommerceController {
         return ResponseEntity.ok(body);
     }
 
+    @PostMapping("/auth/password")
+    public ResponseEntity<?> password(@RequestParam(required = false) String oldPassword,
+                                      @RequestParam(required = false) String newPassword,
+                                      HttpSession session) {
+        UserAccount u = AccountController.currentUser(session);
+        if (u == null) return ResponseEntity.status(401).body(Map.of("ok", false, "error", "未登录"));
+        if (newPassword == null || newPassword.length() < 8) return err("新密码至少 8 位");
+        boolean ok = userService.changePassword(u.getId(), oldPassword, newPassword);
+        if (!ok) return err("原密码不正确");
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
     // ==================== helpers ====================
 
     private Map<String, Object> userMap(UserAccount u) {

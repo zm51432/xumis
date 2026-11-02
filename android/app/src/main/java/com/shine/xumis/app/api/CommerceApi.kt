@@ -237,6 +237,12 @@ object CommerceApi {
         return parseUser(u)
     }
 
+    suspend fun changePassword(oldPassword: String, newPassword: String) {
+        val j = JSONObject(post("auth/password", FormBody.Builder()
+            .add("oldPassword", oldPassword).add("newPassword", newPassword).build()))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "修改失败"))
+    }
+
     private fun parseUser(u: JSONObject) = AuthUser(
         email = u.optString("email"),
         name = u.optString("name").takeIf { it.isNotBlank() },

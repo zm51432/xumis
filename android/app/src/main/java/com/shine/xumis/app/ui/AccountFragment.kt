@@ -1,5 +1,6 @@
 package com.shine.xumis.app.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,14 +8,15 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.shine.xumis.app.R
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.databinding.FragmentAccountBinding
-import com.shine.xumis.app.databinding.ItemOrderBinding
+import com.shine.xumis.app.databinding.ItemMenuRowBinding
 import kotlinx.coroutines.launch
 
 /**
- * 原生「我的」：未登录显示登录/注册表单，已登录显示资料 + 我的订单 + 退出。
- * 全程走 /api/m/auth、/api/m/me、/api/m/orders，不跳 Web。
+ * 原生「我的」：未登录显示登录/注册表单；已登录显示账号头 + 堆叠菜单
+ * （收货资料 / 修改密码 / 我的订单 / 支付方式）+ 退出登录，全程不跳 Web。
  */
 class AccountFragment : Fragment() {
     private var _binding: FragmentAccountBinding? = null
@@ -118,7 +120,6 @@ class AccountFragment : Fragment() {
                     binding.profileLayout.visibility = View.GONE
                 }
             } catch (e: Exception) {
-                // 网络不可用：回落到登录表单，避免白屏
                 binding.loginLayout.visibility = View.VISIBLE
                 binding.profileLayout.visibility = View.GONE
             } finally {
@@ -133,38 +134,26 @@ class AccountFragment : Fragment() {
         binding.profileLayout.visibility = View.VISIBLE
         binding.tvName.text = u.name ?: "shine 用户"
         binding.tvEmail.text = u.email
-
-        binding.ordersContainer.removeAllViews()
-        lifecycleScope.launch {
-            val orders = runCatching { CommerceApi.myOrders() }.getOrDefault(emptyList())
-            if (orders.isEmpty()) {
-                binding.tvNoOrders.visibility = View.VISIBLE
-            } else {
-                binding.tvNoOrders.visibility = View.GONE
-                val inflater = LayoutInflater.from(requireContext())
-                for (o in orders) {
-                    val card = ItemOrderBinding.inflate(inflater, binding.ordersContainer, false)
-                    card.orderNo.text = "订单 ${o.orderNo}"
-                    card.status.text = statusText(o.status)
-                    card.date.text = o.createdAt
-                    card.items.text = o.items.joinToString("\n") {
-                        "${it.name ?: "商品"} × ${it.quantity}"
-                    }
-                    card.total.text = "合计 " + o.currency + " " +
-                        String.format(java.util.Locale.US, "%.2f", o.total)
-                    binding.ordersContainer.addView(card.root)
-                }
-            }
-        }
+        buildMenu()
     }
 
-    private fun statusText(s: String): String = when (s.uppercase()) {
-        "PENDING" -> "待处理"
-        "PAID" -> "已付款"
-        "SHIPPED" -> "已发货"
-        "DONE" -> "已完成"
-        "CANCELLED" -> "已取消"
-        else -> s
+    /** 堆叠菜单：收货资料 / 修改密码 / 我的订单 / 支付方式 */
+    private fun buildMenu() {
+        binding.menuContainer.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        val items = listOf(
+            Triple(R.drawable.ic_location, "收货资料") { startActivity(Intent(requireContext(), ProfileActivity::class.java)) },
+            Triple(R.drawable.ic_shield, "修改密码") { startActivity(Intent(requireContext(), PasswordActivity::class.java)) },
+            Triple(R.drawable.ic_doc, "我的订单") { startActivity(Intent(requireContext(), OrdersActivity::class.java)) },
+            Triple(R.drawable.ic_card, "支付方式") { startActivity(Intent(requireContext(), PaymentActivity::class.java)) }
+        )
+        for ((icon, label, action) in items) {
+            val row = ItemMenuRowBinding.inflate(inflater, binding.menuContainer, false)
+            row.icon.setImageResource(icon)
+            row.label.text = label
+            row.root.setOnClickListener { action() }
+            binding.menuContainer.addView(row.root)
+        }
     }
 
     override fun onDestroyView() {

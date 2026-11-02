@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_bg" android:elevation="0dp"
+        app:title="支付方式" app:titleTextColor="@color/shine_text" app:navigationIconTint="@color/shine_text"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="8dp" android:paddingBottom="24dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:text="选择下单时默认使用的支付方式" android:textSize="13sp"
+                android:textColor="@color/shine_sub"/>
+
+            <RadioGroup android:id="@+id/rg_pay" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="vertical">
+                <RadioButton android:id="@+id/rb_paypal" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="PayPal"/>
+                <RadioButton android:id="@+id/rb_wechat" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="微信支付"/>
+                <RadioButton android:id="@+id/rb_alipay" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="支付宝"/>
+                <RadioButton android:id="@+id/rb_card" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="信用卡 / 借记卡"/>
+            </RadioGroup>
+
+            <Button android:id="@+id/btn_save" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="24dp"
+                android:text="保存默认支付方式" android:textColor="@color/shine_on_red" android:backgroundTint="@color/shine_pink"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -10,6 +10,7 @@ import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.CheckoutForm
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.databinding.ActivityCheckoutBinding
+import com.shine.xumis.app.util.PaymentPrefs
 import kotlinx.coroutines.launch
 
 /**
@@ -56,6 +57,12 @@ class CheckoutActivity : AppCompatActivity() {
                     binding.etPhone.setText(u.phone ?: "")
                     binding.etCountry.setText(u.country ?: "")
                     binding.etAddress.setText(u.address ?: "")
+                }
+                // 预选默认支付方式
+                when (PaymentPrefs.defaultMethod(this@CheckoutActivity)) {
+                    "WECHAT" -> binding.rbWechat.isChecked = true
+                    "ALIPAY" -> binding.rbAlipay.isChecked = true
+                    "MASTERCARD" -> binding.rbCard.isChecked = true
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@CheckoutActivity, "加载失败：${e.message}", Toast.LENGTH_SHORT).show()
