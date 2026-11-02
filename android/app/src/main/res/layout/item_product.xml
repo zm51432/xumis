@@ -24,12 +24,6 @@
                 android:background="@drawable/bg_badge_soft" android:paddingStart="6dp" android:paddingEnd="6dp"
                 android:paddingTop="2dp" android:paddingBottom="2dp"
                 android:layout_margin="6dp" android:visibility="gone"/>
-
-            <!-- 右下角快速加购：点一下加入购物车，不跳转 -->
-            <ImageButton android:id="@+id/item_add" android:layout_width="34dp" android:layout_height="34dp"
-                android:layout_gravity="bottom|end" android:layout_margin="6dp"
-                android:background="@drawable/bg_add_circle" android:src="@drawable/ic_add"
-                android:contentDescription="加入购物车" android:scaleType="centerInside"/>
         </FrameLayout>
 
         <TextView android:id="@+id/item_name" android:layout_width="match_parent" android:layout_height="wrap_content"
