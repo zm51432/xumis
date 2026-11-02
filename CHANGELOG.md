@@ -1,5 +1,19 @@
 # 变更记录 CHANGELOG
 
+## 2026-11-03（第十三次）— 客户端 2.0.0：全原生版 + 淡黄红主题
+
+- 订单详情原生页（`GET /api/m/orders/{orderNo}` + OrderDetailActivity，订单列表点卡片进详情）。
+- 搜索页首点即弹输入法（`isFocusableInTouchMode` + `postDelayed` 优化）。
+- 移除全部网页入口，均改原生：
+  - 找回密码（ForgotPasswordActivity + ResetPasswordActivity，后端 `POST /api/m/auth/forgot-password|reset-password`，重置邮件附带令牌）。
+  - 离线商品册（OfflineCatalogActivity，展示缓存商品原生网格）。
+  - 配送与售后条款（PoliciesActivity，内置静态文本）。
+  - 来图定制（CustomIdeaActivity → `/api/m/custom-ideas`）与询盘（InquiryActivity → `/api/m/inquiries`）。
+  - 注册本已原生。
+- 全新主题统一淡黄底 + 红；App 图标改为淡黄底 + 红星心（各密度 PNG），启动页渐变同步改淡黄。
+
+---
+
 ## 2026-11-03（第十二次）— 客户端 1.10.1：首页浏览型
 
 - 首页默认按「已售」从多到少排序（沿用 /download/hot.json 热销榜映射）。
