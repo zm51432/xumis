@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:background="@color/shine_bg" android:elevation="0dp"
+        app:title="来图定制" app:titleTextColor="@color/shine_text" app:navigationIconTint="@color/shine_text"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="8dp" android:paddingBottom="24dp">
+
+            <EditText android:id="@+id/et_name" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="你的姓名 *"
+                android:inputType="textPersonName" android:background="@drawable/bg_input"
+                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+
+            <EditText android:id="@+id/et_email" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="联系邮箱 *"
+                android:inputType="textEmailAddress" android:background="@drawable/bg_input"
+                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+
+            <EditText android:id="@+id/et_country" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="国家 / 地区"
+                android:inputType="text" android:background="@drawable/bg_input"
+                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+
+            <EditText android:id="@+id/et_category" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="期望品类（如：项链 / 耳环）"
+                android:inputType="text" android:background="@drawable/bg_input"
+                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+
+            <EditText android:id="@+id/et_desc" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="描述你的定制想法 *"
+                android:inputType="textMultiLine" android:minLines="4" android:gravity="top"
+                android:background="@drawable/bg_input"
+                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+
+            <Button android:id="@+id/btn_submit" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                android:text="提交定制需求" android:textColor="@color/shine_on_red" android:backgroundTint="@color/shine_pink"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar android:id="@+id/pb" android:layout_width="28dp" android:layout_height="28dp"
+        android:layout_gravity="center" android:indeterminateTint="@color/shine_pink" android:visibility="gone"/>
+</LinearLayout>

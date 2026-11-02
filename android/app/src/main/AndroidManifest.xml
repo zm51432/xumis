@@ -124,7 +124,14 @@
         <activity android:name=".ui.ProfileActivity" android:exported="false" />
         <activity android:name=".ui.PasswordActivity" android:exported="false" />
         <activity android:name=".ui.OrdersActivity" android:exported="false" />
+        <activity android:name=".ui.OrderDetailActivity" android:exported="false" />
         <activity android:name=".ui.PaymentActivity" android:exported="false" />
+        <activity android:name=".ui.ForgotPasswordActivity" android:exported="false" />
+        <activity android:name=".ui.ResetPasswordActivity" android:exported="false" />
+        <activity android:name=".ui.OfflineCatalogActivity" android:exported="false" />
+        <activity android:name=".ui.PoliciesActivity" android:exported="false" />
+        <activity android:name=".ui.CustomIdeaActivity" android:exported="false" />
+        <activity android:name=".ui.InquiryActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.UpdateActivity" android:exported="false" />

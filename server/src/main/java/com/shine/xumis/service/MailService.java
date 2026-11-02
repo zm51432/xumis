@@ -59,6 +59,8 @@ public class MailService {
         String body = "你好，\n\n" +
                 "我们收到了你的密码重置请求。请点击下面的链接设置新密码（1 小时内有效）：\n" +
                 link + "\n\n" +
+                "如果在 App 内，请打开「我的 → 找回密码 → 输入重置令牌」，并填写下面这串令牌：\n" +
+                token + "\n\n" +
                 "如果这不是你本人的操作，请忽略此邮件，你的密码不会变更。\n\n" +
                 "shine星心 团队";
         deliver(email, subject, body, "找回密码", link);

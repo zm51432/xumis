@@ -35,6 +35,12 @@ class AccountFragment : Fragment() {
         binding.btnSubmit.setOnClickListener { submit() }
         binding.btnLogout.setOnClickListener { doLogout() }
         binding.tvToggle.setOnClickListener { toggleMode() }
+        binding.tvForgot.setOnClickListener {
+            startActivity(Intent(requireContext(), ForgotPasswordActivity::class.java))
+        }
+        binding.tvReset.setOnClickListener {
+            startActivity(Intent(requireContext(), ResetPasswordActivity::class.java))
+        }
         load()
     }
 

@@ -43,8 +43,20 @@
                 android:layout_height="wrap_content" android:layout_marginTop="16dp"
                 android:text="登录" android:textColor="@color/shine_on_red" android:backgroundTint="@color/shine_pink"/>
 
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_horizontal" android:layout_marginTop="14dp">
+                <TextView android:id="@+id/tv_forgot" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="忘记密码？" android:textSize="13sp"
+                    android:textColor="@color/shine_pink"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="　|　" android:textSize="13sp" android:textColor="@color/shine_sub"/>
+                <TextView android:id="@+id/tv_reset" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="使用重置令牌" android:textSize="13sp"
+                    android:textColor="@color/shine_pink"/>
+            </LinearLayout>
+
             <TextView android:id="@+id/tv_toggle" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginTop="14dp" android:layout_gravity="center_horizontal"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp" android:layout_gravity="center_horizontal"
                 android:text="没有账号？去注册" android:textSize="13sp" android:textColor="@color/shine_pink"/>
         </LinearLayout>
 
