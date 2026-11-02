@@ -76,6 +76,12 @@ class CheckoutActivity : AppCompatActivity() {
             R.id.rb_card -> "MASTERCARD"
             else -> "PAYPAL"
         }
+        val payLabel = when (pay) {
+            "WECHAT" -> "微信"
+            "ALIPAY" -> "支付宝"
+            "MASTERCARD" -> "信用卡"
+            else -> "PayPal"
+        }
 
         submitting = true
         binding.btnSubmit.isEnabled = false
@@ -94,7 +100,7 @@ class CheckoutActivity : AppCompatActivity() {
             try {
                 val r = CommerceApi.placeOrder(form)
                 CartApi.publish(0)
-                showSuccess(r.orderNo)
+                showSuccess(r.orderNo, payLabel)
             } catch (e: Exception) {
                 Toast.makeText(this@CheckoutActivity, "下单失败：${e.message}", Toast.LENGTH_LONG).show()
             } finally {
@@ -105,9 +111,9 @@ class CheckoutActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSuccess(orderNo: String) {
+    private fun showSuccess(orderNo: String, payLabel: String) {
         binding.formScroll.visibility = View.GONE
         binding.successLayout.visibility = View.VISIBLE
-        binding.tvOrderNo.text = "订单号：$orderNo"
+        binding.tvOrderNo.text = "订单号：$orderNo\n付款方式：$payLabel"
     }
 }

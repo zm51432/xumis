@@ -7,7 +7,7 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/top_app_bar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
         android:background="@color/shine_bg" android:elevation="0dp"
-        app:title="确认订单" app:titleTextColor="@color/shine_text"
+        app:title="结算付款" app:titleTextColor="@color/shine_text"
         app:navigationIconTint="@color/shine_text"/>
 
     <!-- 下单表单 -->
@@ -70,7 +70,7 @@
 
             <Button android:id="@+id/btn_submit" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="16dp"
-                android:text="提交订单" android:textColor="@color/shine_on_red"
+                android:text="立即付款" android:textColor="@color/shine_on_red"
                 android:backgroundTint="@color/shine_pink"/>
         </LinearLayout>
     </ScrollView>
@@ -88,7 +88,7 @@
             android:textStyle="bold" android:textColor="@color/shine_text"/>
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" android:text="我们会尽快与您联系确认订单" android:textSize="13sp"
+            android:layout_marginTop="8dp" android:text="请按所选支付方式完成付款，我们会尽快与您确认订单" android:textSize="13sp"
             android:textColor="@color/shine_sub"/>
 
         <TextView android:id="@+id/tv_order_no" android:layout_width="wrap_content"
