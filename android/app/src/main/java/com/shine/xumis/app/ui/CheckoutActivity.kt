@@ -39,8 +39,11 @@ class CheckoutActivity : AppCompatActivity() {
     private fun load() {
         lifecycleScope.launch {
             try {
-                // 合计金额（用当前购物车）
+                // 商品摘要 + 合计（用当前购物车）
                 val cart = CommerceApi.cart()
+                binding.tvItems.text = cart.lines.joinToString("\n") {
+                    "${it.name} × ${it.qty}　　$" + String.format(java.util.Locale.US, "%.2f", it.lineTotal)
+                }
                 binding.tvSummary.text = "共 ${cart.count} 件，合计 $" +
                     String.format(java.util.Locale.US, "%.2f", cart.total)
                 if (cart.isEmpty) {
