@@ -121,6 +121,10 @@
         <activity android:name=".ui.MainActivity" android:exported="false" />
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
         <activity android:name=".ui.CheckoutActivity" android:exported="false" />
+        <activity android:name=".ui.ProfileActivity" android:exported="false" />
+        <activity android:name=".ui.PasswordActivity" android:exported="false" />
+        <activity android:name=".ui.OrdersActivity" android:exported="false" />
+        <activity android:name=".ui.PaymentActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.UpdateActivity" android:exported="false" />

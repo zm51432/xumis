@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginTop="10dp" android:clickable="true" android:focusable="true"
+    app:cardBackgroundColor="@color/shine_surface" app:cardCornerRadius="14dp"
+    app:cardElevation="0dp" app:strokeWidth="1dp" app:strokeColor="@color/shine_yellow_line"
+    app:rippleColor="@color/shine_yellow_soft">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingStart="16dp" android:paddingEnd="12dp" android:paddingTop="14dp" android:paddingBottom="14dp">
+
+        <ImageView android:id="@+id/icon" android:layout_width="22dp" android:layout_height="22dp"
+            android:tint="@color/shine_pink" android:contentDescription="菜单"/>
+
+        <TextView android:id="@+id/label" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:layout_marginStart="12dp"
+            android:textSize="15sp" android:textColor="@color/shine_text"/>
+
+        <ImageView android:layout_width="20dp" android:layout_height="20dp"
+            android:src="@drawable/ic_chevron_right" android:tint="@color/shine_sub"
+            android:contentDescription="进入"/>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
