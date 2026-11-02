@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -16,6 +17,11 @@ class ProductAdapter(
     private val onClick: (MobileProduct) -> Unit,
     private val onAddCart: (MobileProduct) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.VH>() {
+
+    /** 销量达到该值视为「热销」，卡片左上角显示红底角标 */
+    private companion object {
+        const val HOT_THRESHOLD = 20
+    }
 
     private val items = mutableListOf<MobileProduct>()
     /** 正在加购的商品 id 集合：按钮禁用 + 半透明，避免手快点两次加两件 */
@@ -65,17 +71,38 @@ class ProductAdapter(
         holder.cat.text = cat ?: ""
         holder.cat.visibility = if (cat == null) View.GONE else View.VISIBLE
 
-        holder.badge.visibility = if (p.featured == true) View.VISIBLE else View.GONE
+        // 角标：销量高显示红底「热销」，否则若是精选显示淡红「精选」，都没有就隐藏
+        val sales = p.sales ?: 0
+        when {
+            sales >= HOT_THRESHOLD -> {
+                holder.badge.visibility = View.VISIBLE
+                holder.badge.text = "热销"
+                holder.badge.setBackgroundResource(R.drawable.bg_badge_hot)
+                holder.badge.setTextColor(ContextCompat.getColor(holder.badge.context, android.R.color.white))
+            }
+            p.featured == true -> {
+                holder.badge.visibility = View.VISIBLE
+                holder.badge.text = "精选"
+                holder.badge.setBackgroundResource(R.drawable.bg_badge_soft)
+                holder.badge.setTextColor(ContextCompat.getColor(holder.badge.context, R.color.shine_pink))
+            }
+            else -> holder.badge.visibility = View.GONE
+        }
 
         // 缺货标在价格右侧，比原来只在详情页提示更早一步
         val stockText = p.stockText()
         holder.stock.text = stockText
         holder.stock.visibility = if (stockText.isBlank()) View.GONE else View.VISIBLE
 
-        // 已售（热销榜或商品字段）
+        // 已售（热销榜或商品字段）：做成柔和的奶油小药丸
         val soldText = p.soldText()
         holder.sold.text = soldText
-        holder.sold.visibility = if (soldText == null) View.GONE else View.VISIBLE
+        if (soldText == null) {
+            holder.sold.visibility = View.GONE
+        } else {
+            holder.sold.visibility = View.VISIBLE
+            holder.sold.setBackgroundResource(R.drawable.bg_sold)
+        }
 
         val imgUrl = p.fullImageUrl()
         if (imgUrl != null) {

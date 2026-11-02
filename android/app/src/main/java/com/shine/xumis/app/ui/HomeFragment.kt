@@ -177,6 +177,11 @@ class HomeFragment : Fragment() {
         binding.btnRetry.visibility = View.GONE
     }
 
+    /** 双击首页 Tab 时回滚到顶部（由 MainActivity 的 reselected 监听调用） */
+    fun scrollToTop() {
+        _binding?.rv?.smoothScrollToPosition(0)
+    }
+
     private fun openDetail(p: MobileProduct) {
         val intent = Intent(requireContext(), ProductDetailActivity::class.java)
         intent.putExtra("product_id", p.id ?: 0L)

@@ -29,6 +29,19 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 品牌进场动画：logo 白卡缩放淡入，标题/副标随后轻移浮现，弱化"加载感"
+        binding.logoCard.alpha = 0f
+        binding.logoCard.scaleX = 0.82f
+        binding.logoCard.scaleY = 0.82f
+        binding.logoCard.animate()
+            .alpha(1f).scaleX(1f).scaleY(1f)
+            .setDuration(520).setStartDelay(80).withLayer()
+        binding.tvTitle.alpha = 0f
+        binding.tvTitle.translationY = 14f
+        binding.tvTitle.animate().alpha(1f).translationY(0f).setDuration(420).setStartDelay(260).withLayer()
+        binding.tvSub.alpha = 0f
+        binding.tvSub.animate().alpha(1f).setDuration(420).setStartDelay(420).withLayer()
+
         binding.btnRetry.visibility = View.GONE
         binding.btnRetry.setOnClickListener { checkServer() }
         binding.btnOffline.visibility = View.GONE

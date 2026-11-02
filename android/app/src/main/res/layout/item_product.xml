@@ -40,8 +40,10 @@
             android:textColor="@color/shine_sub" android:textSize="11.5sp" android:layout_marginTop="2dp"
             android:maxLines="1" android:ellipsize="end"/>
 
-        <TextView android:id="@+id/item_sold" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:textColor="@color/shine_amber_text" android:textSize="10.5sp" android:layout_marginTop="1dp"
+        <TextView android:id="@+id/item_sold" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="@color/shine_amber_text" android:textSize="10.5sp" android:layout_marginTop="3dp"
+            android:background="@drawable/bg_sold" android:paddingStart="6dp" android:paddingEnd="6dp"
+            android:paddingTop="2dp" android:paddingBottom="2dp"
             android:visibility="gone"/>
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
