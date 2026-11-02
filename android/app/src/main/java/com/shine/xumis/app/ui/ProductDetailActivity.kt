@@ -34,10 +34,8 @@ class ProductDetailActivity : AppCompatActivity() {
 
         productId = intent.getLongExtra("product_id", 0L)
 
-        // 立即购买：进入商品落地页（落地页上有完整的下单/支付流程）
-        binding.btnBuy.setOnClickListener {
-            openWeb(ServerConfig.siteBase() + "product/" + productId)
-        }
+        // 立即购买：原生加购后直接进结算页（不再跳商品 Web 落地页）
+        binding.btnBuy.setOnClickListener { buyNow() }
         // 加入购物车：原生调用，加完留在详情页，不跳转
         binding.btnCart.setOnClickListener { addToCart() }
 
@@ -122,7 +120,19 @@ class ProductDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun openWeb(url: String) {
-        startActivity(Intent(this, WebViewActivity::class.java).putExtra("url", url))
+    /** 立即购买：加购一件后直接进入原生结算页 */
+    private fun buyNow() {
+        binding.btnBuy.isEnabled = false
+        lifecycleScope.launch {
+            try {
+                val count = CartApi.add(productId)
+                CartApi.publish(count)
+                startActivity(Intent(this@ProductDetailActivity, CheckoutActivity::class.java))
+            } catch (e: Exception) {
+                Toast.makeText(this@ProductDetailActivity, "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                binding.btnBuy.isEnabled = true
+            }
+        }
     }
 }
