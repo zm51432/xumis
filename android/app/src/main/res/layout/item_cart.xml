@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="@color/shine_surface" app:cardCornerRadius="14dp"
+    app:cardElevation="0dp" app:strokeWidth="1dp" app:strokeColor="@color/shine_yellow_line">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical" android:padding="10dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/img" android:layout_width="72dp" android:layout_height="72dp"
+            android:scaleType="centerCrop" android:background="@color/shine_yellow_soft"
+            app:shapeAppearanceOverlay="@style/RoundedImage"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginStart="12dp">
+
+            <TextView android:id="@+id/name" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textSize="14sp" android:textColor="@color/shine_text"
+                android:maxLines="2" android:ellipsize="end" android:lineSpacingExtra="1dp"/>
+
+            <TextView android:id="@+id/price" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/shine_pink"/>
+
+            <TextView android:id="@+id/line_total" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="2dp" android:textSize="11sp" android:textColor="@color/shine_sub"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:gravity="center_horizontal">
+
+            <ImageButton android:id="@+id/btn_remove" android:layout_width="34dp" android:layout_height="34dp"
+                android:src="@drawable/ic_remove" android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="删除"/>
+
+            <!-- 数量步进器 -->
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+
+                <ImageButton android:id="@+id/btn_minus" android:layout_width="28dp" android:layout_height="28dp"
+                    android:src="@drawable/ic_minus" android:background="@drawable/bg_add_circle"
+                    android:padding="6dp" android:contentDescription="减少"/>
+
+                <TextView android:id="@+id/qty" android:layout_width="28dp" android:layout_height="wrap_content"
+                    android:gravity="center" android:textSize="14sp" android:textColor="@color/shine_text"/>
+
+                <ImageButton android:id="@+id/btn_plus" android:layout_width="28dp" android:layout_height="28dp"
+                    android:src="@drawable/ic_add" android:background="@drawable/bg_add_circle"
+                    android:padding="6dp" android:contentDescription="增加"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

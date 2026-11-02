@@ -179,11 +179,3 @@ open class WebFragment : Fragment() {
         _binding?.web?.reload()
     }
 }
-
-class CartFragment : WebFragment() {
-    override fun url() = ServerConfig.siteBase() + "cart"
-}
-
-class AccountFragment : WebFragment() {
-    override fun url() = ServerConfig.siteBase() + "account"
-}

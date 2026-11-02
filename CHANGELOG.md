@@ -1,5 +1,34 @@
 # 变更记录 CHANGELOG
 
+## 2026-11-02（第九次）— 客户端 1.9.0：全原生购物闭环 + 全新图标
+
+**背景**：用户要求「去除 50 用户痛点文档 / 所有界面都是原生 App 界面 / 重新设计 logo / 购买等操作只在 App 内完成、不再跳转 Web」。本轮把购物车、结算、我的账户从 WebView 全部改成原生界面，并重做品牌图标。
+
+### 全原生购物闭环（不再跳 Web）
+- 后端新增 `MobileCommerceController`（`/api/m` 前缀、基于 HttpSession、复用 CartService/OrderService/UserAccountService）：
+  - `GET /cart`、`POST /cart/add|update|remove`（购物车）
+  - `POST /orders`（下单，返回订单号）、`GET /orders`（我的订单）
+  - `GET /me`、`POST /auth/login|register|logout|profile`（账户）
+  - 走 `/api/**` 已由 CsrfInterceptor 放行，App 侧共享 `android.webkit.CookieManager` 作为会话 Cookie 存储，与站点同会话。
+- App 新增：
+  - 原生购物车（列表 + 数量步进 + 删除 + 合计 + 去结算），替换原 WebView 购物车。
+  - 原生结算页（收货信息 + 支付方式 + 提交订单 → 显示订单号），替换原「跳 Web 落地页」。
+  - 原生「我的」（登录/注册 + 资料 + 我的订单 + 退出），替换原 WebView 账户页。
+  - 商品详情「立即购买」改为原生加购后直进结算页。
+  - 新增 `NativeSession`（共享 OkHttp + 持久化 CookieJar）与 `CommerceApi`，`CartApi` 改为委托原生接口。
+
+### 品牌图标
+- 用 AI 重新设计「星心火花」图标（珊瑚红爱心 + 金色四角星光，暖橙渐变底），去除水印后生成各密度 `ic_launcher`/`ic_launcher_round` PNG，移除旧自适应矢量图标，启动页同步展示圆角图标。
+
+### 其它
+- 移除 `docs/独立站用户痛点50问自解.md` 及其 README / CHANGELOG 引用。
+
+### 验证
+- 后端 jar 离线重打包并部署到 `/opt/xumis`，`systemctl` 重启后 curl 实测购物车增删改查与会话一致性通过。
+- App `assembleRelease` 编译通过（仅无害警告），正式密钥签名，OTA stable 发布（1.8.0 → 1.9.0）。
+
+---
+
 ## 2026-11-02（第八次）— 客户端 1.8.0：星心焕新 · 体验与质感升级
 
 **背景**：用户要求「不断自我优化，从 logo 到 UI 再到客户使用、以及产品美观」。本轮聚焦启动页质感、导航层次、站内页（WebView 外壳）观感、首页与商品卡的视觉打磨，以及一处常用手势体验。
@@ -114,7 +143,7 @@
 | 调整前 | 调整后 | 说明 |
 |---|---|---|
 | `pom.xml`、`src/`、`sql/`、`start.sh`、`start.bat`、`install.ps1`、`Dockerfile`、`.dockerignore` | `server/` 下同名文件 | 网站服务端整体归入 `server/`，Maven 工程根随之迁移 |
-| `DEPLOYMENT.md`、`ONECLICK.md`、`独立站用户痛点50问自解.md` | `docs/` 下同名文件 | 文档集中 |
+| `DEPLOYMENT.md`、`ONECLICK.md` | `docs/` 下同名文件 | 文档集中 |
 | `archive/personal-site/*.class` | 已删除 | 编译产物不入库（源码与 `run.bat` 保留） |
 | 仓库根 `shine.apk`（21MB） | 已移除 | 安装包由推送服务托管，不入库 |
 

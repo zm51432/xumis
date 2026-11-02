@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="10dp"
+                android:paddingBottom="12dp" android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+            <!-- 空态：购物车为空 -->
+            <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_gravity="center"
+                android:orientation="vertical" android:gravity="center" android:visibility="gone"
+                android:paddingStart="32dp" android:paddingEnd="32dp">
+
+                <ImageView android:layout_width="56dp" android:layout_height="56dp"
+                    android:src="@drawable/ic_cart" android:tint="@color/shine_sub" android:alpha="0.5"/>
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:text="购物车还是空的" android:textSize="15sp"
+                    android:textStyle="bold" android:textColor="@color/shine_text"/>
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:text="去首页挑几件心仪的饰品吧" android:textSize="13sp"
+                    android:textColor="@color/shine_sub"/>
+            </LinearLayout>
+
+            <ProgressBar android:id="@+id/pb" android:layout_width="28dp" android:layout_height="28dp"
+                android:layout_gravity="center" android:indeterminateTint="@color/shine_pink"
+                android:visibility="gone"/>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- 底部结算栏：有商品时显示 -->
+    <LinearLayout android:id="@+id/bottom_bar" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone"
+        android:gravity="center_vertical" android:background="@color/shine_surface"
+        android:paddingStart="16dp" android:paddingEnd="12dp" android:paddingTop="10dp" android:paddingBottom="10dp"
+        android:elevation="8dp">
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="合计" android:textSize="12sp" android:textColor="@color/shine_sub"/>
+            <TextView android:id="@+id/tv_total" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="18sp" android:textStyle="bold" android:textColor="@color/shine_pink"/>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_checkout" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="去结算"
+            android:textColor="@color/shine_on_red" android:backgroundTint="@color/shine_pink"
+            android:paddingStart="28dp" android:paddingEnd="28dp"/>
+    </LinearLayout>
+</LinearLayout>

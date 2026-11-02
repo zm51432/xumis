@@ -29,11 +29,11 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 品牌进场动画：logo 白卡缩放淡入，标题/副标随后轻移浮现，弱化"加载感"
-        binding.logoCard.alpha = 0f
-        binding.logoCard.scaleX = 0.82f
-        binding.logoCard.scaleY = 0.82f
-        binding.logoCard.animate()
+        // 品牌进场动画：logo 圆角图标缩放淡入，标题/副标随后轻移浮现，弱化"加载感"
+        binding.ivLogo.alpha = 0f
+        binding.ivLogo.scaleX = 0.82f
+        binding.ivLogo.scaleY = 0.82f
+        binding.ivLogo.animate()
             .alpha(1f).scaleX(1f).scaleY(1f)
             .setDuration(520).setStartDelay(80).withLayer()
         binding.tvTitle.alpha = 0f

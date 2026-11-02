@@ -196,7 +196,6 @@ deploy/
 |------|------|
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 环境要求、手动构建、生产部署、HTTPS 与反向代理、Docker |
 | [docs/ONECLICK.md](docs/ONECLICK.md) | 一键脚本逐步骤说明、参数表、常见故障 |
-| [docs/独立站用户痛点50问自解.md](docs/独立站用户痛点50问自解.md) | 独立站运营常见 50 问的应答口径 |
 | [CHANGELOG.md](CHANGELOG.md) | 逐版本改动与验证记录 |
 
 ---
