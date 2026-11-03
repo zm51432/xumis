@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
@@ -303,14 +304,32 @@ object CommerceApi {
         if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "重置失败"))
     }
 
-    suspend fun customIdea(customerName: String, email: String, country: String?, description: String, expectCategory: String?) {
-        val fb = FormBody.Builder()
-            .add("customerName", customerName).add("email", email)
-            .add("ideaDescription", description)
-        country?.takeIf { it.isNotBlank() }?.let { fb.add("country", it) }
-        expectCategory?.takeIf { it.isNotBlank() }?.let { fb.add("expectCategory", it) }
-        val j = JSONObject(post("custom-ideas", fb.build()))
+    /**
+     * 提交来图定制需求。文本字段走 multipart/form-data；
+     * imagePart 为可选参考图（由调用方从相册/拍照得到），服务端存盘后回写 referenceImageUrl。
+     */
+    suspend fun customIdea(
+        customerName: String, email: String, country: String?, description: String,
+        expectCategory: String?, imagePart: MultipartBody.Part? = null
+    ) {
+        val mb = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("customerName", customerName)
+            .addFormDataPart("email", email)
+            .addFormDataPart("ideaDescription", description)
+        country?.takeIf { it.isNotBlank() }?.let { mb.addFormDataPart("country", it) }
+        expectCategory?.takeIf { it.isNotBlank() }?.let { mb.addFormDataPart("expectCategory", it) }
+        imagePart?.let { mb.addPart(it) }
+        val j = JSONObject(postMultipart("custom-ideas", mb.build()))
         if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "提交失败"))
+    }
+
+    private suspend fun postMultipart(path: String, body: MultipartBody): String = withContext(Dispatchers.IO) {
+        val req = Request.Builder().url(base() + path).post(body).build()
+        NativeSession.client.newCall(req).execute().use { resp ->
+            val b = resp.body?.string() ?: ""
+            if (!resp.isSuccessful) throw apiError(b)
+            b
+        }
     }
 
     suspend fun inquiry(name: String, email: String, subject: String?, message: String) {

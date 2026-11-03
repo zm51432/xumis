@@ -30,10 +30,37 @@
                 android:inputType="text" android:background="@drawable/bg_input"
                 android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
 
-            <EditText android:id="@+id/et_category" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="期望品类（如：项链 / 耳环）"
-                android:inputType="text" android:background="@drawable/bg_input"
-                android:padding="12dp" android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:id="@+id/til_category" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:hint="期望品类（选填）">
+                <AutoCompleteTextView android:id="@+id/act_category"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:inputType="none" android:padding="12dp"
+                    android:textColor="@color/shine_text" android:textColorHint="@color/shine_sub"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 参考图：来图定制的核心能力 -->
+            <LinearLayout android:id="@+id/layout_photo" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:orientation="horizontal" android:background="@drawable/bg_input"
+                android:padding="12dp" android:gravity="center_vertical"
+                android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground">
+                <ImageView android:id="@+id/img_preview" android:layout_width="76dp" android:layout_height="76dp"
+                    android:scaleType="centerCrop" android:background="@drawable/bg_image_frame"
+                    android:src="@drawable/ic_image" android:contentDescription="参考图预览"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:orientation="vertical" android:layout_marginStart="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="参考图（选填）" android:textColor="@color/shine_text" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tv_photo_state" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp" android:text="从相册选择或拍照，帮助工匠更懂你的想法"
+                        android:textColor="@color/shine_sub" android:textSize="12sp"/>
+                </LinearLayout>
+                <ImageButton android:id="@+id/btn_remove_photo" android:layout_width="30dp" android:layout_height="30dp"
+                    android:visibility="gone" android:src="@drawable/ic_remove"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="移除参考图" app:tint="@color/shine_sub"/>
+            </LinearLayout>
 
             <EditText android:id="@+id/et_desc" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="描述你的定制想法 *"
