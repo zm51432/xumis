@@ -101,10 +101,15 @@
             android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textSize="15sp"
             android:textColor="@color/shine_pink" android:textStyle="bold"/>
 
-        <Button android:id="@+id/btn_done" android:layout_width="match_parent"
+        <Button android:id="@+id/btn_view_order" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="24dp"
-            android:text="完成" android:textColor="@color/shine_on_red"
+            android:text="查看订单" android:textColor="@color/shine_on_red"
             android:backgroundTint="@color/shine_pink"/>
+
+        <Button android:id="@+id/btn_done" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            android:text="返回首页" android:textColor="@color/shine_pink"
+            android:backgroundTint="@color/shine_surface"/>
     </LinearLayout>
 
     <ProgressBar android:id="@+id/pb" android:layout_width="28dp" android:layout_height="28dp"

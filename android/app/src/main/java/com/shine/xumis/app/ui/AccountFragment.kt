@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.R
+import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.databinding.FragmentAccountBinding
 import com.shine.xumis.app.databinding.ItemMenuRowBinding
@@ -94,8 +96,19 @@ class AccountFragment : Fragment() {
     }
 
     private fun doLogout() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("退出登录")
+            .setMessage("确定要退出当前账号吗？")
+            .setNegativeButton("取消", null)
+            .setPositiveButton("退出") { _, _ -> performLogout() }
+            .show()
+    }
+
+    private fun performLogout() {
         lifecycleScope.launch {
             runCatching { CommerceApi.logout() }
+            // 退出后购物车是另一份会话，角标要归零，避免残留数字误导
+            CartApi.publish(0)
             load()
         }
     }

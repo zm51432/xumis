@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.CartLine
 import com.shine.xumis.app.api.CommerceApi
@@ -88,6 +89,15 @@ class CartFragment : Fragment() {
     }
 
     private fun removeLine(line: CartLine) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("移除商品")
+            .setMessage("确定把「${line.name}」移出购物车吗？")
+            .setNegativeButton("取消", null)
+            .setPositiveButton("移除") { _, _ -> doRemoveLine(line) }
+            .show()
+    }
+
+    private fun doRemoveLine(line: CartLine) {
         adapter.setBusy(line.id, true)
         lifecycleScope.launch {
             try {

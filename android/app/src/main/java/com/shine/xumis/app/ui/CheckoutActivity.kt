@@ -1,5 +1,6 @@
 package com.shine.xumis.app.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -10,6 +11,7 @@ import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.CheckoutForm
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.databinding.ActivityCheckoutBinding
+import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.PaymentPrefs
 import kotlinx.coroutines.launch
 
@@ -20,6 +22,8 @@ import kotlinx.coroutines.launch
 class CheckoutActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCheckoutBinding
     private var submitting = false
+    /** 最近一次下单的订单号，用于「查看订单」跳转 */
+    private var lastOrderNo: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +34,18 @@ class CheckoutActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.topAppBar.setNavigationOnClickListener { finish() }
 
+        AppPrefs.init(applicationContext)
+
         binding.btnSubmit.setOnClickListener { submit() }
-        binding.btnDone.setOnClickListener { finish() }
+        binding.btnDone.setOnClickListener { goHome() }
+        // 下单成功后「查看订单」：直接跳到该订单详情（无需登录也能看，游客同此）
+        binding.btnViewOrder.setOnClickListener {
+            val no = lastOrderNo
+            if (!no.isNullOrBlank()) {
+                startActivity(Intent(this@CheckoutActivity, OrderDetailActivity::class.java)
+                    .putExtra("order_no", no))
+            }
+        }
 
         load()
     }
@@ -109,6 +123,9 @@ class CheckoutActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val r = CommerceApi.placeOrder(form)
+                lastOrderNo = r.orderNo
+                // 记住下单邮箱：游客回「我的订单」时能凭它查到这笔单
+                AppPrefs.lastOrderEmail = email
                 CartApi.publish(0)
                 showSuccess(r.orderNo, payLabel)
             } catch (e: Exception) {
@@ -125,5 +142,12 @@ class CheckoutActivity : AppCompatActivity() {
         binding.formScroll.visibility = View.GONE
         binding.successLayout.visibility = View.VISIBLE
         binding.tvOrderNo.text = "订单号：$orderNo\n付款方式：$payLabel"
+    }
+
+    /** 回到首页（商品流），避免层层返回停留在详情/结算页 */
+    private fun goHome() {
+        startActivity(Intent(this@CheckoutActivity, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+        finish()
     }
 }

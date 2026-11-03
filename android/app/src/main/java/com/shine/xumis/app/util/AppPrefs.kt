@@ -16,6 +16,7 @@ object AppPrefs {
     private const val KEY_PERM_PROMPTED = "perm_prompted"
     private const val KEY_LAST_UPDATE_CHECK = "last_update_check"
     private const val KEY_SKIPPED_VERSION = "skipped_version_code"
+    private const val KEY_LAST_ORDER_EMAIL = "last_order_email"
 
     private var prefs: SharedPreferences? = null
 
@@ -76,5 +77,16 @@ object AppPrefs {
         get() = store()?.getInt(KEY_SKIPPED_VERSION, 0) ?: 0
         set(value) {
             store()?.edit()?.putInt(KEY_SKIPPED_VERSION, value)?.apply()
+        }
+
+    /**
+     * 最近一次下单填写的邮箱。游客（未登录）下单后，用它在「我的订单」里回看自己的订单，
+     * 避免订单号一闪而过、再也找不到。登录态的订单由后端按账号归并，无需依赖此值。
+     */
+    var lastOrderEmail: String?
+        get() = store()?.getString(KEY_LAST_ORDER_EMAIL, null)
+        set(value) {
+            val v = value?.trim()?.takeIf { it.isNotBlank() }
+            store()?.edit()?.putString(KEY_LAST_ORDER_EMAIL, v)?.apply()
         }
 }

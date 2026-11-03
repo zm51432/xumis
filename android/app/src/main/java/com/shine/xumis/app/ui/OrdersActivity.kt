@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.databinding.ActivityOrdersBinding
 import com.shine.xumis.app.databinding.ItemOrderBinding
+import com.shine.xumis.app.util.AppPrefs
 import kotlinx.coroutines.launch
 
 /** 我的订单：读取 /api/m/orders，按时间倒序展示订单卡片 */
@@ -18,6 +19,7 @@ class OrdersActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppPrefs.init(applicationContext)
         binding = ActivityOrdersBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.topAppBar)
@@ -30,7 +32,8 @@ class OrdersActivity : AppCompatActivity() {
         binding.pb.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val orders = CommerceApi.myOrders()
+                // 登录态由后端按账号归并；游客带上下单时留下的邮箱，才能看到自己的订单
+                val orders = CommerceApi.myOrders(AppPrefs.lastOrderEmail)
                 binding.ordersContainer.removeAllViews()
                 if (orders.isEmpty()) {
                     binding.tvEmpty.visibility = View.VISIBLE

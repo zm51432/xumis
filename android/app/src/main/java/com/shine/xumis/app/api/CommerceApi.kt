@@ -183,8 +183,11 @@ object CommerceApi {
         return PlaceResult(j.optString("orderNo"), j.optDouble("total"), j.optString("currency"))
     }
 
-    suspend fun myOrders(): List<OrderSummary> {
-        val j = JSONObject(get("orders"))
+    suspend fun myOrders(email: String? = null): List<OrderSummary> {
+        // 游客未登录时，用下单时留下的邮箱回查自己的订单；登录态由后端按账号归并，无需带邮箱。
+        val path = if (email.isNullOrBlank()) "orders"
+        else "orders?email=" + java.net.URLEncoder.encode(email, "UTF-8")
+        val j = JSONObject(get(path))
         val arr = j.optJSONArray("orders") ?: JSONArray()
         val out = ArrayList<OrderSummary>(arr.length())
         for (i in 0 until arr.length()) {
