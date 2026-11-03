@@ -32,6 +32,11 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:layout_marginTop="6dp" android:text="去首页挑几件心仪的饰品吧" android:textSize="13sp"
                     android:textColor="@color/shine_sub"/>
+
+                <Button android:id="@+id/btn_go_shopping" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                    android:text="去逛逛" android:textColor="@color/shine_on_red"
+                    android:backgroundTint="@color/shine_pink"/>
             </LinearLayout>
 
             <ProgressBar android:id="@+id/pb" android:layout_width="28dp" android:layout_height="28dp"

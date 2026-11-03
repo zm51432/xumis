@@ -43,6 +43,7 @@ class AccountFragment : Fragment() {
         binding.tvReset.setOnClickListener {
             startActivity(Intent(requireContext(), ResetPasswordActivity::class.java))
         }
+        buildGuestMenu()
         load()
     }
 
@@ -85,6 +86,8 @@ class AccountFragment : Fragment() {
                     Toast.makeText(requireContext(), "登录成功", Toast.LENGTH_SHORT).show()
                 }
                 resetForm()
+                // 登录态变了，购物车是另一份会话，顺手把角标同步过来
+                runCatching { CommerceApi.cart().count }.getOrNull()?.let { CartApi.publish(it) }
                 load()
             } catch (e: Exception) {
                 showError(e.message ?: "操作失败")
@@ -156,7 +159,7 @@ class AccountFragment : Fragment() {
         buildMenu()
     }
 
-    /** 堆叠菜单：收货资料 / 修改密码 / 我的订单 / 支付方式 */
+    /** 堆叠菜单：收货资料 / 修改密码 / 我的订单 / 我的记录 / 来图定制 / 在线咨询 / 支付方式 */
     private fun buildMenu() {
         binding.menuContainer.removeAllViews()
         val inflater = LayoutInflater.from(requireContext())
@@ -164,6 +167,9 @@ class AccountFragment : Fragment() {
             Triple(R.drawable.ic_location, "收货资料") { startActivity(Intent(requireContext(), ProfileActivity::class.java)) },
             Triple(R.drawable.ic_shield, "修改密码") { startActivity(Intent(requireContext(), PasswordActivity::class.java)) },
             Triple(R.drawable.ic_doc, "我的订单") { startActivity(Intent(requireContext(), OrdersActivity::class.java)) },
+            Triple(R.drawable.ic_info, "我的记录") { startActivity(Intent(requireContext(), MyRecordsActivity::class.java)) },
+            Triple(R.drawable.ic_image, "来图定制") { startActivity(Intent(requireContext(), CustomIdeaActivity::class.java)) },
+            Triple(R.drawable.ic_help, "在线咨询") { startActivity(Intent(requireContext(), InquiryActivity::class.java)) },
             Triple(R.drawable.ic_card, "支付方式") { startActivity(Intent(requireContext(), PaymentActivity::class.java)) }
         )
         for ((icon, label, action) in items) {
@@ -172,6 +178,27 @@ class AccountFragment : Fragment() {
             row.label.text = label
             row.root.setOnClickListener { action() }
             binding.menuContainer.addView(row.root)
+        }
+    }
+
+    /**
+     * 游客菜单：未登录也能查订单（按下单邮箱回查）、看记录、提定制。
+     * 之前这些入口只在登录后显示，游客下完单根本找不到订单，属于断头路。
+     */
+    private fun buildGuestMenu() {
+        binding.guestMenuContainer.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        val items = listOf(
+            Triple(R.drawable.ic_doc, "我的订单（按邮箱查询）") { startActivity(Intent(requireContext(), OrdersActivity::class.java)) },
+            Triple(R.drawable.ic_info, "我的记录") { startActivity(Intent(requireContext(), MyRecordsActivity::class.java)) },
+            Triple(R.drawable.ic_image, "来图定制") { startActivity(Intent(requireContext(), CustomIdeaActivity::class.java)) }
+        )
+        for ((icon, label, action) in items) {
+            val row = ItemMenuRowBinding.inflate(inflater, binding.guestMenuContainer, false)
+            row.icon.setImageResource(icon)
+            row.label.text = label
+            row.root.setOnClickListener { action() }
+            binding.guestMenuContainer.addView(row.root)
         }
     }
 

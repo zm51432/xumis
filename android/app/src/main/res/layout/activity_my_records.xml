@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" android:background="@color/shine_bg"
+        android:elevation="0dp" app:title="我的记录" app:titleTextColor="@color/shine_text"
+        app:navigationIcon="?attr/homeAsUpIndicator" app:navigationIconTint="@color/shine_text" />
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:fillViewport="true">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="4dp" android:paddingBottom="28dp">
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="仅记录本机提交的来图定制与在线咨询；客服回复会发送到你填写的邮箱。"
+                android:textSize="12sp" android:textColor="@color/shine_sub"
+                android:lineSpacingExtra="3dp" />
+
+            <LinearLayout android:id="@+id/records_container" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginTop="10dp" />
+
+            <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:gravity="center" android:visibility="gone" android:paddingTop="72dp"
+                android:paddingStart="24dp" android:paddingEnd="24dp">
+
+                <ImageView android:layout_width="56dp" android:layout_height="56dp"
+                    android:src="@drawable/ic_doc" android:tint="@color/shine_sub"
+                    android:alpha="0.5" android:contentDescription="暂无记录" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:text="还没有提交记录"
+                    android:textSize="15sp" android:textStyle="bold" android:textColor="@color/shine_text" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:text="提交来图定制或在线咨询后，会在这里留档"
+                    android:textSize="13sp" android:textColor="@color/shine_sub" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

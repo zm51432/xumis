@@ -132,6 +132,7 @@
         <activity android:name=".ui.PoliciesActivity" android:exported="false" />
         <activity android:name=".ui.CustomIdeaActivity" android:exported="false" />
         <activity android:name=".ui.InquiryActivity" android:exported="false" />
+        <activity android:name=".ui.MyRecordsActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.UpdateActivity" android:exported="false" />

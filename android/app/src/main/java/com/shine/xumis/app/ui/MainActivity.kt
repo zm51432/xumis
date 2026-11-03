@@ -1,5 +1,6 @@
 package com.shine.xumis.app.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -23,10 +24,21 @@ import kotlinx.coroutines.withContext
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
-    private companion object {
+    companion object {
         /** 前台静默检查的最小间隔：6 小时（只在检查成功后计时） */
         const val UPDATE_CHECK_INTERVAL = 6 * 60 * 60 * 1000L
         const val KEY_TAB = "selected_tab"
+
+        /** 外部指定打开哪个 Tab（cart / home），用于「去购物车」「去逛逛」等闭环跳转 */
+        const val EXTRA_OPEN_TAB = "open_tab"
+        const val TAB_HOME = "home"
+        const val TAB_CART = "cart"
+
+        /** 统一跳转：清空栈回到主界面并选中目标 Tab */
+        fun intentTo(ctx: Context, tab: String): Intent =
+            Intent(ctx, MainActivity::class.java)
+                .putExtra(EXTRA_OPEN_TAB, tab)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
         /** 四个 Tab 的 Fragment 标签：切回来时复用同一个实例，不重建 WebView */
         const val TAG_HOME = "tab_home"
@@ -59,7 +71,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 恢复上次停留的 Tab：转屏或从后台被杀后重建，高亮和内容保持一致
-        val startTab = savedInstanceState?.getInt(KEY_TAB, R.id.nav_home) ?: R.id.nav_home
+        val startTab = when (intent.getStringExtra(EXTRA_OPEN_TAB)) {
+            TAB_CART -> R.id.nav_cart
+            TAB_HOME -> R.id.nav_home
+            else -> savedInstanceState?.getInt(KEY_TAB, R.id.nav_home) ?: R.id.nav_home
+        }
         binding.bottomNav.selectedItemId = startTab
 
         AppPrefs.init(applicationContext)
@@ -92,6 +108,16 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_TAB, binding.bottomNav.selectedItemId)
+    }
+
+    /** 已在前台时被「去购物车 / 去逛逛」唤起：直接切 Tab，不重建界面 */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        when (intent.getStringExtra(EXTRA_OPEN_TAB)) {
+            TAB_CART -> binding.bottomNav.selectedItemId = R.id.nav_cart
+            TAB_HOME -> binding.bottomNav.selectedItemId = R.id.nav_home
+        }
     }
 
     /**

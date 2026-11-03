@@ -1,6 +1,7 @@
 package com.shine.xumis.app.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -17,6 +18,7 @@ import com.shine.xumis.app.R
 import com.shine.xumis.app.api.CommerceApi
 import com.shine.xumis.app.api.MeResult
 import com.shine.xumis.app.databinding.ActivityCustomIdeaBinding
+import com.shine.xumis.app.util.LocalRecords
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -152,7 +154,7 @@ class CustomIdeaActivity : AppCompatActivity() {
                     expectCategory = categoryEnum(),
                     imagePart = imagePart
                 )
-                showSuccess(email)
+                showSuccess(email, desc)
             } catch (e: Exception) {
                 Toast.makeText(this@CustomIdeaActivity, "提交失败：${e.message}", Toast.LENGTH_LONG).show()
                 binding.btnSubmit.isEnabled = true
@@ -162,11 +164,22 @@ class CustomIdeaActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSuccess(email: String) {
+    private fun showSuccess(email: String, desc: String) {
+        // 落一份本机记录：提交后可在「我的记录」回看，不再是提交即消失
+        LocalRecords.add(
+            this, LocalRecords.TYPE_CUSTOM,
+            title = (binding.actCategory.text?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: "来图定制"),
+            detail = desc,
+            email = email
+        )
         MaterialAlertDialogBuilder(this)
             .setTitle("已收到你的定制需求")
             .setMessage("我们会尽快通过邮箱（$email）与你联系。\n参考图已一并提交给工匠。")
             .setCancelable(false)
+            .setNegativeButton("查看我的定制") { _, _ ->
+                startActivity(Intent(this, MyRecordsActivity::class.java))
+                finish()
+            }
             .setPositiveButton("完成") { _, _ -> finish() }
             .show()
     }

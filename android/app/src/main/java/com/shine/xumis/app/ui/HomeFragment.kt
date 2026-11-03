@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 import com.shine.xumis.app.R
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.api.CartApi
@@ -120,7 +121,13 @@ class HomeFragment : Fragment() {
             try {
                 val count = CartApi.add(p.id ?: 0L)
                 CartApi.publish(count)
-                Toast.makeText(requireContext(), "已加入购物车（$count 件）", Toast.LENGTH_SHORT).show()
+                // 加购后给一个「去购物车」动作，形成 加购 → 结算 的闭环
+                Snackbar.make(binding.root, "已加入购物车（$count 件）", Snackbar.LENGTH_LONG)
+                    .setAction("去购物车") {
+                        startActivity(MainActivity.intentTo(requireContext(), MainActivity.TAB_CART))
+                    }
+                    .setActionTextColor(requireContext().getColor(R.color.shine_mint))
+                    .show()
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
             } finally {

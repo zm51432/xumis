@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 import com.shine.xumis.app.R
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.api.CartApi
@@ -111,7 +112,13 @@ class ProductDetailActivity : AppCompatActivity() {
             try {
                 val count = CartApi.add(productId)
                 CartApi.publish(count)
-                Toast.makeText(this@ProductDetailActivity, "已加入购物车（$count 件）", Toast.LENGTH_SHORT).show()
+                // 加购后给一个「去购物车」动作，形成 加购 → 结算 的闭环
+                Snackbar.make(binding.root, "已加入购物车（$count 件）", Snackbar.LENGTH_LONG)
+                    .setAction("去购物车") {
+                        startActivity(MainActivity.intentTo(this@ProductDetailActivity, MainActivity.TAB_CART))
+                    }
+                    .setActionTextColor(getColor(R.color.shine_mint))
+                    .show()
             } catch (e: Exception) {
                 Toast.makeText(this@ProductDetailActivity, "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
             } finally {

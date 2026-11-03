@@ -19,12 +19,22 @@
                 android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:id="@+id/tv_order_no" android:layout_width="0dp" android:layout_weight="1"
                     android:layout_height="wrap_content" android:textSize="16sp" android:textStyle="bold"
-                    android:textColor="@color/shine_text"/>
+                    android:textColor="@color/shine_text" android:clickable="true" android:focusable="true"
+                    android:contentDescription="点击复制订单号"/>
                 <TextView android:id="@+id/tv_status" android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:textSize="11sp" android:textColor="@color/shine_pink"
                     android:background="@drawable/bg_badge_soft" android:paddingStart="8dp" android:paddingEnd="8dp"
                     android:paddingTop="2dp" android:paddingBottom="2dp"/>
             </LinearLayout>
+
+            <TextView android:id="@+id/tv_copy_hint" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="点击订单号可复制"
+                android:textSize="11sp" android:textColor="@color/shine_sub"/>
+
+            <TextView android:id="@+id/tv_status_hint" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:text="商家确认后订单状态会更新；取消 / 售后请点下方「联系客服」"
+                android:textSize="11sp" android:textColor="@color/shine_sub" android:lineSpacingExtra="2dp"/>
 
             <TextView android:id="@+id/tv_created" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="12sp"
@@ -55,6 +65,30 @@
                 android:textStyle="bold" android:textColor="@color/shine_pink"/>
         </LinearLayout>
     </ScrollView>
+
+    <!-- 底部操作栏：再次购买 / 联系客服，避免订单详情只能看不能做 -->
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/shine_yellow_line"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:background="@color/shine_surface"
+        android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="10dp"
+        android:paddingBottom="10dp" android:elevation="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_contact" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="46dp"
+            android:text="联系客服" android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
+            android:textColor="@color/shine_pink" app:strokeColor="@color/shine_pink"
+            app:cornerRadius="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_rebuy" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="46dp" android:layout_marginStart="10dp" android:text="再次购买"
+            android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
+            android:textColor="@color/shine_on_red" app:backgroundTint="@color/shine_pink"
+            app:cornerRadius="12dp"/>
+    </LinearLayout>
 
     <ProgressBar android:id="@+id/pb" android:layout_width="28dp" android:layout_height="28dp"
         android:layout_gravity="center" android:indeterminateTint="@color/shine_pink" android:visibility="gone"/>

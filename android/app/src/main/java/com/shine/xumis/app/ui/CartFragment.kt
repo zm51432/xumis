@@ -40,6 +40,9 @@ class CartFragment : Fragment() {
         binding.btnCheckout.setOnClickListener {
             startActivity(Intent(requireContext(), CheckoutActivity::class.java))
         }
+        binding.btnGoShopping.setOnClickListener {
+            startActivity(MainActivity.intentTo(requireContext(), MainActivity.TAB_HOME))
+        }
         load()
     }
 

@@ -58,6 +58,15 @@
             <TextView android:id="@+id/tv_toggle" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp" android:layout_gravity="center_horizontal"
                 android:text="没有账号？去注册" android:textSize="13sp" android:textColor="@color/shine_pink"/>
+
+            <!-- 游客入口：不登录也能查订单 / 看记录 / 提定制，避免下单后找不到订单 -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="26dp" android:text="无需登录也可以"
+                android:textSize="12sp" android:textColor="@color/shine_sub"/>
+
+            <LinearLayout android:id="@+id/guest_menu_container" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginTop="4dp"/>
         </LinearLayout>
 
         <!-- 已登录：资料头 + 堆叠菜单 + 退出 -->
@@ -70,7 +79,7 @@
             <TextView android:id="@+id/tv_email" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginTop="2dp" android:textSize="13sp" android:textColor="@color/shine_sub"/>
 
-            <!-- 菜单：收货资料 / 修改密码 / 我的订单 / 支付方式（代码里逐条填充） -->
+            <!-- 菜单：收货资料 / 修改密码 / 我的订单 / 我的记录 / 来图定制 / 在线咨询 / 支付方式（代码里逐条填充） -->
             <LinearLayout android:id="@+id/menu_container" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:orientation="vertical"
                 android:layout_marginTop="12dp"/>

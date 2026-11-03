@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.shine.xumis.app.R
 import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.CheckoutForm
@@ -61,8 +62,14 @@ class CheckoutActivity : AppCompatActivity() {
                 binding.tvSummary.text = "共 ${cart.count} 件，合计 $" +
                     String.format(java.util.Locale.US, "%.2f", cart.total)
                 if (cart.isEmpty) {
-                    Toast.makeText(this@CheckoutActivity, "购物车是空的", Toast.LENGTH_SHORT).show()
-                    finish()
+                    // 空车不再静默退出：给「去逛逛」一条明路
+                    MaterialAlertDialogBuilder(this@CheckoutActivity)
+                        .setTitle("购物车是空的")
+                        .setMessage("先去挑一件心动好物，再回来结算吧。")
+                        .setCancelable(false)
+                        .setNegativeButton("返回") { _, _ -> finish() }
+                        .setPositiveButton("去逛逛") { _, _ -> goHome() }
+                        .show()
                     return@launch
                 }
                 // 已登录则预填收货资料

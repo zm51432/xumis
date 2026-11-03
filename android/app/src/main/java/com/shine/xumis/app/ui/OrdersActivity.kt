@@ -25,6 +25,9 @@ class OrdersActivity : AppCompatActivity() {
         setSupportActionBar(binding.topAppBar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.topAppBar.setNavigationOnClickListener { finish() }
+        binding.btnGoShopping.setOnClickListener {
+            startActivity(MainActivity.intentTo(this, MainActivity.TAB_HOME))
+        }
         load()
     }
 
@@ -37,8 +40,10 @@ class OrdersActivity : AppCompatActivity() {
                 binding.ordersContainer.removeAllViews()
                 if (orders.isEmpty()) {
                     binding.tvEmpty.visibility = View.VISIBLE
+                    binding.btnGoShopping.visibility = View.VISIBLE
                 } else {
                     binding.tvEmpty.visibility = View.GONE
+                    binding.btnGoShopping.visibility = View.GONE
                     val inflater = LayoutInflater.from(this@OrdersActivity)
                     for (o in orders) {
                         val card = ItemOrderBinding.inflate(inflater, binding.ordersContainer, false)
