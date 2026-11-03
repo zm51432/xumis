@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- 品牌横幅：点击进入主打商品 -->
+    <LinearLayout android:id="@+id/banner" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal"
+        android:background="@drawable/bg_home_banner" android:gravity="center_vertical"
+        android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
+        android:layout_marginTop="10dp" android:paddingStart="18dp" android:paddingEnd="16dp"
+        android:paddingTop="16dp" android:paddingBottom="16dp"
+        android:clickable="true" android:focusable="true">
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:orientation="vertical">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="shine 星心" android:textSize="21sp" android:textStyle="bold"
+                android:textColor="@color/shine_on_red" />
+
+            <TextView android:id="@+id/banner_sub" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:text="精选饰品 · 手工好物 · 官方直营" android:textSize="12sp"
+                android:textColor="#E6FFFFFF" />
+        </LinearLayout>
+
+        <TextView android:id="@+id/btn_featured" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="查看主打 ›"
+            android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/shine_on_red"
+            android:background="@drawable/bg_banner_pill"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:paddingTop="6dp" android:paddingBottom="6dp" />
+    </LinearLayout>
+
+    <!-- 分类快捷筛选 -->
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" android:paddingStart="12dp" android:paddingEnd="12dp"
+        android:clipToPadding="false" android:scrollbars="none">
+
+        <LinearLayout android:id="@+id/chip_row" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- 区块标题 -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:layout_marginTop="16dp" android:paddingStart="14dp" android:paddingEnd="14dp">
+
+        <TextView android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:text="热销好物" android:textSize="19sp"
+            android:textStyle="bold" android:textColor="@color/shine_text"
+            android:drawableStart="@drawable/ic_flame" android:drawablePadding="6dp"
+            android:gravity="center_vertical" />
+
+        <TextView android:id="@+id/tv_count" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textSize="12sp"
+            android:textColor="@color/shine_sub" />
+    </LinearLayout>
+</LinearLayout>

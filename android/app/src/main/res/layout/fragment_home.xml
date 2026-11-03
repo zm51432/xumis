@@ -1,234 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="match_parent"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/shine_bg">
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+    <!-- RecyclerView 必须是 SwipeRefreshLayout 的直接子 View，下拉刷新才只在列表顶部触发 -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe" android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll" android:layout_width="match_parent" android:layout_height="match_parent"
-            android:fillViewport="true">
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="0dp"
+            android:paddingBottom="14dp" android:clipToPadding="false" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical">
+    <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_gravity="top" android:visibility="gone"
+        android:background="@color/shine_yellow_soft" android:paddingStart="14dp"
+        android:paddingEnd="14dp" android:paddingTop="9dp" android:paddingBottom="9dp"
+        android:textSize="12sp" android:textColor="@color/shine_amber_text"
+        android:text="离线数据 · 正在展示上次缓存的商品，联网后下拉刷新" />
 
-                <!-- 顶部店铺公告：与线上一致，轻量滚动展示 -->
-                <LinearLayout android:id="@+id/ticker" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:orientation="horizontal"
-                    android:background="@drawable/bg_ticker" android:gravity="center_vertical">
+    <!-- 空态 -->
+    <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone"
+        android:orientation="vertical" android:gravity="center" android:paddingStart="32dp"
+        android:paddingEnd="32dp">
 
-                    <ImageView android:layout_width="16dp" android:layout_height="16dp"
-                        android:layout_marginStart="12dp" android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_announce" android:tint="@color/shine_pink"
-                        android:contentDescription="公告" />
+        <ImageView android:layout_width="56dp" android:layout_height="56dp"
+            android:src="@drawable/ic_placeholder" android:alpha="0.55"
+            android:contentDescription="暂无商品" />
 
-                    <TextView android:id="@+id/ticker_text" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:singleLine="true"
-                        android:ellipsize="marquee" android:marqueeRepeatLimit="marquee_forever"
-                        android:scrollHorizontally="true" android:paddingTop="7dp" android:paddingBottom="7dp"
-                        android:paddingEnd="16dp" android:textColor="@color/shine_text"
-                        android:textSize="12.5sp" />
-                </LinearLayout>
+        <TextView android:id="@+id/tv_empty_title" style="@style/EmptyTitle"
+            android:layout_marginTop="12dp" android:text="这里还没有商品" />
 
-                <!-- 商品主图：全幅圆角，对标平台商品头图 -->
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_product" android:layout_width="match_parent"
-                    android:layout_height="360dp" android:scaleType="centerCrop"
-                    android:layout_marginStart="0dp" android:layout_marginEnd="0dp"
-                    android:background="@drawable/bg_image_frame"
-                    app:shapeAppearanceOverlay="@style/RoundedImage" />
+        <TextView android:id="@+id/tv_empty_body" style="@style/EmptyBody"
+            android:text="下拉刷新试一次，或稍后再来看看" />
 
-                <!-- 价格 / 促销卡：白底圆角 -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="vertical" android:background="@drawable/bg_card"
-                    android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
-                    android:layout_marginTop="10dp" android:paddingStart="14dp" android:paddingEnd="14dp"
-                    android:paddingTop="12dp" android:paddingBottom="12dp">
+        <Button android:id="@+id/btn_retry" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_marginTop="14dp"
+            android:text="重新加载" android:textColor="@color/shine_on_red"
+            android:backgroundTint="@color/shine_pink" android:visibility="gone" />
+    </LinearLayout>
 
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="center_vertical">
-
-                        <TextView android:id="@+id/tv_price" android:layout_width="0dp"
-                            android:layout_height="wrap_content" android:layout_weight="1"
-                            android:textSize="28sp" android:textStyle="bold"
-                            android:textColor="@color/shine_pink" android:text="$0.00" />
-
-                        <TextView android:id="@+id/tv_sold" android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" android:textSize="12sp"
-                            android:textColor="@color/shine_sub" android:visibility="gone" />
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:layout_marginTop="8dp">
-
-                        <TextView android:id="@+id/tv_coupon_1" android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" android:text="包邮"
-                            android:textSize="11sp" android:textStyle="bold"
-                            android:textColor="@color/shine_on_red" android:background="@drawable/bg_badge_hot"
-                            android:paddingStart="10dp" android:paddingEnd="10dp"
-                            android:paddingTop="3dp" android:paddingBottom="3dp" />
-
-                        <TextView android:id="@+id/tv_coupon_2" android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" android:text="限时特惠"
-                            android:textSize="11sp" android:textStyle="bold"
-                            android:textColor="@color/shine_pink" android:background="@drawable/bg_badge_soft"
-                            android:paddingStart="10dp" android:paddingEnd="10dp"
-                            android:paddingTop="3dp" android:paddingBottom="3dp"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- 标题 + 英文名 -->
-                <TextView android:id="@+id/tv_title" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp" android:layout_marginTop="14dp"
-                    android:textSize="19sp" android:textStyle="bold" android:textColor="@color/shine_text"
-                    android:lineSpacingExtra="3dp" />
-
-                <TextView android:id="@+id/tv_subtitle" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp" android:layout_marginTop="4dp"
-                    android:textSize="12.5sp" android:textColor="@color/shine_sub" />
-
-                <!-- 服务承诺：对标平台「正品保证 / 七天无理由 / 闪电发货」 -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp" android:layout_marginTop="12dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="正品保证" android:textSize="12sp" android:textColor="@color/shine_amber_text"
-                        android:background="@drawable/bg_badge_soft" android:paddingStart="9dp"
-                        android:paddingEnd="9dp" android:paddingTop="3dp" android:paddingBottom="3dp" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="七天无理由" android:textSize="12sp" android:textColor="@color/shine_amber_text"
-                        android:background="@drawable/bg_badge_soft" android:paddingStart="9dp"
-                        android:paddingEnd="9dp" android:paddingTop="3dp" android:paddingBottom="3dp"
-                        android:layout_marginStart="8dp" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="闪电发货" android:textSize="12sp" android:textColor="@color/shine_amber_text"
-                        android:background="@drawable/bg_badge_soft" android:paddingStart="9dp"
-                        android:paddingEnd="9dp" android:paddingTop="3dp" android:paddingBottom="3dp"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
-
-                <!-- 规格参数卡 -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="vertical" android:background="@drawable/bg_card"
-                    android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
-                    android:layout_marginTop="12dp" android:paddingStart="14dp" android:paddingEnd="14dp"
-                    android:paddingTop="12dp" android:paddingBottom="12dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="规格参数" android:textSize="14sp" android:textStyle="bold"
-                        android:textColor="@color/shine_text" />
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:layout_marginTop="8dp">
-
-                        <TextView android:layout_width="64dp" android:layout_height="wrap_content"
-                            android:text="材质" android:textSize="13sp" android:textColor="@color/shine_sub" />
-
-                        <TextView android:id="@+id/tv_material" android:layout_width="0dp"
-                            android:layout_height="wrap_content" android:layout_weight="1"
-                            android:textSize="13sp" android:textColor="@color/shine_text" />
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:layout_marginTop="4dp">
-
-                        <TextView android:layout_width="64dp" android:layout_height="wrap_content"
-                            android:text="分类" android:textSize="13sp" android:textColor="@color/shine_sub" />
-
-                        <TextView android:id="@+id/tv_cat" android:layout_width="0dp"
-                            android:layout_height="wrap_content" android:layout_weight="1"
-                            android:textSize="13sp" android:textColor="@color/shine_text" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- 宝贝详情卡 -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="vertical" android:background="@drawable/bg_card"
-                    android:layout_marginStart="12dp" android:layout_marginEnd="12dp"
-                    android:layout_marginTop="12dp" android:paddingStart="14dp" android:paddingEnd="14dp"
-                    android:paddingTop="12dp" android:paddingBottom="14dp">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="宝贝详情" android:textSize="14sp" android:textStyle="bold"
-                        android:textColor="@color/shine_text" />
-
-                    <TextView android:id="@+id/tv_desc" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:textSize="14sp"
-                        android:textColor="@color/shine_text" android:layout_marginTop="8dp"
-                        android:lineSpacingExtra="5dp" />
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/img_detail" android:layout_width="match_parent"
-                        android:layout_height="220dp" android:scaleType="centerCrop"
-                        android:layout_marginTop="12dp" android:background="@drawable/bg_image_frame"
-                        app:shapeAppearanceOverlay="@style/RoundedImage" />
-                </LinearLayout>
-
-                <!-- 底部留白，避免内容被吸底购买栏遮住 -->
-                <View android:layout_width="match_parent" android:layout_height="84dp" />
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-
-        <!-- 离线提示条 -->
-        <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:visibility="gone"
-            android:background="@color/shine_yellow_soft" android:paddingStart="14dp"
-            android:paddingEnd="14dp" android:paddingTop="9dp" android:paddingBottom="9dp"
-            android:textSize="12sp" android:textColor="@color/shine_amber_text"
-            android:text="离线数据 · 展示上次缓存的商品，联网后下拉刷新" />
-
-        <!-- 空态 -->
-        <LinearLayout android:id="@+id/empty_state" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone"
-            android:orientation="vertical" android:gravity="center" android:paddingStart="32dp"
-            android:paddingEnd="32dp">
-
-            <ImageView android:layout_width="56dp" android:layout_height="56dp"
-                android:src="@drawable/ic_placeholder" android:alpha="0.55" />
-
-            <TextView android:id="@+id/tv_empty_title" style="@style/EmptyTitle"
-                android:layout_marginTop="12dp" android:text="这里还没有商品" />
-
-            <TextView android:id="@+id/tv_empty_body" style="@style/EmptyBody"
-                android:text="下拉刷新试一次，或稍后再来看看" />
-
-            <Button android:id="@+id/btn_retry" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginTop="14dp"
-                android:text="重新加载" android:textColor="@color/shine_on_red"
-                android:backgroundTint="@color/shine_pink" android:visibility="gone" />
-        </LinearLayout>
-
-        <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_gravity="center"
-            android:indeterminateTint="@color/shine_pink" android:visibility="gone" />
-
-        <!-- 吸底操作栏：拇指可达，内容再长也不用滚到底找按钮 -->
-        <LinearLayout android:id="@+id/buy_bar" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_gravity="bottom"
-            android:orientation="horizontal" android:background="@color/shine_surface"
-            android:elevation="8dp" android:paddingStart="14dp" android:paddingEnd="14dp"
-            android:paddingTop="10dp" android:paddingBottom="10dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_cart" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp"
-                android:text="加入购物车" android:textSize="14sp" android:insetTop="0dp"
-                android:insetBottom="0dp" android:textColor="@color/shine_pink"
-                app:strokeColor="@color/shine_pink" app:cornerRadius="12dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_buy" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="48dp" android:layout_marginStart="10dp" android:text="立即购买"
-                android:textSize="14sp" android:insetTop="0dp" android:insetBottom="0dp"
-                android:textColor="@color/shine_on_red" app:backgroundTint="@color/shine_pink"
-                app:cornerRadius="12dp" />
-        </LinearLayout>
-    </FrameLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <ProgressBar android:id="@+id/pb_more" android:layout_width="24dp" android:layout_height="24dp"
+        android:layout_gravity="bottom|center_horizontal" android:layout_marginBottom="16dp"
+        android:indeterminateTint="@color/shine_pink" android:visibility="gone" />
+</FrameLayout>

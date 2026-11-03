@@ -8,29 +8,46 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.google.android.material.snackbar.Snackbar
-import com.shine.xumis.app.R
+import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.shine.xumis.app.api.ApiClient
-import com.shine.xumis.app.api.CartApi
 import com.shine.xumis.app.api.HotApi
 import com.shine.xumis.app.databinding.FragmentHomeBinding
 import com.shine.xumis.app.model.MobileProduct
+import com.shine.xumis.app.ui.adapter.HomeHeaderAdapter
+import com.shine.xumis.app.ui.adapter.ProductAdapter
 import com.shine.xumis.app.util.CatalogCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 首页（平台式多商品）：品牌横幅 + 分类筛选 + 双列商品流。
+ * 横幅/筛选作为列表头部（ConcatAdapter），随内容滚动；下拉刷新、上滑翻页、离线兜底完整保留。
+ */
 class HomeFragment : Fragment() {
+
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private var product: MobileProduct? = null
+
+    private val productAdapter = ProductAdapter(onClick = { openDetail(it) })
+    private val headerAdapter = HomeHeaderAdapter(
+        onFeatured = { openFeatured() },
+        onCategory = { code -> selectCategory(code) }
+    )
 
     private companion object {
-        /** 顶部滚动公告：店铺服务承诺，干净利落不喧宾夺主 */
-        const val TICKER_TEXT =
-            "shine 星心 · 全场包邮 · 七天无理由退换 · 正品保证 · 专注每一件心动好物"
+        const val PAGE_SIZE = 20
+        /** 提前 4 个位置开始预加载 */
+        const val PREFETCH_DISTANCE = 4
     }
+
+    private var page = 0
+    private var totalPages = 1
+    private var loading = false
+    private var selectedCat: String? = null
+    private var featured: MobileProduct? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -39,116 +56,150 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.swipe.setOnRefreshListener { load() }
-        binding.btnRetry.setOnClickListener { load() }
 
-        binding.tickerText.text = TICKER_TEXT
-        binding.tickerText.isSelected = true
+        // 双列网格：头部（横幅+筛选）占满一行，商品卡片一列两个
+        val glm = GridLayoutManager(requireContext(), 2)
+        glm.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int = if (position == 0) 2 else 1
+        }
+        binding.rv.layoutManager = glm
+        binding.rv.adapter = ConcatAdapter(headerAdapter, productAdapter)
 
-        binding.btnCart.setOnClickListener { addToCart() }
-        binding.btnBuy.setOnClickListener { buyNow() }
+        binding.swipe.setOnRefreshListener { load(reset = true) }
+        binding.btnRetry.setOnClickListener { load(reset = true) }
 
-        load()
+        binding.rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (dy <= 0) return
+                val lm = rv.layoutManager as? GridLayoutManager ?: return
+                val total = rv.adapter?.itemCount ?: return
+                if (total > 0 && lm.findLastVisibleItemPosition() >= total - PREFETCH_DISTANCE) {
+                    maybeLoadMore()
+                }
+            }
+        })
+
+        loadCategories()
+        load(reset = true)
     }
 
-    private fun load() {
-        if (!binding.swipe.isRefreshing) binding.progress.visibility = View.VISIBLE
-        lifecycleScope.launch {
-            try {
-                // 销量榜（已售 N 件）：拉不到也不影响主流程，降级为空映射
-                val salesMap = withContext(Dispatchers.IO) { runCatching { HotApi.loadSalesMap() }.getOrDefault(emptyMap()) }
-
-                // 单品模式：首页只展示后台配置的那一件（默认取列表第一件，后台可随时改）
-                val res = ApiClient.api().products(0, 1)
-                val p = (res.content ?: emptyList()).firstOrNull()
-                if (p == null) {
-                    showEmpty(title = "这里还没有商品", body = "店铺刚上新时会出现在这里，下拉可以刷新", retry = false)
-                    return@launch
-                }
-                val sp = if (salesMap.isNotEmpty()) p.copy(sales = salesMap[p.id] ?: p.sales) else p
-                product = sp
-                render(sp)
-                CatalogCache.save(requireContext(), listOf(sp))
-                hideEmpty()
-                binding.tvOffline.visibility = View.GONE
-            } catch (e: Exception) {
-                // 网络不可用：回退到上次成功拉取的快照
-                val snapshot = CatalogCache.load(requireContext())
-                val p = snapshot?.items?.firstOrNull()
-                if (p != null) {
-                    product = p
-                    render(p)
-                    binding.tvOffline.visibility = View.VISIBLE
-                    binding.tvOffline.text =
-                        "离线数据 · 展示缓存的商品（" + CatalogCache.savedAtText(requireContext()) + " 更新），联网后下拉刷新"
-                    hideEmpty()
-                } else {
-                    showEmpty(title = "没能连上店铺", body = "检查一下网络，或稍后再试", retry = true)
-                }
-            } finally {
-                binding.swipe.isRefreshing = false
-                binding.progress.visibility = View.GONE
+    private fun loadCategories() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val cats = withContext(Dispatchers.IO) {
+                runCatching { ApiClient.api().categories() }.getOrDefault(emptyList())
             }
+            headerAdapter.setCategories(cats)
         }
     }
 
-    private fun render(p: MobileProduct) {
-        val url = p.fullImageUrl()
-        if (url != null) {
-            Glide.with(this).load(url).placeholder(R.drawable.ic_placeholder).into(binding.imgProduct)
-            Glide.with(this).load(url).placeholder(R.drawable.ic_placeholder).into(binding.imgDetail)
+    private fun selectCategory(code: String?) {
+        if (selectedCat == code) return
+        selectedCat = code
+        headerAdapter.setSelected(code)
+        binding.rv.scrollToPosition(0)
+        load(reset = true)
+    }
+
+    private fun maybeLoadMore() {
+        if (loading) return
+        if (page >= totalPages) return
+        if (productAdapter.size() == 0) return
+        load(reset = false)
+    }
+
+    private fun load(reset: Boolean) {
+        if (loading) return
+        loading = true
+
+        if (reset) {
+            page = 0
+            binding.swipe.isRefreshing = true
+            binding.btnRetry.visibility = View.GONE
         } else {
-            binding.imgDetail.visibility = View.GONE
+            binding.pbMore.visibility = View.VISIBLE
         }
 
-        binding.tvPrice.text = p.priceText()
-        val sold = p.soldText()
-        binding.tvSold.text = sold ?: ""
-        binding.tvSold.visibility = if (sold == null) View.GONE else View.VISIBLE
-
-        binding.tvTitle.text = p.title()
-        binding.tvSubtitle.text = p.nameEn ?: ""
-
-        binding.tvMaterial.text = if (p.material.isNullOrBlank()) "—" else p.material
-        binding.tvCat.text = p.category ?: "—"
-        binding.tvDesc.text = p.description ?: "（暂无描述）"
-    }
-
-    private fun addToCart() {
-        val p = product ?: return
-        binding.btnCart.isEnabled = false
         lifecycleScope.launch {
             try {
-                val count = CartApi.add(p.id ?: 0L)
-                CartApi.publish(count)
-                // 加购后给一个「去购物车」动作，形成 加购 → 结算 的闭环
-                Snackbar.make(binding.root, "已加入购物车（$count 件）", Snackbar.LENGTH_LONG)
-                    .setAction("去购物车") {
-                        startActivity(MainActivity.intentTo(requireContext(), MainActivity.TAB_CART))
+                // 热销榜（销量映射）：拉不到也不影响主流程
+                val salesMap = if (reset) {
+                    withContext(Dispatchers.IO) { runCatching { HotApi.loadSalesMap() }.getOrDefault(emptyMap()) }
+                } else emptyMap()
+
+                val res = ApiClient.api().search(
+                    q = null,
+                    cat = selectedCat,
+                    sort = "default",
+                    page = page,
+                    size = PAGE_SIZE
+                )
+                var list = res.content ?: emptyList()
+                totalPages = (res.totalPages ?: 1).coerceAtLeast(1)
+
+                // 首页按销量优先，翻页保持服务端顺序
+                if (reset && salesMap.isNotEmpty()) {
+                    list = list.map { it.copy(sales = salesMap[it.id] ?: it.sales) }
+                        .sortedByDescending { it.sales ?: 0 }
+                }
+
+                if (reset) {
+                    productAdapter.submit(list)
+                    if (list.isNotEmpty()) {
+                        CatalogCache.save(requireContext(), list)
+                        if (selectedCat == null) featured = list.firstOrNull() ?: featured
                     }
-                    .setActionTextColor(requireContext().getColor(R.color.shine_mint))
-                    .show()
+                } else {
+                    productAdapter.append(list)
+                }
+                page += 1
+
+                binding.tvOffline.visibility = View.GONE
+                headerAdapter.setCount("共 " + (res.totalElements ?: productAdapter.size()) + " 件")
+                hideEmpty()
+
+                if (productAdapter.size() == 0) {
+                    showEmpty("这个分类还没有商品", "换个分类看看，或下拉刷新", retry = false)
+                }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
+                if (reset) {
+                    // 仅在「全部」下回退缓存快照，分类筛选时保持真实结果
+                    val snapshot = if (selectedCat == null) CatalogCache.load(requireContext()) else null
+                    if (snapshot != null && snapshot.items.isNotEmpty()) {
+                        productAdapter.submit(snapshot.items)
+                        featured = snapshot.items.firstOrNull() ?: featured
+                        binding.tvOffline.visibility = View.VISIBLE
+                        binding.tvOffline.text =
+                            "离线数据 · 展示 ${snapshot.items.size} 件缓存商品（" +
+                                CatalogCache.savedAtText(requireContext()) + " 更新），联网后下拉刷新"
+                        headerAdapter.setCount("共 ${snapshot.items.size} 件（离线）")
+                        hideEmpty()
+                    } else {
+                        binding.tvOffline.visibility = View.GONE
+                        showEmpty("没能连上店铺", "检查一下网络，或稍后再试", retry = true)
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "加载更多失败，稍后再试", Toast.LENGTH_SHORT).show()
+                }
             } finally {
-                binding.btnCart.isEnabled = true
+                loading = false
+                binding.swipe.isRefreshing = false
+                binding.pbMore.visibility = View.GONE
             }
         }
     }
 
-    private fun buyNow() {
-        val p = product ?: return
-        binding.btnBuy.isEnabled = false
-        lifecycleScope.launch {
-            try {
-                val count = CartApi.add(p.id ?: 0L)
-                CartApi.publish(count)
-                startActivity(Intent(requireContext(), CheckoutActivity::class.java))
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "加购失败：${e.message}", Toast.LENGTH_SHORT).show()
-            } finally {
-                binding.btnBuy.isEnabled = true
+    private fun openFeatured() {
+        val p = featured
+        if (p != null) {
+            openDetail(p)
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val p2 = withContext(Dispatchers.IO) {
+                runCatching { ApiClient.api().products(0, 1).content?.firstOrNull() }.getOrNull()
             }
+            if (p2 != null) openDetail(p2)
+            else Toast.makeText(requireContext(), "商品加载中，请稍后再试", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -166,10 +217,18 @@ class HomeFragment : Fragment() {
 
     /** 双击首页 Tab 时回滚到顶部（由 MainActivity 的 reselected 监听调用） */
     fun scrollToTop() {
-        _binding?.scroll?.smoothScrollTo(0, 0)
+        _binding?.rv?.smoothScrollToPosition(0)
+    }
+
+    private fun openDetail(p: MobileProduct) {
+        startActivity(
+            Intent(requireContext(), ProductDetailActivity::class.java)
+                .putExtra("product_id", p.id ?: 0L)
+        )
     }
 
     override fun onDestroyView() {
+        binding.rv.adapter = null
         _binding = null
         super.onDestroyView()
     }
