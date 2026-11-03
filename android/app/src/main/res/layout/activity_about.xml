@@ -55,9 +55,6 @@
                     android:lineSpacingExtra="3dp"
                     android:text="正在统计…"/>
 
-                <Button android:id="@+id/btn_catalog" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="打开离线商品册"
-                    android:layout_marginTop="12dp"/>
 
                 <Button android:id="@+id/btn_policies" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:text="配送与售后条款"

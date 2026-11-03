@@ -60,12 +60,6 @@
             <LinearLayout style="@style/SettingsCard">
 
                 <include
-                    android:id="@+id/row_catalog"
-                    layout="@layout/item_settings_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <include
                     android:id="@+id/row_offline"
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"
@@ -108,25 +102,7 @@
                     android:layout_height="wrap_content" />
 
                 <include
-                    android:id="@+id/row_diag"
-                    layout="@layout/item_settings_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <include
                     android:id="@+id/row_about"
-                    layout="@layout/item_settings_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <include
-                    android:id="@+id/row_policies"
-                    layout="@layout/item_settings_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <include
-                    android:id="@+id/row_services"
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />

@@ -106,17 +106,11 @@ class SplashActivity : AppCompatActivity() {
 
         val snapshot = CatalogCache.load(this)
         binding.btnOffline.visibility = View.VISIBLE
-        if (snapshot != null) {
-            binding.btnOffline.text = "离线进入（缓存 ${snapshot.items.size} 件商品）"
-            binding.btnOffline.setOnClickListener {
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
-            }
-        } else {
-            binding.btnOffline.text = "浏览离线商品册"
-            binding.btnOffline.setOnClickListener {
-                startActivity(Intent(this, OfflineCatalogActivity::class.java))
-            }
+        binding.btnOffline.text =
+            if (snapshot != null) "离线进入（缓存 ${snapshot.items.size} 件商品）" else "离线进入"
+        binding.btnOffline.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
     }
 }

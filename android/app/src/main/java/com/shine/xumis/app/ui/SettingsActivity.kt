@@ -12,7 +12,6 @@ import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivitySettingsBinding
 import com.shine.xumis.app.databinding.ItemSettingsRowBinding
 import com.shine.xumis.app.util.AppPrefs
-import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.Docs
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
@@ -126,11 +125,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setUpContent() {
         bind(
-            binding.rowCatalog, R.drawable.ic_storage, "离线商品缓存",
-            "正在统计…"
-        ) { startActivity(Intent(this, OfflineCatalogActivity::class.java)) }
-
-        bind(
             binding.rowOffline, R.drawable.ic_image, "离线资源",
             "正在统计…"
         ) { showOfflineDetail() }
@@ -144,12 +138,11 @@ class SettingsActivity : AppCompatActivity() {
             .setMessage(
                 "以下内容随安装包内置，不额外消耗流量：\n\n" +
                     "· 商品图 $imgs 张（$size）\n" +
-                    "· 离线商品册、离线首页、配送与售后条款 3 个页面\n" +
+                    "· 离线首页、隐私政策与服务条款随包可用\n" +
                     "· Nunito / Quicksand 字体 6 款，离线排版不变形\n\n" +
-                    "断网时首页、商品册与条款均可正常浏览。"
+                    "断网时首页与条款仍可正常浏览。"
             )
             .setNegativeButton("关闭", null)
-            .setPositiveButton("打开商品册") { _, _ -> startActivity(Intent(this, OfflineCatalogActivity::class.java)) }
             .show()
     }
 
@@ -178,25 +171,8 @@ class SettingsActivity : AppCompatActivity() {
         bind(binding.rowStatus, R.drawable.ic_status, "运行状态", "通过率、延迟、缓存与崩溃记录") {
             startActivity(Intent(this, StatusActivity::class.java))
         }
-        bind(binding.rowDiag, R.drawable.ic_diagnostics, "接口自检（50 次）", "连续校验商品、分类与健康接口") {
-            startActivity(Intent(this, DiagnosticsActivity::class.java))
-        }
         bind(binding.rowAbout, R.drawable.ic_help, "帮助与关于", "常见问题、离线内容与联系方式") {
             startActivity(Intent(this, AboutActivity::class.java))
-        }
-        bind(binding.rowPolicies, R.drawable.ic_doc, "配送与售后条款", "发货、跨境运费、退换与支付说明") {
-            startActivity(Intent(this, PoliciesActivity::class.java))
-        }
-        // 来图定制、询盘均改为原生表单，不再跳站内网页
-        bind(binding.rowServices, R.drawable.ic_browser, "来图定制与询盘", "定制需求、咨询联系（原生提交）") {
-            MaterialAlertDialogBuilder(this)
-                .setTitle("选择服务")
-                .setItems(arrayOf("来图定制", "询盘联系")) { _, which ->
-                    if (which == 0) startActivity(Intent(this, CustomIdeaActivity::class.java))
-                    else startActivity(Intent(this, InquiryActivity::class.java))
-                }
-                .setNegativeButton("取消", null)
-                .show()
         }
     }
 
@@ -258,13 +234,6 @@ class SettingsActivity : AppCompatActivity() {
         if (!checkingUpdate) setValue(binding.rowUpdate, "v" + versionName())
         setValue(binding.rowVersion, "v${versionName()}（${versionCode()}）")
         setValue(binding.rowPermissions, Permissions.summary(this))
-
-        val snap = CatalogCache.load(this)
-        binding.rowCatalog.tvSub.text = if (snap == null) {
-            "暂无缓存，联网浏览后自动保存"
-        } else {
-            "${snap.items.size} 件 · 缓存于 ${CatalogCache.savedAtText(this)}"
-        }
 
         lifecycleScope.launch {
             val (imgs, bytes) = withContext(Dispatchers.IO) {

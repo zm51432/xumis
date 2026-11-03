@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivityAboutBinding
 import com.shine.xumis.app.util.CatalogCache
+import com.shine.xumis.app.util.Docs
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.WebViewSetup
 import kotlinx.coroutines.Dispatchers
@@ -33,11 +34,8 @@ class AboutActivity : AppCompatActivity() {
         binding.tvVersion.text = "版本 ${versionName()} (${versionCode()})"
         binding.tvFaq.text = FAQ
 
-        binding.btnCatalog.setOnClickListener {
-            startActivity(Intent(this, OfflineCatalogActivity::class.java))
-        }
         binding.btnPolicies.setOnClickListener {
-            startActivity(Intent(this, PoliciesActivity::class.java))
+            startActivity(DocActivity.intent(this, Docs.TERMS))
         }
         binding.btnShareApp.setOnClickListener {
             startActivity(
@@ -62,7 +60,7 @@ class AboutActivity : AppCompatActivity() {
             val cached = CatalogCache.count(this@AboutActivity)
             binding.tvOfflineStat.text = buildString {
                 append("· 商品图 $imgs 张（${OfflineAssets.sizeText(bytes)}）\n")
-                append("· 离线商品册 1 份、配送与售后条款 1 份\n")
+                append("· 隐私政策与服务条款随包可用\n")
                 append("· 内置 Nunito / Quicksand 字体 6 款，离线排版不变形\n")
                 append("· 最近一次在线商品缓存：$cached 件（${CatalogCache.savedAtText(this@AboutActivity)}）")
             }
@@ -107,7 +105,7 @@ class AboutActivity : AppCompatActivity() {
             不需要。App 出厂已在后台直连官方商店服务，打开即用，无需填写任何地址或账号配置。
 
             2. 没有网络还能用吗？
-            可以。首页会展示上次缓存的商品列表，并标注缓存时间；「离线商品册」内置 12 件商品的图片、材质与描述，配送与售后条款也随包安装。
+            可以。首页会展示上次缓存的商品并标注缓存时间；隐私政策与服务条款随包安装，断网也能打开。
 
             3. 下单、支付在哪里完成？
             商品详情页点「加入购物车 / 立即购买」即可原生完成下单，支持 PayPal、微信支付、支付宝、信用卡四种渠道。

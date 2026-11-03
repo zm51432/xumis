@@ -128,18 +128,14 @@
         <activity android:name=".ui.PaymentActivity" android:exported="false" />
         <activity android:name=".ui.ForgotPasswordActivity" android:exported="false" />
         <activity android:name=".ui.ResetPasswordActivity" android:exported="false" />
-        <activity android:name=".ui.OfflineCatalogActivity" android:exported="false" />
-        <activity android:name=".ui.PoliciesActivity" android:exported="false" />
         <activity android:name=".ui.CustomIdeaActivity" android:exported="false" />
         <activity android:name=".ui.InquiryActivity" android:exported="false" />
         <activity android:name=".ui.MyRecordsActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.UpdateActivity" android:exported="false" />
-        <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
         <activity android:name=".ui.StatusActivity" android:exported="false" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />
-        <activity android:name=".ui.WebViewActivity" android:exported="false" />
         <activity android:name=".ui.DocActivity" android:exported="false" />
 
         <!-- 拍照上传：把缓存里的临时照片以 content:// 交给相机 App，

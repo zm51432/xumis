@@ -1,6 +1,5 @@
 package com.shine.xumis.app.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -37,7 +36,8 @@ class StatusActivity : AppCompatActivity() {
 
         binding.btnRun.setOnClickListener { run(rounds) }
         binding.btnPressure.setOnClickListener {
-            startActivity(Intent(this, DiagnosticsActivity::class.java))
+            // 与「立即检测」同一套逻辑，只是跑 50 轮；不再跳转重复的自检页
+            run(50)
         }
 
         renderLast()
