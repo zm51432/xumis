@@ -5,23 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>shine 星心 App 下载</title>
 <style>
-  :root{--mint:#7fc5ac;--mint-deep:#4c9b81;--bg:#f7faf8;--line:#e3ece7;--text:#243b34;--sub:#6b7f78}
+  :root{--red:#D32F2F;--red-deep:#B71C1C;--bg:#FFF9E6;--line:#F2E0B0;--text:#3B2A1E;--sub:#8B7355;--soft:#FFF3C4}
   *{box-sizing:border-box}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
   .wrap{max-width:720px;margin:0 auto;padding:32px 20px 56px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px;box-shadow:0 10px 30px rgba(76,155,129,.08)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px;box-shadow:0 10px 30px rgba(211,47,47,.08)}
   h1{margin:0 0 6px;font-size:26px}
   .sub{color:var(--sub);margin:0 0 22px;font-size:14px}
   .meta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px;padding:0;list-style:none}
-  .meta li{background:#eef7f2;color:var(--mint-deep);border-radius:999px;padding:6px 14px;font-size:13px}
-  .btn{display:block;text-align:center;background:var(--mint-deep);color:#fff;text-decoration:none;font-size:17px;font-weight:600;padding:15px 20px;border-radius:999px;box-shadow:0 8px 20px rgba(76,155,129,.28)}
+  .meta li{background:var(--soft);color:var(--red-deep);border-radius:999px;padding:6px 14px;font-size:13px}
+  .btn{display:block;text-align:center;background:linear-gradient(135deg,#E53935,#B71C1C);color:#fff;text-decoration:none;font-size:17px;font-weight:600;padding:15px 20px;border-radius:999px;box-shadow:0 8px 20px rgba(211,47,47,.28)}
   .btn:active{transform:translateY(1px)}
   .hint{font-size:12.5px;color:var(--sub);text-align:center;margin:10px 0 0}
   h2{font-size:16px;margin:30px 0 10px}
-  ol,ul{margin:0;padding-left:20px;font-size:14px;color:#33473f}
+  ol,ul{margin:0;padding-left:20px;font-size:14px;color:#4a382a}
   li{margin:6px 0}
-  code{background:#eef7f2;border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--mint-deep)}
-  .note{margin-top:26px;padding:14px 16px;background:#f2f8f5;border:1px solid var(--line);border-radius:14px;font-size:13px;color:var(--sub)}
+  code{background:var(--soft);border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--red-deep)}
+  .rel{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:12px;background:#FFFDF4}
+  .rel-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .rel-head b{color:var(--red);font-size:15px}
+  .rel-head span{color:var(--sub);font-size:12px;flex-shrink:0}
+  .rel-body{white-space:pre-wrap;font-size:13px;color:#4a382a;margin-top:6px}
+  .note{margin-top:26px;padding:14px 16px;background:var(--soft);border:1px solid var(--line);border-radius:14px;font-size:13px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -31,7 +36,7 @@
     <p class="sub">独立站官方移动客户端，安装即用，无需任何配置。</p>
 
     <ul class="meta">
-      <li id="tagVer">版本 1.5.0</li>
+      <li id="tagVer">版本 2.0.0</li>
       <li>Android 7.0+（含 14）</li>
       <li id="tagSize">约 20 MB（含离线资源）</li>
       <li>仅 4 项权限</li>
@@ -50,67 +55,29 @@
       <li>打开 App，启动页显示「连接成功」即代表接口已打通</li>
     </ol>
 
-    <h2>已内置的服务能力</h2>
+    <h2>已内置的服务能力（全原生）</h2>
     <ul>
-      <li>首页商品流、分类、搜索、排序（原生界面）</li>
-      <li>商品详情：图片、价格、库存、材质、定制标识，支持分享与在浏览器打开</li>
-      <li>购物车 / 下单 / 我的账户 / 来图定制（内嵌站点，与网页共用同一套账号与订单）</li>
-      <li>「设置」按常规 App 分组：通用 / 内容与存储 / 帮助与支持 / 关于，可调网页字号、检查网络、清理缓存</li>
-      <li>设置 →「接口自检（50 次）」：连续校验 ping / 商品 / 分类接口</li>
+      <li>首页商品流、分类、搜索、排序（默认按「已售」从多到少）</li>
+      <li>商品详情：图片、价格、库存、材质、定制标识，支持分享</li>
+      <li>原生购物车 / 结算下单 / 我的账户 / 我的订单（不再跳网页）</li>
+      <li>来图定制、询盘联系、找回密码、离线商品册、配送与售后条款（全原生）</li>
+      <li>「设置」按常规 App 分组：通用 / 内容与存储 / 权限与隐私 / 帮助 / 关于</li>
+      <li>App 内一键升级：静默检查 → 下载 → SHA-256 校验 → 调起系统安装器</li>
     </ul>
 
-    <h2>1.5.0 新增：App 内直接升级</h2>
-    <ul>
-      <li><b>发现新版本自动提示</b>：打开 App 时静默检查一次（6 小时内不重复），有新版即在应用内展示更新说明</li>
-      <li><b>一键升级</b>：点「立即更新」后原地下载安装包，进度可见，下载完成自动调起系统安装器</li>
-      <li><b>安装包校验</b>：下载完成按 SHA-256 比对服务端指纹，不一致立即删除，杜绝下载到损坏或被替换的包</li>
-      <li><b>重要更新强制</b>：服务端可把某个版本标为强制更新，客户端不接受「稍后再说」</li>
-      <li><b>手动检查</b>：设置 → 关于 → 检查更新，随时可查，结果显示当前是否为最新版</li>
-      <li><b>升级不丢数据</b>：登录状态、购物车、离线商品册与个人设置全部保留</li>
-    </ul>
-
-    <h2>1.4.0 新增：系统权限与品牌适配</h2>
-    <ul>
-      <li><b>只申请四项权限</b>：定位、手机相册、手机相机、蓝牙（外加联网）。通讯录、短信、通话记录、通知、后台定位等一概不申请</li>
-      <li><b>权限管理页</b>：设置 → 权限管理，四项权限各显示状态，可一键开启，并可就地验证（取坐标 / 数照片 / 试拍 / 扫蓝牙）</li>
-      <li><b>按系统版本自动取权限</b>：Android 12 拆分的蓝牙扫描/连接、Android 13 的图片权限、Android 14 的「仅选中的照片」都已覆盖</li>
-      <li><b>适配小米 / OPPO / vivo</b>：可一键跳转到各家的后台运行 / 自启动白名单页，避免被系统杀进程；硬件缺失的机型自动隐藏对应功能而不影响安装</li>
-      <li><b>拍照上传打通</b>：来图定制里可直接调用相机拍照上传，也能从厂商相册选择，拍完立刻回填预览</li>
-      <li><b>拒绝也不影响使用</b>：拒绝任一权限只关闭对应功能，并给出该品牌的具体开启路径</li>
-    </ul>
-
-    <h2>1.3.0 新增：设置改版</h2>
-    <ul>
-      <li><b>界面不再出现服务器地址</b>：App 在后台直连官方商店服务，安装即用，无需填写任何地址</li>
-      <li><b>设置改为分组目录</b>：通用（网页字号 / 检查网络 / 清除网页缓存）、内容与存储（离线商品缓存 / 离线资源）、帮助与支持（运行状态 / 接口自检 / 帮助与关于 / 配送与售后条款）、关于（版本 / 分享）</li>
-      <li><b>网页字号可调</b>：标准 / 大 / 特大三档，站内页面同步放大</li>
-      <li><b>离线页更干净</b>：断网兜底页、离线商品册、售后条款均不再显示任何网址</li>
-      <li><b>右上角收敛为一个「设置」入口</b>，其余功能全部归入设置目录</li>
-    </ul>
-
-    <h2>1.2.0 新增：离线可用与可靠性自证</h2>
-    <ul>
-      <li><b>内置离线商品册</b>：12 件商品的图片、价格、材质、描述随包安装，断网也能浏览（约 13 MB 本地资源）</li>
-      <li><b>离线兜底页</b>：页面加载失败不再白屏，显示可重试的品牌页，并可跳转离线商品册 / 售后条款</li>
-      <li><b>商品列表本地缓存</b>：断网时自动展示上次缓存的商品，并标注缓存时间</li>
-      <li><b>启动自动重试</b>：弱网下重试 3 次（0.8s / 1.6s 退避）；仍失败可「离线进入」</li>
-      <li><b>运行状态页</b>：通过率、平均/最大延迟、缓存数量、离线资源、崩溃记录一屏可查</li>
-      <li><b>帮助与关于</b>：版本、连接状态、离线资源清单、常见问题、客服邮箱（离线可读）</li>
-      <li><b>崩溃保护</b>：异常自动留档并可回到启动页，不直接闪退</li>
-      <li><b>内置字体</b>：Nunito / Quicksand 6 款字重，离线排版不变形</li>
-    </ul>
+    <h2>版本更新记录</h2>
+    <div id="changelog"></div>
 
     <div class="note">
       App 在后台直连官方商店服务，安装后不需要填写任何地址或账号信息。
       权限可以随时拒绝，拒绝后只有对应功能不可用，商品浏览、搜索、下单等核心流程照常。<br/>
-      安装 1.5.0 之后，后续版本都会在 App 内提示并一键升级，不必再回到本页面下载。
+      安装后，后续版本都会在 App 内提示并一键升级，不必再回到本页面下载。
     </div>
   </div>
 </div>
 <script>
-  // 版本信息由推送服务发布时写入 /download/version.json，这里读取后覆盖静态文案，
-  // 保证「推送新版本 → 下载页自动是最新的」，不需要每次手改 HTML。
   (function () {
+    // 最新版本信息（推送服务发布时写入 /download/version.json）
     fetch("/download/version.json", { cache: "no-store" })
       .then(function (r) { return r.json(); })
       .then(function (v) {
@@ -123,6 +90,33 @@
         if (btn && v.apk) btn.href = v.apk;
         var line = document.getElementById("verLine");
         if (line) line.textContent = "最新版本 v" + v.versionName + (v.publishedAt ? " · 发布于 " + v.publishedAt : "");
+      })
+      .catch(function () {});
+
+    // 每个版本的更新记录（推送服务提供的版本历史接口）
+    fetch("/apk/ota/api/versions", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var box = document.getElementById("changelog");
+        if (!box || !d.versions || !d.versions.length) return;
+        d.versions.forEach(function (v) {
+          var item = document.createElement("div");
+          item.className = "rel";
+          var head = document.createElement("div");
+          head.className = "rel-head";
+          var name = document.createElement("b");
+          name.textContent = "v" + v.versionName;
+          var date = document.createElement("span");
+          date.textContent = v.publishedAtText || "";
+          head.appendChild(name);
+          head.appendChild(date);
+          var body = document.createElement("div");
+          body.className = "rel-body";
+          body.textContent = v.notes || "";
+          item.appendChild(head);
+          item.appendChild(body);
+          box.appendChild(item);
+        });
       })
       .catch(function () {});
   })();
