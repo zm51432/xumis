@@ -2,6 +2,7 @@ package com.shine.xumis.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import com.shine.xumis.util.WebpUrls;
 
 /**
  * 商品实体：饰品 / 手工品等
@@ -56,6 +57,9 @@ public class Product {
     /** 是否在首页精选展示 */
     private boolean featured = false;
 
+    /** 扩展分类编码（P2-1）：后台新增的分类存这里，旧枚举分类仍走 category */
+    private String categoryCode;
+
     public Product() {
     }
 
@@ -92,4 +96,19 @@ public class Product {
     public void setStock(Integer stock) { this.stock = stock; }
     public boolean isFeatured() { return featured; }
     public void setFeatured(boolean featured) { this.featured = featured; }
+    public String getCategoryCode() { return categoryCode; }
+    public void setCategoryCode(String categoryCode) { this.categoryCode = categoryCode; }
+
+    // ===== WebP 变体（存在才返回，供模板 <picture>/<source> 使用）=====
+    public String getImageWebp() { return WebpUrls.variant(imageUrl, ""); }
+    public String getImageWebp400() { return WebpUrls.variant(imageUrl, "_400"); }
+    public String getImageWebp800() { return WebpUrls.variant(imageUrl, "_800"); }
+    public String getImageSrcset() {
+        String a = getImageWebp400();
+        String b = getImageWebp800();
+        if (a.isEmpty() && b.isEmpty()) return "";
+        if (a.isEmpty()) return b + " 800w";
+        if (b.isEmpty()) return a + " 400w";
+        return a + " 400w, " + b + " 800w";
+    }
 }

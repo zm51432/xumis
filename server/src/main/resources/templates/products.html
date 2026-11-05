@@ -6,11 +6,12 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{nav.products}">商品</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -28,8 +29,8 @@
 
     <!-- 搜索 + 排序 -->
     <div class="toolbar">
-        <form class="toolbar-search" action="/products" method="get">
-            <input type="hidden" name="cat" th:value="${activeCat}"/>
+        <form class="toolbar-search" th:action="@{|${langPrefix}/products|}" method="get">
+            <input type="hidden" name="cat" th:value="${activeCatCode != null ? activeCatCode : activeCat}"/>
             <input type="hidden" name="sort" th:value="${sort}"/>
             <input type="text" name="q" th:value="${q}" th:placeholder="#{search.placeholder}"/>
             <input class="price-input" type="number" name="priceMin" step="0.01" min="0"
@@ -42,6 +43,7 @@
         <div class="toolbar-sort">
             <label th:text="#{sort.label}">排序</label>
             <select onchange="location.href=buildSortUrl(this.value)">
+                <option value="sold_desc" th:selected="${sort=='sold_desc'}" th:text="#{sort.sold_desc}">按销量（推荐）</option>
                 <option value="default" th:selected="${sort=='default'}" th:text="#{sort.default}">默认</option>
                 <option value="price_asc" th:selected="${sort=='price_asc'}" th:text="#{sort.price_asc}">价格从低到高</option>
                 <option value="price_desc" th:selected="${sort=='price_desc'}" th:text="#{sort.price_desc}">价格从高到低</option>
@@ -50,29 +52,37 @@
         </div>
     </div>
 
-    <div class="filters">
-        <a class="filter" th:classappend="${activeCat == null} ? ' active'" th:href="@{/products}" th:text="#{nav.products}">全部</a>
-        <a class="filter" th:each="c : ${categories}"
-           th:classappend="${activeCat != null and activeCat == c} ? ' active'"
-           th:href="@{/products(cat=${c})}"
-           th:text="${c.label}">分类</a>
+    <div class="filters" th:if="${showCategoryFilter}">
+        <a class="filter" th:classappend="${activeCat == null and activeCatCode == null} ? ' active'"
+           th:href="@{|${langPrefix}/products|}" th:text="#{nav.products}">全部</a>
+        <a class="filter" th:each="c : ${storeCategories}"
+           th:classappend="${(activeCat != null and activeCat.name() == c.code) or (activeCatCode != null and activeCatCode == c.code)} ? ' active' : ''"
+           th:href="@{__${langPrefix}__/products(cat=${c.code})}"
+           th:text="${#locale.language == 'en' and !#strings.isEmpty(c.nameEn) ? c.nameEn : c.nameZh}">分类</a>
     </div>
 
     <p class="result-count" th:text="${totalItems} + ' ' + #{nav.products}">0 商品</p>
 
     <div class="grid">
         <div class="card reveal" th:each="p : ${products}">
-            <a th:href="@{/product/{id}(id=${p.id})}">
-                <img th:src="${p.imageUrl}" alt="product" loading="lazy" onerror="imgFallback(this)"/>
+            <a th:href="@{|${langPrefix}/product/${p.id}|}">
+                <picture>
+                    <source th:if="${!#strings.isEmpty(p.imageSrcset)}" type="image/webp"
+                            th:srcset="${p.imageSrcset}" sizes="(max-width:600px) 50vw, 300px"/>
+                    <img th:src="${p.imageUrl}" th:alt="${#locale.language == 'en' ? p.nameEn : p.name}"
+                         loading="lazy" onerror="imgFallback(this)"/>
+                </picture>
             </a>
             <div class="card-body">
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
+                <span class="tag sold" th:if="${(sold[p.id] ?: 0) > 0}"
+                      th:text="#{products.soldCount(${sold[p.id] ?: 0})}">已售 0 件</span>
                 <span class="tag custom" th:if="${p.customizable}" th:text="#{home.customizable}">支持来图定制</span>
                 <span class="tag low" th:if="${p.stock != null and p.stock > 0 and p.stock <= 10}" th:text="#{products.lowStock(${p.stock})}">仅剩 N 件</span>
                 <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
                 <div class="card-actions">
-                    <a class="btn btn-ghost btn-sm" th:href="@{/product/{id}(id=${p.id})}" th:text="#{product.viewDetail}">查看详情</a>
+                    <a class="btn btn-ghost btn-sm" th:href="@{|${langPrefix}/product/${p.id}|}" th:text="#{product.viewDetail}">查看详情</a>
                     <button class="btn btn-sm btn-add" type="button"
                             th:attr="title=#{cart.add}"
                             th:classappend="${p.stock != null and p.stock <= 0} ? 'btn-disabled' : ''"
@@ -94,10 +104,10 @@
     <!-- 分页 -->
     <div class="pager" th:if="${totalPages > 1}">
         <a class="pager-btn" th:if="${page > 0}"
-           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page-1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.prev}">上一页</a>
+           th:href="@{__${langPrefix}__/products(cat=${activeCatCode != null ? activeCatCode : activeCat}, q=${q}, sort=${sort}, page=${page-1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.prev}">上一页</a>
         <span class="pager-info" th:text="(${page+1}) + ' / ' + ${totalPages}">1 / 1</span>
         <a class="pager-btn" th:if="${page < totalPages-1}"
-           th:href="@{/products(cat=${activeCat}, q=${q}, sort=${sort}, page=${page+1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.next}">下一页</a>
+           th:href="@{__${langPrefix}__/products(cat=${activeCatCode != null ? activeCatCode : activeCat}, q=${q}, sort=${sort}, page=${page+1}, priceMin=${pmin}, priceMax=${pmax})}" th:text="#{pagination.next}">下一页</a>
     </div>
 </div>
 

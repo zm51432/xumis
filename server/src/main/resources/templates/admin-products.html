@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · 商品管理'">商品管理</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <meta name="theme-color" content="#8ec9b6"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="_csrf" th:content="${csrf}"/>
@@ -29,6 +29,7 @@
                       th:classappend="'r-' + ${#strings.toLowerCase(me.role.name())}"
                       th:text="${me.role.label}">站长</span>
             </span>
+            <a class="btn btn-sm" th:href="@{|${adminBase}/products|}">+ 新建商品</a>
             <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">← 返回仪表盘</a>
             <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
                 <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
@@ -36,16 +37,7 @@
         </div>
     </div>
 
-        <div class="admin-head">
-            <div>
-                <h2 class="section-title">商品管理 Products</h2>
-                <p class="sub">上传商品图片、修改信息与图片链接、上架首页精选</p>
-            </div>
-            <div class="admin-head-actions">
-                <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">← 返回仪表盘</a>
-                <a class="btn btn-sm" th:href="@{|${adminBase}/products|}">+ 新建商品</a>
-            </div>
-        </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
 
         <!-- 操作结果提示 -->
         <div class="alert-success" th:if="${saved == 'created'}">✅ 商品已创建</div>
@@ -83,6 +75,16 @@
                                 JEWELRY
                             </option>
                         </select>
+                    </div>
+                    <div class="field">
+                        <label for="pd-catcode">自定义分类（可选）</label>
+                        <select id="pd-catcode" name="categoryCode">
+                            <option value="">— 使用上面的枚举分类 —</option>
+                            <option th:each="c : ${storeCategories}" th:value="${c.code}"
+                                    th:text="${c.nameZh + ' / ' + c.code}"
+                                    th:selected="${edit != null and edit.categoryCode != null and edit.categoryCode == c.code}">分类</option>
+                        </select>
+                        <p class="hint">新分类在「分类管理」里增删</p>
                     </div>
                     <div class="field">
                         <label>价格（USD 基准）</label>
@@ -139,6 +141,19 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="field col-span">
+                        <label for="pd-images">附加图片（每行一个链接，最多 8 张）</label>
+                        <textarea id="pd-images" name="imagesText" rows="4" th:text="${editImages}"
+                                  placeholder="/files/_mg_0001_2.jpg"></textarea>
+                        <p class="hint">主图仍用上方「商品图片」，这里放细节图 / 背面图 / 佩戴图</p>
+                    </div>
+                    <div class="field col-span">
+                        <label for="pd-skus">规格 SKU（每行一条）</label>
+                        <textarea id="pd-skus" name="skusText" rows="5" th:text="${editSkus}"
+                                  placeholder="尺寸|18cm|18cm|0|20|SKU-18|1"></textarea>
+                        <p class="hint">格式：规格名|规格值|英文值|加价USD|库存|编码|是否启用(1/0)，后 4 项可省略</p>
                     </div>
 
                     <div class="field switches">

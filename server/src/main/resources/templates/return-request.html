@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 申请退货'">申请退货</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="theme-color" content="#7fc5ac"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div th:replace="~{fragments :: mobilenav}"></div>
+
+<div class="container section">
+    <h2 class="section-title">申请退货</h2>
+    <p class="sub">订单 <strong th:text="${order.orderNo}">SH...</strong> ·
+       应付 <strong th:text="${currencySymbol} + ${#numbers.formatDecimal(order.totalAmount.multiply(fxRate),1,2)}">$0.00</strong></p>
+
+    <div class="alert-warn" th:if="${existing != null and !#lists.isEmpty(existing)}">
+        该订单已有待审核的退货申请，请勿重复提交；如需修改请先联系客服。
+    </div>
+
+    <form method="post" th:action="@{/account/returns/submit}">
+        <input type="hidden" name="no" th:value="${order.orderNo}"/>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>商品</th><th>单价</th><th>购买数</th><th>本次退货数</th></tr></thead>
+                <tbody>
+                <tr th:each="it : ${order.items}">
+                    <td>
+                        <span th:text="${it.productName}">商品</span>
+                        <small class="muted" th:if="${it.skuLabel != null}" th:text="' · ' + ${it.skuLabel}"></small>
+                    </td>
+                    <td th:text="${currencySymbol} + ${#numbers.formatDecimal(it.price.multiply(fxRate),1,2)}">$0.00</td>
+                    <td th:text="${it.quantity}">1</td>
+                    <td>
+                        <input type="number" th:name="'qty_' + ${it.productId}" min="0"
+                               th:max="${it.quantity}" value="0" style="width:90px;"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="field" style="margin-top:18px;">
+            <label for="rr-reason">退货原因</label>
+            <textarea id="rr-reason" name="reason" rows="3" maxlength="500"
+                      placeholder="如：尺寸不合适 / 商品与描述不符"></textarea>
+        </div>
+        <p class="hint">提交后由客服审核；审核通过会自动回滚库存、扣减销量并同步 ERP，结果邮件通知你。</p>
+        <button class="btn" type="submit">提交申请</button>
+        <a class="btn btn-ghost" th:href="@{/account}">返回我的账户</a>
+    </form>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

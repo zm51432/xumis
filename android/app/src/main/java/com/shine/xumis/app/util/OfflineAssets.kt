@@ -1,33 +1,19 @@
 package com.shine.xumis.app.util
 
 import android.content.Context
-import android.net.Uri
 
 /**
  * 随 APK 一起安装的离线资源（assets/offline）。
  *
- * 这不是「占位图」式的装饰：断网 / 弱网 / 后端重启时，App 仍然能给出
- * 商品册、配送条款与可操作的错误提示，而不是一张白屏。
+ * App 已移除 WebView，离线内容改为原生页面：
+ *  · 离线商品册 → CatalogActivity（本机缓存的商品用原生网格展示）
+ *  · 配送与售后条款 → DocActivity（内置纯文本）
+ * 这里只保留内置商品图的统计能力（设置页 / 关于页展示用）。
  */
 object OfflineAssets {
 
     private const val DIR = "offline"
     private const val IMG_DIR = "$DIR/img"
-
-    const val INDEX = "file:///android_asset/$DIR/index.html"
-    const val CATALOG = "file:///android_asset/$DIR/catalog.html"
-    const val POLICIES = "file:///android_asset/$DIR/policies.html"
-
-    /**
-     * 离线兜底页，带上原目标地址，页面里的「重新连接」会直接回到该地址。
-     * reason: timeout / http / offline（仅影响文案）
-     */
-    fun indexUrl(target: String?, reason: String = ""): String {
-        if (target.isNullOrBlank()) return INDEX
-        val sb = StringBuilder(INDEX).append("?target=").append(Uri.encode(target))
-        if (reason.isNotBlank()) sb.append("&reason=").append(reason)
-        return sb.toString()
-    }
 
     /** 内置商品图数量 */
     fun imageCount(ctx: Context): Int = try {

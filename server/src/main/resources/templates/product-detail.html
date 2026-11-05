@@ -6,17 +6,17 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + ${product.name}">商品详情</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
-    <link rel="canonical" th:href="${siteBaseUrl} + '/product/' + ${product.id}"/>
     <meta property="og:title" th:content="${product.name}"/>
     <meta property="og:type" content="product"/>
     <meta property="og:url" th:content="${siteBaseUrl} + '/product/' + ${product.id}"/>
     <meta property="og:image" th:content="${siteBaseUrl} + ${product.imageUrl}"/>
     <meta property="og:description" th:content="${product.description}"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -24,21 +24,35 @@
 <div th:replace="~{fragments :: mobilenav}"></div>
 
 <nav class="breadcrumb" aria-label="breadcrumb">
-    <a th:href="@{/}" th:text="#{nav.home}">首页</a><span class="sep">/</span>
-    <a th:href="@{/products}" th:text="#{nav.products}">商品</a><span class="sep">/</span>
+    <a th:href="@{|${langPrefix}/|}" th:text="#{nav.home}">首页</a><span class="sep">/</span>
+    <a th:href="@{|${langPrefix}/products|}" th:text="#{nav.products}">商品</a><span class="sep">/</span>
     <a th:href="@{/products(cat=${product.category})}" th:text="${product.category.label}">分类</a><span class="sep">/</span>
     <span class="current" th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</span>
 </nav>
 
 <div class="container section">
     <div class="detail" th:if="${product != null}">
-        <img class="detail-img" th:src="${product.imageUrl}" alt="product" loading="lazy"
-             onerror="imgFallback(this)"/>
+        <div>
+            <picture>
+                <source th:if="${!#strings.isEmpty(product.imageSrcset)}" type="image/webp"
+                        th:srcset="${product.imageSrcset}" sizes="(max-width:800px) 90vw, 480px"/>
+                <img id="mainProductImage" class="detail-img" th:src="${product.imageUrl}"
+                     th:alt="${#locale.language == 'en' ? product.nameEn : product.name}"
+                     loading="eager" fetchpriority="high" onerror="imgFallback(this)"/>
+            </picture>
+            <div class="detail-gallery" th:if="${!#lists.isEmpty(images)}">
+                <img th:each="im,it : ${images}" th:src="${im.url}"
+                     th:alt="${#locale.language == 'en' ? product.nameEn : product.name}"
+                     th:classappend="${it.index == 0} ? 'active' : ''"
+                     loading="lazy"
+                     onclick="document.getElementById('mainProductImage').src=this.src;document.querySelectorAll('.detail-gallery img').forEach(x=>x.classList.remove('active'));this.classList.add('active')"/>
+            </div>
+        </div>
         <div>
             <h1 th:text="${#locale.language == 'en' ? product.nameEn : product.name}">商品名</h1>
-            <div class="rating-row" th:if="${reviewCount > 0}">
-                <span class="stars" th:text="${#numbers.formatDecimal(avgRating,1,1)} + ' ★'">5.0 ★</span>
-                <span class="muted" th:text="${reviewCount} + ' ' + #{product.reviews}">0 评价</span>
+            <div class="rating-row" th:if="${productSold != null and productSold > 0}">
+                <span class="tag sold" th:text="#{products.soldCount(${productSold})}">已售 1 件</span>
+                <span class="muted small">只统计真实成交，不展示用户评价</span>
             </div>
             <ul class="meta">
                 <li><strong th:text="#{product.category}">分类</strong>：
@@ -54,6 +68,19 @@
                     <span class="tag custom" th:text="#{product.customizable}">支持来图定制</span></li>
             </ul>
             <p th:text="${#locale.language == 'en' ? product.descriptionEn : product.description}">描述</p>
+            <!-- P1-2：多规格选择，选中后加购会把 skuId 带到购物车与订单明细 -->
+            <div class="sku-block" th:if="${skus != null and !#lists.isEmpty(skus)}">
+                <span class="sku-label" th:text="${#locale.language == 'en'} ? 'Choose an option' : '选择规格'">选择规格</span>
+                <div class="sku-options">
+                    <button type="button" class="sku-opt" th:each="s,it : ${skus}"
+                            th:classappend="${it.index == 0} ? 'active' : ''"
+                            th:disabled="${s.stock == null or s.stock <= 0}"
+                            th:text="${s.label + (s.priceDelta != null and s.priceDelta > 0 ? ' (+' + s.priceDelta + ' USD)' : '')}"
+                            th:onclick="'selectSku(this,' + ${s.id} + ',' + ${s.priceDelta} + ')'">规格</button>
+                </div>
+                <p class="hint">不同规格可能有不同价格与库存</p>
+                <span id="skuPriceDelta" class="muted small"></span>
+            </div>
             <div class="price" style="font-size:24px;margin:14px 0;"
                  th:text="${currencySymbol} + ${#numbers.formatDecimal(product.price.multiply(fxRate),1,2)}">$0.00</div>
 
@@ -68,16 +95,26 @@
                         th:attr="data-out=${product.stock != null and product.stock <= 0}"
                         th:classappend="${product.stock != null and product.stock <= 0} ? 'btn-disabled' : ''"
                         th:text="${product.stock != null and product.stock <= 0} ? '暂时缺货' : #{cart.add}"
-                        th:onclick="${product.stock != null and product.stock <= 0} ? '' : 'addToCart(' + ${product.id} + ', document.getElementById(\'qtyInput\').value)'">
+                        th:onclick="${product.stock != null and product.stock <= 0} ? '' : 'addDetailToCart(' + ${product.id} + ',\'qtyInput\')'">
                     加入购物车
+                </button>
+                <!-- 立即购买：加购后直达结算页，无需绕购物车 -->
+                <button class="btn btn-accent btn-lg" type="button"
+                        th:attr="data-out=${product.stock != null and product.stock <= 0}"
+                        th:classappend="${product.stock != null and product.stock <= 0} ? 'btn-disabled' : ''"
+                        th:text="${product.stock != null and product.stock <= 0} ? '暂时缺货' : #{product.buyNow}"
+                        th:onclick="${product.stock != null and product.stock <= 0} ? '' : 'buyNowDetail(\'qtyInput\')'">
+                    立即购买
                 </button>
                 <a class="btn btn-ghost btn-lg" th:href="@{/cart}" th:text="#{nav.cart}">购物车</a>
             </div>
             <noscript>
                 <form class="buy-row" action="/cart/add" method="post">
                     <input type="hidden" name="productId" th:value="${product.id}"/>
+                    <input type="hidden" name="goto" value="checkout"/>
+                    <input type="hidden" name="_csrf" th:value="${csrf}"/>
                     <input class="qty-input" type="number" name="quantity" value="1" min="1"/>
-                    <button class="btn" type="submit" th:text="#{cart.add}">加入购物车</button>
+                    <button class="btn" type="submit" th:text="#{product.buyNow}">立即购买</button>
                 </form>
             </noscript>
 
@@ -103,7 +140,27 @@
         <a class="btn" th:href="@{/products}" th:text="#{nav.products}">返回商品</a>
     </div>
 
-    <!-- 相关推荐：同分类其它商品，降低跳出、带动连带购买 -->
+
+    <!-- 热销推荐：按真实售出量，跨分类补位，给犹豫的用户一个高信任入口 -->
+    <div class="related reveal" th:if="${hot != null and !#lists.isEmpty(hot)}">
+        <h3>热销推荐</h3>
+        <div class="grid">
+            <div class="card" th:each="r,it : ${hot}" th:if="${r.id != product.id}">
+                <div class="thumb">
+                    <a th:href="@{/product/{id}(id=${r.id})}">
+                        <img th:src="${r.imageUrl}" alt="" loading="lazy" onerror="imgFallback(this)"/>
+                    </a>
+                    <span class="rank-badge" th:text="${'#' + (it.index + 1)}">#1</span>
+                </div>
+                <div class="card-body">
+                    <h3 th:text="${#locale.language == 'en' ? r.nameEn : r.name}">商品</h3>
+                    <span class="tag" th:text="${r.category.label}">分类</span>
+                    <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(r.price.multiply(fxRate),1,2)}">$0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 相关推荐：同分类其它商品，按真实售出量排序 -->
     <div class="related reveal" th:if="${not #lists.isEmpty(related)}">
         <h3 th:text="#{product.related}">相关推荐</h3>
         <div class="grid">
@@ -120,57 +177,6 @@
         </div>
     </div>
 
-    <!-- 评价区 -->
-    <div class="reviews reveal" th:if="${product != null}">
-        <h3 th:text="#{product.reviews}">商品评价</h3>
-        <div class="review-list" th:if="${not #lists.isEmpty(reviews)}">
-            <div class="review-item" th:each="r : ${reviews}">
-                <div class="review-head">
-                    <span class="stars" th:text="${r.rating} + ' ★'">5 ★</span>
-                    <span class="chip verified-chip" th:if="${r.verifiedPurchase}" th:text="#{review.verified}">已购买</span>
-                </div>
-                <p th:text="${r.comment}">好评</p>
-                <small class="muted">
-                    <span th:text="${r.author}">匿名</span>
-                    <span class="muted" th:if="${r.createdAt != null}"
-                          th:text="' · ' + ${#strings.substring(r.createdAt.toString(),0,10)}"> · 2026-01-01</span>
-                </small>
-            </div>
-        </div>
-        <p class="muted" th:if="${#lists.isEmpty(reviews)}" th:text="#{review.empty}">暂无评价</p>
-
-        <div class="alert-success" th:if="${param.review != null}" th:text="#{review.pending}">评价已提交，审核后展示</div>
-        <div class="alert-error" th:if="${param.reviewRate != null}" th:text="#{review.rateLimited}">评价提交过于频繁</div>
-        <div class="alert-error" th:if="${param.reviewDup != null}" th:text="#{review.duplicate}">你已经评价过这件商品了</div>
-        <div class="alert-warn" th:if="${param.reviewNeedBuy != null}" th:text="#{review.needBuy}">只有购买过该商品的用户才能评价</div>
-
-        <!-- 已购买且未评价：显示表单；否则给出对应引导 -->
-        <div class="review-form" th:if="${canReview}">
-            <h4 th:text="#{product.writeReview}">写评价</h4>
-            <p class="muted small" th:text="#{review.verifiedTip}">你已购买该商品，评价将标记「已购买」</p>
-            <form action="#" th:action="@{/product/{id}/review(id=${product.id})}" method="post">
-                <input type="text" name="author" th:placeholder="#{review.author}"/>
-                <select name="rating">
-                    <option value="5">5 ★</option>
-                    <option value="4">4 ★</option>
-                    <option value="3">3 ★</option>
-                    <option value="2">2 ★</option>
-                    <option value="1">1 ★</option>
-                </select>
-                <textarea name="comment" rows="3" required th:placeholder="#{review.comment}"></textarea>
-                <button class="btn" type="submit" th:text="#{review.submit}">提交评价</button>
-            </form>
-        </div>
-
-        <div class="review-lock" th:if="${not canReview}">
-            <p class="muted" th:if="${not loggedIn}">
-                <span th:text="#{review.needLogin}">登录后才能评价</span>
-                <a th:href="@{/login(redirect=${'/product/' + product.id})}" th:text="#{account.login}">登录</a>
-            </p>
-            <p class="muted" th:if="${loggedIn and not purchased}" th:text="#{review.needBuy}">只有购买过该商品的用户才能评价</p>
-            <p class="muted" th:if="${loggedIn and purchased and reviewed}" th:text="#{review.duplicate}">你已经评价过这件商品了</p>
-        </div>
-    </div>
 </div>
 
 <!-- SEO 结构化数据 -->
@@ -181,6 +187,9 @@
   "name": "[[${product.name}]]",
   "image": "[[${siteBaseUrl} + ${product.imageUrl}]]",
   "description": "[[${product.description}]]",
+  "url": "[[${siteBaseUrl} + '/product/' + ${product.id}]]",
+  "sku": "SH-[[${product.id}]]",
+  "brand": { "@type": "Brand", "name": "[[${storeName}]]" },
   "offers": {
     "@type": "Offer",
     "priceCurrency": "USD",
@@ -190,7 +199,31 @@
 }
 </script>
 
+<script th:if="${skus != null and !#lists.isEmpty(skus)}" th:inline="javascript">
+    selectedSkuId = /*[[${skus[0].id}]]*/ null;
+</script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/store.js}"></script>
+<script th:inline="javascript">
+    /* 立即购买：加购成功后直达结算页（自带请求逻辑，不依赖 store.js 版本） */
+    var BUY_PRODUCT_ID = /*[[${product.id}]]*/ null;
+    function buyNowDetail(qtyInputId) {
+        var qty = (document.getElementById(qtyInputId) || {}).value || 1;
+        var body = new URLSearchParams();
+        body.set('productId', String(BUY_PRODUCT_ID));
+        body.set('quantity', String(qty));
+        if (typeof selectedSkuId !== 'undefined' && selectedSkuId) body.set('skuId', String(selectedSkuId));
+        fetch('/cart/add-json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'X-CSRF-Token': csrfToken() },
+            body: body
+        }).then(function (r) { return r.json(); })
+          .then(function (d) {
+              if (d && d.ok) { location.href = '/checkout'; }
+              else { showToast((d && d.message) || '无法购买，请稍后重试', 'error'); }
+          })
+          .catch(function () { showToast('网络异常，请重试', 'error'); });
+    }
+</script>
 </body>
 </html>

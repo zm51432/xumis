@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 站点自检'">站点自检</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    <style>
+        .health-hero { display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+            padding:18px; border-radius:16px; background:#fff; border:1px solid #e6efe9; }
+        .health-dot { width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px; }
+        .dot-ok { background:#2f9e44; box-shadow:0 0 0 4px rgba(47,158,68,.15); }
+        .dot-bad { background:#e03131; box-shadow:0 0 0 4px rgba(224,49,49,.15); }
+        .dot-wait { background:#adb5bd; box-shadow:0 0 0 4px rgba(173,181,189,.2); }
+        .ok-cell { color:#2f9e44; font-weight:700; }
+        .bad-cell { color:#e03131; font-weight:700; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">站点自检 Health</h2>
+            <p class="sub">每 15 分钟自动探测关键页面、数据库与 ERP 服务，异常会写入服务日志</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/health/run|}" style="display:inline;"
+                  th:if="${me != null and me.canWrite()}">
+                <button class="btn btn-sm" type="submit">立即检测</button>
+            </form>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+
+    <div class="alert-success" th:if="${param.ran != null}">✅ 已执行一轮检测</div>
+
+    <div class="health-hero" style="margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:800;">
+            <span class="health-dot" th:classappend="${pending} ? 'dot-wait' : (${healthy} ? 'dot-ok' : 'dot-bad')"></span>
+            <span th:if="${pending}">尚未执行检测（服务刚启动，约 1.5 分钟后自动跑第一轮）</span>
+            <span th:if="${!pending and healthy}">全部正常</span>
+            <span th:if="${!pending and !healthy}">存在异常项，请查看下表</span>
+        </div>
+        <div class="muted small">
+            最近一次：
+            <span th:text="${lastRunAt != null ? #strings.replace(lastRunAt.toString(),'T',' ') : '—'}">—</span>
+        </div>
+        <div class="muted small">
+            对外接口：<a th:href="@{/api/health}" target="_blank">/api/health</a>（可供外部监控轮询）
+        </div>
+    </div>
+
+    <h3 class="block-title">本轮结果</h3>
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>检测项</th><th>请求路径</th><th>结果</th><th>状态码</th><th>耗时</th><th>说明</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${checks}">
+                <td th:text="${c.target}">-</td>
+                <td><small th:text="${c.path}">-</small></td>
+                <td>
+                    <span th:if="${c.ok}" class="ok-cell">正常</span>
+                    <span th:if="${!c.ok}" class="bad-cell">异常</span>
+                </td>
+                <td th:text="${c.statusCode}">200</td>
+                <td th:text="${c.costMs} + ' ms'">0 ms</td>
+                <td th:text="${c.message}">-</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(checks)}"><td colspan="6">尚无检测结果</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="block-title" style="margin-top:22px;">最近历史（30 条）</h3>
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>检测时间</th><th>检测项</th><th>结果</th><th>耗时</th><th>说明</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${history}">
+                <td><small th:text="${#strings.replace(c.checkedAt.toString(),'T',' ')}">-</small></td>
+                <td th:text="${c.target}">-</td>
+                <td>
+                    <span th:if="${c.ok}" class="ok-cell">正常</span>
+                    <span th:if="${!c.ok}" class="bad-cell">异常</span>
+                </td>
+                <td th:text="${c.costMs} + ' ms'">0 ms</td>
+                <td th:text="${c.message}">-</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(history)}"><td colspan="5">暂无历史记录</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="muted small" style="margin-top:12px;">
+        检测覆盖：首页、商品列表、商品详情、来图定制、询盘页、登录页、sitemap.xml、robots.txt、样式表、/api/health、数据库连通性，以及 ERP 服务（8096）。
+        历史保留 30 天，超期自动清理。
+    </p>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

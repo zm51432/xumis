@@ -6,11 +6,12 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{checkout.title}">结算</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -19,16 +20,36 @@
 
 <div class="container section">
     <h2 class="section-title" th:text="#{checkout.title}">结算</h2>
+    <div class="alert-error" th:if="${param.couponError != null}" th:text="${param.couponError}">优惠码不可用</div>
 
     <div class="checkout-grid">
         <!-- 订单摘要 -->
         <div class="checkout-summary">
             <h4 th:text="#{cart.title}">购物车</h4>
             <div class="sum-line" th:each="line : ${lines}">
-                <span th:text="${#locale.language == 'en' ? line.product.nameEn : line.product.name} + ' ×' + ${line.quantity}">商品</span>
-                <span class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(line.lineTotal.multiply(fxRate),1,2)}">$0.00</span>
+                <span th:text="${(#locale.language == 'en' ? line.product.nameEn : line.product.name) + ' ×' + line.quantity + (line.hasSku ? ' · ' + line.skuLabel : '')}">商品</span>
+                <span class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(line.lineTotalWithSku.multiply(fxRate),1,2)}">$0.00</span>
             </div>
-            <div class="sum-total price" th:text="#{cart.total} + '：' + ${currencySymbol} + ${#numbers.formatDecimal(total.multiply(fxRate),1,2)}">合计</div>
+            <div class="sum-line sum-sub">
+                <span th:text="${#locale.language == 'en' ? 'Subtotal' : '商品小计'}">商品小计</span>
+                <span><span th:text="${currencySymbol}">$</span><span id="subtotalValue" th:text="${#numbers.formatDecimal(total.multiply(fxRate),1,2)}">0.00</span></span>
+            </div>
+            <div class="sum-line" id="discountLine" style="display:none;">
+                <span th:text="${#locale.language == 'en' ? 'Discount' : '优惠折扣'}">优惠折扣</span>
+                <span id="discountValue" class="sum-discount">-0.00</span>
+            </div>
+            <div class="sum-line">
+                <span th:text="${#locale.language == 'en' ? 'Shipping' : '运费'}">运费</span>
+                <span><span th:text="${currencySymbol}">$</span><span id="shippingValue" th:text="${#numbers.formatDecimal(quote.shippingFee().multiply(fxRate),1,2)}">0.00</span></span>
+            </div>
+            <div class="sum-line">
+                <span th:text="${#locale.language == 'en' ? 'Tax' : '税费'}">税费</span>
+                <span><span th:text="${currencySymbol}">$</span><span id="taxValue" th:text="${#numbers.formatDecimal(quote.taxAmount().multiply(fxRate),1,2)}">0.00</span></span>
+            </div>
+            <p class="hint" id="shipHint" th:text="${quote.freeShipping() ? (#locale.language == 'en' ? 'Free shipping applied' : '已达包邮门槛，本单免运费') : (#locale.language == 'en' ? 'Free shipping over ' : '满 ') + #numbers.formatDecimal(quote.freeShipThreshold().multiply(fxRate),0,0) + (#locale.language == 'en' ? ' for free shipping' : ' 包邮')}">满 99 包邮</p>
+            <div class="sum-total price"><span th:text="#{cart.total} + '：' + ${currencySymbol}"></span><span id="totalNumber" th:text="${#numbers.formatDecimal(quote.total().multiply(fxRate),1,2)}">0.00</span></div>
+            <span id="fxRate" hidden th:text="${fxRate}">1</span>
+            <p class="hint">下单后库存为你保留 <span th:text="${cfg['shop.reserveMinutes']}">30</span> 分钟，超时未付款会自动释放。</p>
         </div>
 
         <!-- 收货与下单 -->
@@ -38,39 +59,53 @@
                 <a th:href="@{/login(redirect='/cart/checkout')}" th:text="#{account.login}">登录</a>
             </div>
 
-            <label><span th:text="#{checkout.name}">收货人</span> <span class="req">*</span></label>
-            <input type="text" name="customerName" required autocomplete="name"
+            <label for="cf-name"><span th:text="#{checkout.name}">收货人</span> <span class="req">*</span></label>
+            <input id="cf-name" type="text" name="customerName" required autocomplete="name"
                    th:value="${user != null} ? ${user.name} : ''"/>
 
-            <label><span th:text="#{checkout.email}">邮箱</span> <span class="req">*</span></label>
-            <input type="email" name="email" required autocomplete="email"
+            <label for="cf-email"><span th:text="#{checkout.email}">邮箱</span> <span class="req">*</span></label>
+            <input id="cf-email" type="email" name="email" required autocomplete="email"
                    th:value="${user != null} ? ${user.email} : ''"/>
             <p class="hint" th:text="#{checkout.emailHint}">订单进度会通过这个邮箱通知你</p>
 
-            <label th:text="#{checkout.phone}">电话</label>
-            <input type="tel" name="phone" autocomplete="tel" th:value="${user != null} ? ${user.phone} : ''"/>
+            <label for="cf-phone" th:text="#{checkout.phone}">电话</label>
+            <input id="cf-phone" type="tel" name="phone" autocomplete="tel" th:value="${user != null} ? ${user.phone} : ''"/>
             <p class="hint" th:text="#{checkout.phoneHint}">选填，便于物流联系</p>
 
-            <label><span th:text="#{checkout.country}">国家/地区</span> <span class="req">*</span></label>
-            <select name="country" required>
+            <label for="cf-country"><span th:text="#{checkout.country}">国家/地区</span> <span class="req">*</span></label>
+            <select id="cf-country" name="country" required>
                 <option value="" th:text="#{checkout.countryHint}">请选择</option>
                 <option th:each="c : ${countries}" th:value="${c}" th:text="${c}"
                         th:selected="${user != null and user.country != null and c == user.country}">US</option>
             </select>
 
-            <label><span th:text="#{checkout.address}">收货地址</span> <span class="req">*</span></label>
-            <textarea name="address" rows="2" required autocomplete="street-address"
+            <label for="cf-address"><span th:text="#{checkout.address}">收货地址</span> <span class="req">*</span></label>
+            <textarea id="cf-address" name="address" rows="2" required autocomplete="street-address"
                       th:text="${user != null} ? ${user.address} : ''"></textarea>
 
-            <label th:text="#{checkout.note}">留言</label>
-            <textarea name="note" rows="2" th:placeholder="#{checkout.noteHint}"></textarea>
+            <label for="cf-note" th:text="#{checkout.note}">留言</label>
+            <textarea id="cf-note" name="note" rows="2" th:placeholder="#{checkout.noteHint}"></textarea>
 
-            <label th:text="#{checkout.currency}">结算币种</label>
-            <select name="currency">
+            <label for="cf-currency" th:text="#{checkout.currency}">结算币种</label>
+            <select id="cf-currency" name="currency">
                 <option th:each="c : ${currencies}" th:value="${c.code}"
                         th:text="${c.code + ' ' + c.symbol}"
                         th:selected="${c.code == currencyCode}">USD</option>
             </select>
+
+            <!-- P1-4 优惠码 -->
+            <label for="couponInput">优惠码 / 满减券</label>
+            <div class="coupon-row">
+                <input id="couponInput" type="text" placeholder="输入优惠码，如 SHINE10"/>
+                <button class="btn btn-ghost btn-sm" type="button"
+                        onclick="checkCoupon('couponInput','couponMsg','totalNumber')">校验并使用</button>
+            </div>
+            <p id="couponMsg" class="coupon-msg"></p>
+            <input type="hidden" name="couponCode" id="couponCodeInput"/>
+            <p class="hint" th:if="${availableCoupons != null and !#lists.isEmpty(availableCoupons)}">
+                当前可用：<span th:each="c : ${availableCoupons}" th:if="${c.enabled}"
+                        th:text="${c.code + (c.minSubtotal != null and c.minSubtotal > 0 ? '(满' + c.minSubtotal + ')' : '') + '  '}"></span>
+            </p>
 
             <label th:text="#{checkout.paymentMethod}">支付方式</label>
             <div class="pay-methods">

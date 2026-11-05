@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>操作审计 · 后台</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">🛡️ 操作审计</h2>
+            <p class="sub">后台所有写操作留痕；密码、令牌等敏感值自动脱敏</p></div>
+        <div class="admin-head-actions"><a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">返回仪表盘</a></div>
+    </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>时间</th><th>操作人</th><th>角色</th><th>方法</th><th>路径</th><th>参数（脱敏）</th><th>IP</th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${logs}">
+                <td class="muted small" th:text="${l.createdAt}">—</td>
+                <td th:text="${l.username}">—</td>
+                <td class="small" th:text="${l.role}">—</td>
+                <td class="small" th:text="${l.method}">POST</td>
+                <td class="small" th:text="${l.path}">/admin/...</td>
+                <td class="small muted" th:text="${l.detail}">—</td>
+                <td class="small muted" th:text="${l.ip}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(logs)}"><td colspan="7" class="muted">暂无审计记录</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

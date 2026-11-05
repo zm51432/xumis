@@ -98,7 +98,7 @@
             </LinearLayout>
 
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="本应用内置离线资源与自检能力，断网时仍可浏览商品册与售后条款。"
+                android:text="本应用内置离线资源，断网时仍可浏览离线商品册与配送售后条款。"
                 android:textSize="12sp" android:textColor="@color/shine_sub"
                 android:gravity="center" android:paddingTop="16dp" android:paddingBottom="8dp"/>
         </LinearLayout>

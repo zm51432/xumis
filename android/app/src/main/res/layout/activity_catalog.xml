@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 离线商品册：用本机缓存以原生列表展示，替代原来的离线 HTML 页面 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" android:background="@color/shine_pink"
+        app:titleTextColor="@android:color/white" app:title="离线商品册"/>
+
+    <TextView android:id="@+id/tv_hint" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:padding="12dp" android:textSize="12sp"
+        android:textColor="@color/shine_sub" android:text="—"/>
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:clipToPadding="false" android:paddingBottom="14dp"
+            android:paddingStart="6dp" android:paddingEnd="6dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" app:spanCount="2"/>
+
+        <TextView android:id="@+id/tv_empty" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_gravity="center"
+            android:gravity="center" android:padding="24dp" android:textSize="13sp"
+            android:lineSpacingExtra="5dp" android:textColor="@color/shine_sub"
+            android:visibility="gone"
+            android:text="还没有离线缓存。\n联网打开一次首页，商品会自动缓存到这里，之后断网也能浏览。"/>
+    </FrameLayout>
+</LinearLayout>

@@ -6,11 +6,12 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{cart.title}">购物车</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -53,8 +54,13 @@
             <tbody>
                 <tr th:each="line : ${lines}">
                     <td class="cart-prod">
-                        <img th:src="${line.product.imageUrl}" alt=""/>
+                        <picture>
+                            <source th:if="${!#strings.isEmpty(line.product.imageSrcset)}" type="image/webp"
+                                    th:srcset="${line.product.imageSrcset}" sizes="80px"/>
+                            <img th:src="${line.product.imageUrl}" alt=""/>
+                        </picture>
                         <span th:text="${#locale.language == 'en' ? line.product.nameEn : line.product.name}">商品</span>
+                        <small class="muted" th:if="${line.hasSku}" th:text="${'规格：' + line.skuLabel}"></small>
                     </td>
                     <td>
                         <form action="/cart/update" method="post" class="inline-form">
@@ -64,7 +70,7 @@
                             <button class="btn btn-ghost btn-sm" type="submit">✓</button>
                         </form>
                     </td>
-                    <td class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(line.lineTotal.multiply(fxRate),1,2)}">$0.00</td>
+                    <td class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(line.lineTotalWithSku.multiply(fxRate),1,2)}">$0.00</td>
                     <td>
                         <form action="/cart/remove" method="post" class="inline-form">
                             <input type="hidden" name="productId" th:value="${line.product.id}"/>

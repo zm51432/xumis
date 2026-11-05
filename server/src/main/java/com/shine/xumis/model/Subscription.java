@@ -19,9 +19,20 @@ public class Subscription {
 
     private LocalDateTime createdAt;
 
+    /** 一次性退订令牌（P1-5） */
+    @Column(length = 64) private String unsubscribeToken;
+    /** ACTIVE / UNSUBSCRIBED */
+    @Column(length = 20) private String status = "ACTIVE";
+    private LocalDateTime unsubscribedAt;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        if (unsubscribeToken == null || unsubscribeToken.isBlank()) {
+            unsubscribeToken = java.util.UUID.randomUUID().toString().replace("-", "")
+                    + java.util.UUID.randomUUID().toString().replace("-", "");
+        }
+        if (status == null || status.isBlank()) status = "ACTIVE";
     }
 
     public Subscription() {
@@ -38,4 +49,10 @@ public class Subscription {
     public void setEmail(String email) { this.email = email; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getUnsubscribeToken() { return unsubscribeToken; }
+    public void setUnsubscribeToken(String unsubscribeToken) { this.unsubscribeToken = unsubscribeToken; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getUnsubscribedAt() { return unsubscribedAt; }
+    public void setUnsubscribedAt(LocalDateTime unsubscribedAt) { this.unsubscribedAt = unsubscribedAt; }
 }

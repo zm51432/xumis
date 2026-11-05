@@ -19,7 +19,7 @@ object ServerConfig {
     private const val LEGACY_PREFS = "shine_prefs"
     private const val LEGACY_KEY_URL = "server_url"
 
-    /** 站点基址（带结尾斜杠）：WebView 拼 /cart、/product/1、/download/ 用 */
+    /** 站点基址（带结尾斜杠）：商品图、OTA 更新与分享链接用 */
     fun siteBase(): String = UrlUtils.normalizeBase(HOST)
 
     /** 移动端 API 基址：<host>/api/m/ */

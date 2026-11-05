@@ -39,4 +39,8 @@ keystore.properties
 
 # Python 缓存
 __pycache__/
+
+# ERP 运行时密钥（绝不入库）：真实配置只存在于服务器
+erp/config.env
+erp/secrets.json
 *.pyc

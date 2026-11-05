@@ -61,6 +61,31 @@ public class Order {
     /** 最近一次状态变更时间（订单进度时间线用） */
     private LocalDateTime updatedAt;
 
+    /** 商品小计（P1-4 优惠前） */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal subtotalAmount;
+    /** 优惠金额 */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+    /** 使用的优惠码 */
+    @Column(length = 60)
+    private String couponCode;
+    /** 运费（USD 基准，阶段1 起计入应付总额） */
+    @Column(precision = 10, scale = 2)
+    private BigDecimal shippingFee = BigDecimal.ZERO;
+    /** 税费（USD 基准） */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+    /** 下单时税率快照（%） */
+    @Column(precision = 6, scale = 2)
+    private BigDecimal taxRate = BigDecimal.ZERO;
+
+    /** 物流单号 / 承运商 / 查询网址 / 发货时间（P1-3） */
+    @Column(length = 100) private String trackingNo;
+    @Column(length = 80) private String carrier;
+    @Column(length = 300) private String trackingUrl;
+    private LocalDateTime shippedAt;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "order", orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
@@ -115,4 +140,25 @@ public class Order {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+
+    public BigDecimal getSubtotalAmount() { return subtotalAmount; }
+    public void setSubtotalAmount(BigDecimal subtotalAmount) { this.subtotalAmount = subtotalAmount; }
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
+    public String getCouponCode() { return couponCode; }
+    public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
+    public BigDecimal getShippingFee() { return shippingFee; }
+    public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
+    public BigDecimal getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(BigDecimal taxAmount) { this.taxAmount = taxAmount; }
+    public BigDecimal getTaxRate() { return taxRate; }
+    public void setTaxRate(BigDecimal taxRate) { this.taxRate = taxRate; }
+    public String getTrackingNo() { return trackingNo; }
+    public void setTrackingNo(String trackingNo) { this.trackingNo = trackingNo; }
+    public String getCarrier() { return carrier; }
+    public void setCarrier(String carrier) { this.carrier = carrier; }
+    public String getTrackingUrl() { return trackingUrl; }
+    public void setTrackingUrl(String trackingUrl) { this.trackingUrl = trackingUrl; }
+    public LocalDateTime getShippedAt() { return shippedAt; }
+    public void setShippedAt(LocalDateTime shippedAt) { this.shippedAt = shippedAt; }
 }

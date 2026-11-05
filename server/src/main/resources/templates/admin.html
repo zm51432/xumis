@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · Admin'">后台</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="_csrf" th:content="${csrf}"/>
 </head>
@@ -21,7 +21,7 @@
     <div class="admin-head">
         <div>
             <h2 class="section-title">仪表盘 Dashboard</h2>
-            <p class="sub">订单 / 定制 / 询盘 / 订阅 / 评价 一览</p>
+            <p class="sub">商品 / 订单 / 客户 / 询盘 / 定制 / 订阅 一览</p>
         </div>
         <div class="admin-head-actions">
             <span class="admin-me">
@@ -31,15 +31,13 @@
                       th:text="${me.role.label}">站长</span>
             </span>
             <a class="btn btn-sm" th:href="@{|${adminBase}/products|}">📦 商品管理</a>
-            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/reviews|}">🗣 评价管理</a>
-            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/customers|}">👥 客户管理</a>
-            <a class="btn btn-ghost btn-sm" th:if="${me != null and me.canManageAdmins()}"
-               th:href="@{|${adminBase}/admins|}">👤 账号权限</a>
             <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
                 <button class="btn btn-ghost btn-sm" type="submit" th:text="#{admin.logout}">退出登录</button>
             </form>
         </div>
     </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
 
     <div class="stat-grid stat-grid-4">
             <div class="stat"><span class="stat-num" th:text="${countProducts}">0</span><span th:text="#{nav.products}">商品</span></div>
@@ -47,7 +45,6 @@
             <div class="stat"><span class="stat-num" th:text="${countIdeas}">0</span><span>定制 Custom</span></div>
             <div class="stat"><span class="stat-num" th:text="${countInquiries}">0</span><span>询盘 Inquiries</span></div>
             <div class="stat"><span class="stat-num" th:text="${countSubs}">0</span><span>订阅 Subs</span></div>
-            <div class="stat"><span class="stat-num" th:text="${countPendingReviews}">0</span><span th:text="#{admin.pendingReviews}">待审评价</span></div>
             <div class="stat">
                 <span class="stat-num stat-money" th:text="'$' + ${#numbers.formatDecimal(sales.totalSales,1,2)}">$0.00</span>
                 <span th:text="#{admin.totalSales}">累计销售额(USD)</span>
@@ -97,33 +94,6 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(orders)}"><td colspan="8">暂无订单</td></tr>
-            </tbody>
-        </table>
-        </div>
-
-        <!-- 待审评价 -->
-        <h3 class="block-title">
-            <span th:text="#{admin.pendingReviews}">待审核评价</span>
-            <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/reviews(status='PENDING')|}" th:text="#{admin.viewAll}">查看全部</a>
-        </h3>
-        <div class="table-wrap">
-        <table class="admin-table">
-            <thead><tr><th>商品</th><th>作者</th><th>评分</th><th>评论</th><th>操作</th></tr></thead>
-            <tbody>
-                <tr th:each="r : ${pendingReviews}">
-                    <td th:text="${r.product != null ? r.product.name : '-'}">-</td>
-                    <td th:text="${r.author}">-</td>
-                    <td th:text="${r.rating} + ' ★'">-</td>
-                    <td th:text="${r.comment}">-</td>
-                    <td>
-                        <form action="/admin/review/approve" method="post" class="inline-form"
-                              th:if="${me != null and me.canWrite()}">
-                            <input type="hidden" name="id" th:value="${r.id}"/>
-                            <button class="btn btn-ghost btn-sm" type="submit">通过</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(pendingReviews)}"><td colspan="5">暂无待审评价</td></tr>
             </tbody>
         </table>
         </div>

@@ -1,6 +1,7 @@
 package com.shine.xumis.app
 
 import android.app.Application
+import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.util.AppPrefs
 import com.shine.xumis.app.util.CrashGuard
 import com.shine.xumis.app.util.HealthLog
@@ -10,6 +11,7 @@ class ShineApp : Application() {
     override fun onCreate() {
         super.onCreate()
         AppPrefs.init(this)
+        ApiClient.init(this)
         ServerConfig.purgeLegacy(this)
         CrashGuard.install(this)
         HealthLog.firstLaunch(this)

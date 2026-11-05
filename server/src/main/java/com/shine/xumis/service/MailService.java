@@ -67,6 +67,44 @@ public class MailService {
         return link;
     }
 
+    /** 发送注册邮箱验证码；返回是否真正发出（false=降级仅日志）。验证码 10 分钟内有效。 */
+    public boolean sendCode(String email, String code) {
+        String subject = "你的注册验证码 - shine星心";
+        String body = "你好，\n\n" +
+                "你正在注册 shine星心，你的邮箱验证码是：" + code + "\n" +
+                "验证码 10 分钟内有效，请勿泄露给他人。\n\n" +
+                "如果这不是你本人的操作，请忽略此邮件。\n\n" +
+                "shine星心 团队";
+        deliver(email, subject, body, "邮箱验证码", code);
+        return enabled;
+    }
+
+    /**
+     * 发送 HTML 邮件（P0-2 订单通知 / P1-5 订阅欢迎信复用）。
+     * 与验证码一样走线程池异步发送，失败只记日志，绝不影响下单主流程。
+     */
+    public boolean sendHtml(String to, String subject, String html, String kind) {
+        if (!enabled) {
+            log.warn("[MailService 降级] 未配置 MAIL_HOST，未发送 HTML 邮件：{} -> {}", kind, to);
+            return false;
+        }
+        pool.submit(() -> {
+            try {
+                MimeMessage msg = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+                helper.setFrom(from);
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(msg);
+                log.info("HTML 邮件已发送：{} -> {}", kind, to);
+            } catch (Exception e) {
+                log.error("HTML 邮件发送失败：{} -> {}：{}", kind, to, e.getMessage());
+            }
+        });
+        return true;
+    }
+
     private void deliver(String to, String subject, String text, String kind, String link) {
         if (!enabled) {
             // 降级：不真正发信，仅把完整链接打到日志，方便无 SMTP 时联调

@@ -19,6 +19,11 @@ server:
 spring:
   application:
     name: shine-xumis
+  # 多个 @Scheduled（自检 / 库存预占 / ERP 同步重试）并行，避免单线程排队互相拖延
+  task:
+    scheduling:
+      pool:
+        size: 4
   thymeleaf:
     cache: false          # 生产可改为 true（或启用 prod profile）
     encoding: UTF-8

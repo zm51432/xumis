@@ -6,10 +6,11 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{account.my}">我的账户</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -30,6 +31,9 @@
         </div>
     </div>
 
+    <div class="alert-success" th:if="${param.returnMsg != null and param.returnMsg[0] == 'submitted'}" th:text="'退货申请已提交，等待审核'">退货申请已提交</div>
+    <div class="alert-error" th:if="${param.returnMsg != null and param.returnMsg[0] != 'submitted'}" th:text="${param.returnMsg[0]}">申请失败</div>
+    <div class="alert-error" th:if="${param.returnError != null}">订单不存在或不属于当前账号</div>
     <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'profile'}" th:text="#{account.profileSaved}">资料已保存</div>
     <div class="alert-success" th:if="${param.saved != null and param.saved[0] == 'pwd'}" th:text="#{account.pwdSaved}">密码已修改</div>
     <div class="alert-error" th:if="${param.saved != null and param.saved[0] == 'pwdError'}" th:text="#{account.pwdError}">原密码不正确</div>
@@ -111,6 +115,8 @@
                 <td>
                     <a class="btn btn-ghost btn-sm" th:href="@{/order/track(no=${o.orderNo})}"
                        th:text="#{track.title}">订单查询</a>
+                    <a class="btn btn-ghost btn-sm" th:if="${o.status != 'CANCELLED' and o.status != 'REFUNDED'}"
+                       th:href="@{/account/returns/new(no=${o.orderNo})}">申请退货</a>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(orders)}">

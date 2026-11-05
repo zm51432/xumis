@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 /**
  * App 本地偏好设置（只存展示类选项，不含任何服务端地址）。
  *
- * 目前只有「网页字号」：站点页面在 WebView 里默认按 CSS 像素排版，
+ * 历史遗留的「网页字号」偏好（App 已移除 WebView，不再影响显示）。
  * 长辈用户常觉得偏小，这里提供 标准 / 大 / 特大 三档，通过 WebSettings.textZoom 生效。
  */
 object AppPrefs {

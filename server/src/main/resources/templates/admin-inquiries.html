@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 询盘管理'">询盘管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">询盘管理 Inquiries</h2>
+            <p class="sub">标记处理状态、删除无效询盘</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+
+    <p class="result-count" th:text="${#lists.size(inquiries) + ' 条询盘'}">0 条询盘</p>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>时间</th><th>姓名</th><th>邮箱</th><th>主题</th><th>内容</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${inquiries}">
+                <td><small th:text="${i.createdAt != null ? #strings.substring(i.createdAt.toString(),0,16) : '-'}">-</small></td>
+                <td th:text="${i.name}">-</td>
+                <td><a th:href="${'mailto:' + i.email}" th:text="${i.email}">-</a></td>
+                <td th:text="${i.subject}">-</td>
+                <td style="max-width:320px;" th:text="${i.message}">-</td>
+                <td><span class="tag" th:text="${statusLabels[i.status] ?: i.status}">NEW</span></td>
+                <td>
+                    <form method="post" th:action="@{|${adminBase}/inquiries/status|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}">
+                        <input type="hidden" name="id" th:value="${i.id}"/>
+                        <select name="status" onchange="this.form.submit()">
+                            <option value="NEW" th:selected="${i.status == 'NEW'}">待处理</option>
+                            <option value="HANDLED" th:selected="${i.status == 'HANDLED'}">已处理</option>
+                            <option value="CLOSED" th:selected="${i.status == 'CLOSED'}">已关闭</option>
+                        </select>
+                    </form>
+                    <form method="post" th:action="@{|${adminBase}/inquiries/delete|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}" onsubmit="return confirm('确认删除这条询盘？');">
+                        <input type="hidden" name="id" th:value="${i.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(inquiries)}"><td colspan="7">暂无询盘</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

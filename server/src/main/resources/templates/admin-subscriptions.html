@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 订阅名单'">订阅名单</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">订阅名单 Subscriptions</h2>
+            <p class="sub">页脚订阅的邮箱，可导出后用于新品通知</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <a class="btn btn-sm" th:href="@{|${adminBase}/subscriptions/export.csv|}">⬇ 导出 CSV</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 已删除</div>
+
+    <p class="result-count" th:text="${#lists.size(subs) + ' 个订阅邮箱'}">0 个</p>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>#</th><th>邮箱</th><th>状态</th><th>订阅时间</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="s,it : ${subs}">
+                <td th:text="${it.index + 1}">1</td>
+                <td><a th:href="${'mailto:' + s.email}" th:text="${s.email}">-</a></td>
+                <td><small th:text="${s.createdAt != null ? #strings.substring(s.createdAt.toString(),0,16) : '-'}">-</small></td>
+                <td>
+                    <form method="post" th:action="@{|${adminBase}/subscriptions/delete|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}" onsubmit="return confirm('确认移除这个订阅？');">
+                        <input type="hidden" name="id" th:value="${s.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(subs)}"><td colspan="4">暂无订阅</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>
