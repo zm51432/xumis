@@ -49,7 +49,8 @@ class OrderDetailActivity : AppCompatActivity() {
                 binding.tvCreated.text = d.createdAt
                 binding.tvPay.text = "支付方式：" + (payLabel(d.paymentMethod) ?: "未选择")
                 binding.tvItems.text = d.items.joinToString("\n") {
-                    "${it.name ?: "商品"} × ${it.quantity}    ${usd(it.price)}"
+                    val sku = if (it.skuLabel.isNullOrBlank()) "" else "（${it.skuLabel}）"
+                    "${it.name ?: "商品"}$sku × ${it.quantity}    ${usd(it.price)}"
                 }
                 binding.tvShip.text = buildString {
                     append(d.customerName ?: "—")
@@ -60,6 +61,42 @@ class OrderDetailActivity : AppCompatActivity() {
                 if (!d.note.isNullOrBlank()) {
                     binding.tvNote.visibility = View.VISIBLE
                     binding.tvNote.text = "备注：${d.note}"
+                }
+                // 阶段3：费用明细（有优惠单显示更细的拆分）
+                binding.tvCharges.text = buildString {
+                    append("小计：").append(usd(d.subtotal))
+                    if (d.discount > 0.0) {
+                        append("\n优惠：-").append(usd(d.discount))
+                        if (!d.couponCode.isNullOrBlank()) append("（${d.couponCode}）")
+                    }
+                    append("\n运费：").append(usd(d.shippingFee))
+                    append("\n税费：").append(usd(d.taxAmount))
+                }
+                // 阶段3：物流信息（有运单号才显示）
+                if (!d.trackingNo.isNullOrBlank()) {
+                    binding.tvSectionTracking.visibility = View.VISIBLE
+                    binding.tvTrackingNo.visibility = View.VISIBLE
+                    binding.tvTrackingNo.text = buildString {
+                        if (!d.carrier.isNullOrBlank()) append("承运商：${d.carrier}　")
+                        append("运单号：${d.trackingNo}")
+                        append("\n（点击复制运单号）")
+                    }
+                    binding.tvTrackingNo.setOnClickListener {
+                        val no = detail?.trackingNo ?: return@setOnClickListener
+                        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return@setOnClickListener
+                        cm.setPrimaryClip(ClipData.newPlainText("运单号", no))
+                        Toast.makeText(this@OrderDetailActivity, "运单号已复制", Toast.LENGTH_SHORT).show()
+                    }
+                    if (d.trackingEvents.isNotEmpty()) {
+                        binding.tvTrackEvents.visibility = View.VISIBLE
+                        binding.tvTrackEvents.text = d.trackingEvents.joinToString("\n\n") { ev ->
+                            buildString {
+                                append("● ").append(ev.eventTime)
+                                if (!ev.location.isNullOrBlank()) append("　").append(ev.location)
+                                if (!ev.description.isNullOrBlank()) append("\n").append(ev.description)
+                            }
+                        }
+                    }
                 }
                 binding.tvTotal.text = "合计 " + d.currency + " " + usd(d.total)
             } catch (e: Exception) {

@@ -51,7 +51,7 @@ class CartAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val line = items[position]
-        holder.name.text = line.name
+        holder.name.text = if (line.skuLabel.isNullOrBlank()) line.name else "${line.name}（${line.skuLabel}）"
         holder.price.text = usd(line.price)
         holder.lineTotal.text = "小计 " + usd(line.lineTotal)
         holder.qty.text = line.qty.toString()

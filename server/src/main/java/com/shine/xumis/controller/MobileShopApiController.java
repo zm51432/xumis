@@ -620,24 +620,37 @@ public class MobileShopApiController {
         for (Map.Entry<Long, Integer> e : cart.entrySet()) {
             Product p = productService.findById(e.getKey());
             if (p == null) continue;
+            // 阶段3：取购物车里选中的规格，价格按 基础价+规格加价 计算（与网页 /cart/place 同口径）
+            Long skuId = cartService.getSku(session, e.getKey());
+            ProductSku sku = skuId == null ? null : skuRepository.findById(skuId).orElse(null);
+            if (sku != null && (!sku.isEnabled() || !e.getKey().equals(sku.getProductId()))) sku = null;
             int stock = (p.getStock() == null) ? 0 : p.getStock();
+            if (sku != null) stock = Math.min(stock, sku.getStock() == null ? 0 : sku.getStock());
             if (stock <= 0) continue;
             int qty = Math.min(Math.max(1, e.getValue()), stock);
 
+            BigDecimal unit = (p.getPrice() == null ? BigDecimal.ZERO : p.getPrice())
+                    .add(sku == null || sku.getPriceDelta() == null ? BigDecimal.ZERO : sku.getPriceDelta());
             OrderItem item = new OrderItem();
             item.setProductId(p.getId());
             item.setProductName(p.getName());
             item.setProductNameEn(p.getNameEn());
-            item.setPrice(p.getPrice());
+            item.setPrice(unit);
             item.setQuantity(qty);
             item.setImageUrl(p.getImageUrl());
+            if (sku != null) {
+                item.setSkuId(sku.getId());
+                item.setSkuLabel(sku.getLabel());
+                sku.setStock((sku.getStock() == null ? 0 : sku.getStock()) - qty);
+                skuRepository.save(sku);
+                erpSyncService.syncSkuStock(sku.getId(), sku.getStock());
+            }
             order.addItem(item);
 
-            total = total.add(p.getPrice() == null ? BigDecimal.ZERO
-                    : p.getPrice().multiply(BigDecimal.valueOf(qty)));
+            total = total.add(unit.multiply(BigDecimal.valueOf(qty)));
             p.setStock(stock - qty);
             toSave.add(p);
-            holds.add(new Object[]{p.getId(), null, qty});
+            holds.add(new Object[]{p.getId(), sku == null ? null : sku.getId(), qty});
         }
         if (order.getItems().isEmpty()) {
             body.put("ok", false);

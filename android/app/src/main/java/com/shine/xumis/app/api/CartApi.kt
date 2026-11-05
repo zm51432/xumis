@@ -23,8 +23,9 @@ object CartApi {
         _changes.tryEmit(count)
     }
 
-    /** 加入购物车，返回加购后购物车总件数 */
-    suspend fun add(productId: Long, qty: Int = 1): Int = CommerceApi.add(productId, qty)
+    /** 加入购物车（可带规格 skuId），返回加购后购物车总件数 */
+    suspend fun add(productId: Long, qty: Int = 1, skuId: Long? = null): Int =
+        CommerceApi.add(productId, qty, skuId)
 
     /** 刷新当前购物车件数（购物车页删除/改数量后用它同步角标） */
     suspend fun refreshCount(): Int = CommerceApi.cart().count

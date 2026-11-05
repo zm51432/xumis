@@ -20,7 +20,9 @@ data class CartLine(
     val imageUrl: String?,
     val stock: Int,
     val qty: Int,
-    val lineTotal: Double
+    val lineTotal: Double,
+    val skuId: Long? = null,
+    val skuLabel: String? = null
 )
 
 data class CartData(
@@ -38,7 +40,30 @@ data class CheckoutForm(
     val address: String?,
     val note: String?,
     val currency: String = "USD",
-    val paymentMethod: String?
+    val paymentMethod: String?,
+    val couponCode: String? = null
+)
+
+/** 商品可选规格（阶段3：详情页 SKU 选择器） */
+data class SkuOption(
+    val skuId: Long,
+    val skuCode: String?,
+    val label: String?,
+    val labelEn: String?,
+    val priceDelta: Double,
+    val stock: Int
+)
+
+/** 费用试算结果（阶段3：小计 / 优惠 / 运费 / 税费 / 应付） */
+data class FeeQuote(
+    val ok: Boolean,
+    val subtotal: Double,
+    val discount: Double,
+    val shippingFee: Double,
+    val taxAmount: Double,
+    val total: Double,
+    val freeShipping: Boolean,
+    val message: String?
 )
 
 data class PlaceResult(val orderNo: String, val total: Double, val currency: String)
@@ -47,7 +72,8 @@ data class OrderItemSummary(
     val name: String?,
     val quantity: Int,
     val price: Double,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val skuLabel: String? = null
 )
 
 data class OrderSummary(
@@ -57,6 +83,13 @@ data class OrderSummary(
     val currency: String,
     val createdAt: String,
     val items: List<OrderItemSummary>
+)
+
+/** 物流轨迹事件（阶段3） */
+data class TrackEvent(
+    val eventTime: String,
+    val location: String?,
+    val description: String?
 )
 
 data class OrderDetail(
@@ -72,7 +105,17 @@ data class OrderDetail(
     val country: String?,
     val address: String?,
     val note: String?,
-    val items: List<OrderItemSummary>
+    val items: List<OrderItemSummary>,
+    val subtotal: Double = 0.0,
+    val discount: Double = 0.0,
+    val shippingFee: Double = 0.0,
+    val taxAmount: Double = 0.0,
+    val couponCode: String? = null,
+    val trackingNo: String? = null,
+    val carrier: String? = null,
+    val trackingUrl: String? = null,
+    val shippedAt: String? = null,
+    val trackingEvents: List<TrackEvent> = emptyList()
 )
 
 data class AuthUser(
@@ -127,31 +170,74 @@ object CommerceApi {
 
     suspend fun cart(): CartData {
         val j = JSONObject(get("cart"))
-        val arr = j.optJSONArray("lines") ?: JSONArray()
+        // 2.6.0 起后端返回 items 载荷（含规格），兼容旧 lines
+        val arr = j.optJSONArray("items") ?: j.optJSONArray("lines") ?: JSONArray()
         val lines = ArrayList<CartLine>(arr.length())
         for (i in 0 until arr.length()) {
             val o = arr.getJSONObject(i)
             lines.add(
                 CartLine(
-                    id = o.optLong("id"),
+                    id = if (o.has("id")) o.optLong("id") else o.optLong("productId"),
                     name = o.optString("name"),
                     price = o.optDouble("price"),
                     imageUrl = fullImg(o.optString("imageUrl")),
                     stock = o.optInt("stock"),
-                    qty = o.optInt("qty"),
-                    lineTotal = o.optDouble("lineTotal")
+                    qty = if (o.has("qty")) o.optInt("qty") else o.optInt("quantity"),
+                    lineTotal = o.optDouble("lineTotal"),
+                    skuId = if (o.isNull("skuId")) null else o.optLong("skuId"),
+                    skuLabel = o.optString("skuLabel").takeIf { it.isNotBlank() }
                 )
             )
         }
-        return CartData(lines, j.optInt("count"), j.optDouble("total"), j.optBoolean("isEmpty"))
+        val count = if (j.has("count")) j.optInt("count") else lines.sumOf { it.qty }
+        return CartData(lines, count, j.optDouble("total"), lines.isEmpty())
     }
 
-    suspend fun add(productId: Long, qty: Int = 1): Int {
-        val j = JSONObject(post("cart/add", FormBody.Builder()
+    suspend fun add(productId: Long, qty: Int = 1, skuId: Long? = null): Int {
+        val fb = FormBody.Builder()
             .add("productId", productId.toString())
-            .add("quantity", qty.toString()).build()))
-        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "加购失败"))
+            .add("quantity", qty.toString())
+        skuId?.let { fb.add("skuId", it.toString()) }
+        val j = JSONObject(post("cart/add", fb.build()))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("message", j.optString("error", "加购失败")))
         return j.optInt("count")
+    }
+
+    /** 阶段3：商品可选规格列表 */
+    suspend fun productSkus(productId: Long): List<SkuOption> {
+        val arr = JSONArray(get("products/$productId/skus"))
+        val out = ArrayList<SkuOption>(arr.length())
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            out.add(
+                SkuOption(
+                    skuId = o.optLong("skuId"),
+                    skuCode = o.optString("skuCode").takeIf { it.isNotBlank() },
+                    label = o.optString("label").takeIf { it.isNotBlank() },
+                    labelEn = o.optString("labelEn").takeIf { it.isNotBlank() },
+                    priceDelta = o.optDouble("priceDelta"),
+                    stock = o.optInt("stock")
+                )
+            )
+        }
+        return out
+    }
+
+    /** 阶段3：结算页实时校验优惠码并试算费用（code 为空时仅返回当前费用） */
+    suspend fun couponCheck(code: String?): FeeQuote {
+        val fb = FormBody.Builder()
+        code?.takeIf { it.isNotBlank() }?.let { fb.add("code", it.trim()) }
+        val j = JSONObject(post("coupon-check", fb.build()))
+        return FeeQuote(
+            ok = j.optBoolean("ok"),
+            subtotal = j.optDouble("subtotal"),
+            discount = j.optDouble("discount"),
+            shippingFee = j.optDouble("shippingFee"),
+            taxAmount = j.optDouble("taxAmount"),
+            total = j.optDouble("total"),
+            freeShipping = j.optBoolean("freeShipping"),
+            message = j.optString("message").takeIf { it.isNotBlank() }
+        )
     }
 
     suspend fun update(productId: Long, qty: Int): Int {
@@ -179,8 +265,10 @@ object CommerceApi {
         f.address?.takeIf { it.isNotBlank() }?.let { fb.add("address", it) }
         f.note?.takeIf { it.isNotBlank() }?.let { fb.add("note", it) }
         f.paymentMethod?.takeIf { it.isNotBlank() }?.let { fb.add("paymentMethod", it) }
-        val j = JSONObject(post("orders", fb.build()))
-        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("error", "下单失败"))
+        f.couponCode?.takeIf { it.isNotBlank() }?.let { fb.add("couponCode", it) }
+        // 2.6.0 起走阶段3统一下单端点（与网页 /cart/place 同口径：规格/优惠券/运费/税费）
+        val j = JSONObject(post("order/place", fb.build()))
+        if (!j.optBoolean("ok")) throw IllegalStateException(j.optString("message", j.optString("error", "下单失败")))
         return PlaceResult(j.optString("orderNo"), j.optDouble("total"), j.optString("currency"))
     }
 
@@ -274,7 +362,21 @@ object CommerceApi {
             items.add(
                 OrderItemSummary(
                     name = it.optString("name"), quantity = it.optInt("quantity"),
-                    price = it.optDouble("price"), imageUrl = fullImg(it.optString("imageUrl"))
+                    price = it.optDouble("price"), imageUrl = fullImg(it.optString("imageUrl")),
+                    skuLabel = it.optString("skuLabel").takeIf { s -> s.isNotBlank() }
+                )
+            )
+        }
+        // 阶段3：物流轨迹（时间倒序）
+        val evArr = j.optJSONArray("trackingEvents") ?: JSONArray()
+        val events = ArrayList<TrackEvent>(evArr.length())
+        for (k in 0 until evArr.length()) {
+            val ev = evArr.getJSONObject(k)
+            events.add(
+                TrackEvent(
+                    eventTime = ev.optString("eventTime"),
+                    location = ev.optString("location").takeIf { s -> s.isNotBlank() },
+                    description = ev.optString("description").takeIf { s -> s.isNotBlank() }
                 )
             )
         }
@@ -289,7 +391,17 @@ object CommerceApi {
             country = j.optString("country").takeIf { it.isNotBlank() },
             address = j.optString("address").takeIf { it.isNotBlank() },
             note = j.optString("note").takeIf { it.isNotBlank() },
-            items = items
+            items = items,
+            subtotal = j.optDouble("subtotal"),
+            discount = j.optDouble("discount"),
+            shippingFee = j.optDouble("shippingFee"),
+            taxAmount = j.optDouble("taxAmount"),
+            couponCode = j.optString("couponCode").takeIf { it.isNotBlank() },
+            trackingNo = j.optString("trackingNo").takeIf { it.isNotBlank() },
+            carrier = j.optString("carrier").takeIf { it.isNotBlank() },
+            trackingUrl = j.optString("trackingUrl").takeIf { it.isNotBlank() },
+            shippedAt = j.optString("shippedAt").takeIf { it.isNotBlank() },
+            trackingEvents = events
         )
     }
 

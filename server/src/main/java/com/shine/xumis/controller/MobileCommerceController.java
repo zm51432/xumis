@@ -52,16 +52,19 @@ public class MobileCommerceController {
     private final ErpSyncService erpSyncService;
     private final UserAccountService userService;
     private final LoginAttemptService attemptService;
+    private final com.shine.xumis.repository.TrackingEventRepository trackingRepo;
 
     public MobileCommerceController(CartService cartService, ProductService productService,
                                     OrderService orderService, ErpSyncService erpSyncService,
-                                    UserAccountService userService, LoginAttemptService attemptService) {
+                                    UserAccountService userService, LoginAttemptService attemptService,
+                                    com.shine.xumis.repository.TrackingEventRepository trackingRepo) {
         this.cartService = cartService;
         this.productService = productService;
         this.orderService = orderService;
         this.erpSyncService = erpSyncService;
         this.userService = userService;
         this.attemptService = attemptService;
+        this.trackingRepo = trackingRepo;
     }
 
     // ==================== 购物车 ====================
@@ -210,10 +213,32 @@ public class MobileCommerceController {
                 im.put("quantity", it.getQuantity());
                 im.put("price", it.getPrice());
                 im.put("imageUrl", it.getImageUrl());
+                im.put("skuLabel", it.getSkuLabel());
                 items.add(im);
             }
         }
         m.put("items", items);
+        // 阶段3：费用拆分与优惠券（App 订单详情「费用明细」）
+        m.put("subtotal", o.getSubtotalAmount());
+        m.put("discount", o.getDiscountAmount());
+        m.put("shippingFee", o.getShippingFee());
+        m.put("taxAmount", o.getTaxAmount());
+        m.put("couponCode", o.getCouponCode());
+        // 阶段3：物流轨迹（游客凭订单号也能看）
+        m.put("trackingNo", o.getTrackingNo());
+        m.put("carrier", o.getCarrier());
+        m.put("trackingUrl", o.getTrackingUrl());
+        m.put("shippedAt", o.getShippedAt() == null ? null : o.getShippedAt().format(TS));
+        List<Map<String, Object>> events = new ArrayList<>();
+        for (com.shine.xumis.model.TrackingEvent ev
+                : trackingRepo.findByOrderNoOrderByEventTimeDescIdDesc(orderNo)) {
+            Map<String, Object> em = new LinkedHashMap<>();
+            em.put("eventTime", ev.getEventTime() == null ? "" : ev.getEventTime().format(TS));
+            em.put("location", ev.getLocation());
+            em.put("description", ev.getDescription());
+            events.add(em);
+        }
+        m.put("trackingEvents", events);
         return ResponseEntity.ok(m);
     }
 

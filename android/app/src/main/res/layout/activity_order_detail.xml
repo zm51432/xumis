@@ -60,6 +60,27 @@
                 android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textSize="12sp"
                 android:textColor="@color/shine_sub" android:visibility="gone"/>
 
+            <!-- 阶段3：费用明细（小计 / 优惠 / 运费 / 税费） -->
+            <TextView style="@style/SettingsSection" android:text="费用明细"/>
+
+            <TextView android:id="@+id/tv_charges" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/shine_text"
+                android:lineSpacingExtra="4dp"/>
+
+            <!-- 阶段3：物流信息（无运单号时整块隐藏） -->
+            <TextView android:id="@+id/tv_section_tracking" style="@style/SettingsSection" android:text="物流信息"
+                android:visibility="gone"/>
+
+            <TextView android:id="@+id/tv_tracking_no" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/shine_text"
+                android:clickable="true" android:focusable="true" android:visibility="gone"
+                android:contentDescription="点击复制运单号"/>
+
+            <TextView android:id="@+id/tv_track_events" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textSize="12sp"
+                android:textColor="@color/shine_sub" android:lineSpacingExtra="4dp"
+                android:visibility="gone"/>
+
             <TextView android:id="@+id/tv_total" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textSize="18sp"
                 android:textStyle="bold" android:textColor="@color/shine_pink"/>
