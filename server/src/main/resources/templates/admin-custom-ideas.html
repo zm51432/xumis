@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 定制需求'">定制需求</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">定制需求 Custom Ideas</h2>
+            <p class="sub">查看参考图与描述，标记进度、清理无效提交</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+
+    <p class="result-count" th:text="${#lists.size(ideas) + ' 条定制需求'}">0 条</p>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>时间</th><th>客户</th><th>分类</th><th>描述</th><th>参考图</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${ideas}">
+                <td><small th:text="${i.createdAt != null ? #strings.substring(i.createdAt.toString(),0,16) : '-'}">-</small></td>
+                <td>
+                    <div th:text="${i.customerName}">-</div>
+                    <small class="muted" th:text="${i.email}">-</small>
+                    <small class="muted" th:text="${i.country}">-</small>
+                </td>
+                <td th:text="${i.expectCategory != null ? i.expectCategory.label : '-'}">-</td>
+                <td style="max-width:300px;" th:text="${i.ideaDescription}">-</td>
+                <td>
+                    <a th:if="${!#strings.isEmpty(i.referenceImageUrl)}" th:href="${i.referenceImageUrl}"
+                       target="_blank">查看</a>
+                    <span th:if="${#strings.isEmpty(i.referenceImageUrl)}" class="muted">—</span>
+                </td>
+                <td><span class="tag" th:text="${statusLabels[i.status] ?: i.status}">NEW</span></td>
+                <td>
+                    <form method="post" th:action="@{|${adminBase}/custom-ideas/status|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}">
+                        <input type="hidden" name="id" th:value="${i.id}"/>
+                        <select name="status" onchange="this.form.submit()">
+                            <option value="NEW" th:selected="${i.status == 'NEW'}">待处理</option>
+                            <option value="HANDLED" th:selected="${i.status == 'HANDLED'}">已联系</option>
+                            <option value="CLOSED" th:selected="${i.status == 'CLOSED'}">已关闭</option>
+                        </select>
+                    </form>
+                    <form method="post" th:action="@{|${adminBase}/custom-ideas/delete|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}" onsubmit="return confirm('确认删除这条定制需求？');">
+                        <input type="hidden" name="id" th:value="${i.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(ideas)}"><td colspan="7">暂无定制需求</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

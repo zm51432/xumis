@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 优惠券 / 满减'">优惠券 / 满减</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">优惠券 / 满减</h2><p class="sub">创建固定金额、百分比或免运费券，支持门槛、有效期与用量上限</p></div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+    <div class="alert-error" th:if="${param.err != null}" th:text="${param.err}">出错了</div>
+
+    <div class="panel admin-form">
+        <h3 class="block-title" th:text="${edit != null} ? '编辑优惠码' : '新增优惠码'">新增优惠码</h3>
+        <form method="post" th:action="@{|${adminBase}/coupons/save|}">
+            <input type="hidden" name="id" th:if="${edit != null}" th:value="${edit.id}"/>
+            <div class="form-grid">
+                <div class="field"><label for="cp-code">优惠码 *</label>
+                    <input id="cp-code" type="text" name="code" required maxlength="60"
+                           th:value="${edit != null} ? ${edit.code} : ''" placeholder="SHINE10"/></div>
+                <div class="field"><label for="cp-type">类型</label>
+                    <select id="cp-type" name="type">
+                        <option value="FIXED" th:selected="${edit == null or edit.type == 'FIXED'}">固定金额减免（USD）</option>
+                        <option value="PERCENT" th:selected="${edit != null and edit.type == 'PERCENT'}">百分比折扣（%）</option>
+                        <option value="FREE_SHIP" th:selected="${edit != null and edit.type == 'FREE_SHIP'}">免运费</option>
+                    </select></div>
+                <div class="field"><label for="cp-value">数值</label>
+                    <input id="cp-value" type="text" name="value" th:value="${edit != null} ? ${edit.value} : '5'"/></div>
+                <div class="field"><label for="cp-min">满减门槛（USD）</label>
+                    <input id="cp-min" type="text" name="minSubtotal" th:value="${edit != null} ? ${edit.minSubtotal} : '0'"/></div>
+                <div class="field"><label for="cp-cap">百分比券封顶（USD，0=不封顶）</label>
+                    <input id="cp-cap" type="text" name="maxDiscount" th:value="${edit != null} ? ${edit.maxDiscount} : '0'"/></div>
+                <div class="field"><label for="cp-limit">总用量上限（0=不限）</label>
+                    <input id="cp-limit" type="number" name="usageLimit" th:value="${edit != null} ? ${edit.usageLimit} : '0'"/></div>
+                <div class="field"><label for="cp-start">生效时间</label>
+                    <input id="cp-start" type="datetime-local" name="startsAt"
+                           th:value="${edit != null and edit.startsAt != null} ? ${#strings.substring(edit.startsAt.toString(),0,16)} : ''"/></div>
+                <div class="field"><label for="cp-end">失效时间</label>
+                    <input id="cp-end" type="datetime-local" name="endsAt"
+                           th:value="${edit != null and edit.endsAt != null} ? ${#strings.substring(edit.endsAt.toString(),0,16)} : ''"/></div>
+                <div class="field col-span"><label for="cp-note">备注</label>
+                    <input id="cp-note" type="text" name="note" maxlength="300" th:value="${edit != null} ? ${edit.note} : ''"/></div>
+                <div class="field switches">
+                    <label class="switch"><input type="checkbox" name="enabled" value="on"
+                        th:checked="${edit == null or edit.enabled}"/><span>启用</span></label>
+                </div>
+            </div>
+            <div class="form-actions"><button class="btn" type="submit">保存优惠码</button>
+                <a class="btn btn-ghost" th:href="@{|${adminBase}/coupons|}">清空表单</a></div>
+        </form>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+        <h3 class="block-title">全部优惠码 <span class="muted small" th:text="'(' + ${#lists.size(coupons)} + ')'">(0)</span></h3>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0;">
+            <span class="muted small" th:text="${'当前未释放的库存预占：' + heldReservations + ' 行（每 30 秒扫描，超时自动释放）'}"></span>
+            <form method="post" th:action="@{|${adminBase}/reservations/run|}" class="inline-form">
+                <button class="btn btn-ghost btn-sm" type="submit">立即释放过期预占</button>
+            </form>
+        </div>
+        <div class="table-wrap"><table class="admin-table">
+            <thead><tr><th>优惠码</th><th>类型 / 数值</th><th>门槛</th><th>用量</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${coupons}">
+                <td><strong th:text="${c.code}">CODE</strong><br/><small class="muted" th:text="${c.note}"></small></td>
+                <td th:text="${c.type + ' / ' + c.value}">FIXED / 5</td>
+                <td th:text="${c.minSubtotal}">0</td>
+                <td th:text="${(c.usedCount ?: 0) + ' / ' + (c.usageLimit == 0 ? '∞' : c.usageLimit)}">0 / 0</td>
+                <td><small th:text="${(c.startsAt == null ? '不限' : #strings.substring(c.startsAt.toString(),0,16)) + ' ~ ' + (c.endsAt == null ? '不限' : #strings.substring(c.endsAt.toString(),0,16))}"></small></td>
+                <td><span class="tag" th:classappend="${c.enabled} ? 'tag-ok' : ''" th:text="${c.enabled} ? '启用' : '停用'">启用</span></td>
+                <td>
+                    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/coupons?id=${c.id}|}">编辑</a>
+                    <form method="post" th:action="@{|${adminBase}/coupons/delete|}" class="inline-form"
+                          onsubmit="return confirm('确认删除该优惠码？');">
+                        <input type="hidden" name="id" th:value="${c.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(coupons)}"><td colspan="7">还没有优惠码</td></tr>
+            </tbody>
+        </table></div>
+    </div>
+
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

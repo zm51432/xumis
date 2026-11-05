@@ -112,11 +112,6 @@
                 android:max="100" android:progress="0" android:layout_marginTop="8dp"
                 android:visibility="gone"/>
 
-            <Button android:id="@+id/btn_pressure" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="50 次压力自检"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_marginTop="8dp"/>
-
             <TextView android:id="@+id/tv_crash" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:textSize="12sp"
                 android:textColor="#B3261E" android:layout_marginTop="14dp"

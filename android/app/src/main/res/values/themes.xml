@@ -1,12 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.ShineApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- 固定浅色：主题是淡黄底 + 红，跟随系统深色会让文字与底色冲突 -->
+    <style name="Theme.ShineApp" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/shine_pink</item>
         <item name="colorPrimaryVariant">@color/shine_pink_dark</item>
-        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorOnPrimary">@color/shine_on_red</item>
         <item name="colorSecondary">@color/shine_mint</item>
+        <item name="colorSecondaryVariant">@color/shine_mint_dark</item>
+        <item name="colorOnSecondary">@color/shine_text</item>
+        <item name="colorSurface">@color/shine_surface</item>
         <item name="android:colorBackground">@color/shine_bg</item>
         <item name="android:statusBarColor">@color/shine_pink</item>
         <item name="android:navigationBarColor">@color/shine_pink</item>
+        <item name="android:textColorPrimary">@color/shine_text</item>
+        <item name="android:textColorSecondary">@color/shine_sub</item>
     </style>
 
     <!-- 设置页：分组标题 -->
@@ -29,5 +35,29 @@
         <item name="android:orientation">vertical</item>
         <item name="android:background">@drawable/bg_card</item>
         <item name="android:clipToOutline">true</item>
+    </style>
+
+    <!-- 表单输入框：淡黄底 + 圆角 + 淡黄描边 -->
+    <style name="ShineInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textColor">@color/shine_text</item>
+        <item name="android:textColorHint">@color/shine_sub</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- 表单标签 -->
+    <style name="ShineLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/shine_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
     </style>
 </resources>

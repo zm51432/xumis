@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 订单管理'">订单管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">订单管理 Orders</h2>
+            <p class="sub">查看商品明细、推进状态、删除异常订单、导出 CSV</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <a class="btn btn-sm" th:href="@{|${adminBase}/orders/export.csv|}">⬇ 导出 CSV</a>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+
+    <form class="admin-form panel" method="get" th:action="@{|${adminBase}/orders|}" style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <label style="flex:0 0 160px;">状态
+                <select name="status">
+                    <option value="" th:selected="${#strings.isEmpty(status)}">全部</option>
+                    <option th:each="s : ${orderStatuses}" th:value="${s}"
+                            th:selected="${s == status}"
+                            th:text="${statusLabels[s] + ' / ' + s}">PENDING</option>
+                </select>
+            </label>
+            <label style="flex:1 1 220px;">搜索
+                <input type="text" name="q" th:value="${q}" placeholder="订单号 / 邮箱 / 姓名"/>
+            </label>
+            <button class="btn" type="submit">筛选</button>
+            <a class="btn btn-ghost" th:href="@{|${adminBase}/orders|}">重置</a>
+        </div>
+    </form>
+
+    <p class="result-count" th:text="${'共 ' + total + ' 笔订单'}">共 0 笔订单</p>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th>订单号</th><th>客户</th><th>商品</th><th>金额</th><th>支付</th>
+                <th>物流</th><th>状态</th><th>时间</th><th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${orders}">
+                <td>
+                    <a th:href="@{/order/track(no=${o.orderNo})}" target="_blank" th:text="${o.orderNo}">-</a>
+                </td>
+                <td>
+                    <div th:text="${o.customerName}">-</div>
+                    <small class="muted" th:text="${o.email}">-</small>
+                </td>
+                <td>
+                    <div th:each="it : ${o.items}" style="font-size:12px;"
+                         th:text="${it.productName + ' ×' + it.quantity}">-</div>
+                </td>
+                <td th:text="${'$' + #numbers.formatDecimal(o.totalAmount,1,2)}">$0.00</td>
+                <td th:text="${o.paymentMethod}">-</td>
+                <td><small th:text="${o.trackingNo == null or #strings.isEmpty(o.trackingNo) ? '—' : o.trackingNo}">—</small>
+                    <br/><small class="muted" th:text="${o.carrier}"></small></td>
+                <td>
+                    <span class="tag" th:text="${statusLabels[o.status]}">待支付</span>
+                </td>
+                <td><small th:text="${#strings.substring(o.createdAt.toString(),0,16)}">-</small></td>
+                <td>
+                    <form method="post" th:action="@{|${adminBase}/order/status|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}">
+                        <input type="hidden" name="id" th:value="${o.id}"/>
+                        <select name="status" onchange="this.form.submit()">
+                            <option th:each="s : ${orderStatuses}" th:value="${s}" th:text="${statusLabels[s]}"
+                                    th:selected="${s == o.status}">PENDING</option>
+                        </select>
+                    </form>
+                    <details th:if="${me != null and me.canWrite()}" style="margin:6px 0;">
+                        <summary class="btn btn-ghost btn-sm">物流</summary>
+                        <form method="post" th:action="@{|${adminBase}/orders/tracking|}" style="min-width:230px;margin-top:8px;">
+                            <input type="hidden" name="id" th:value="${o.id}"/>
+                            <label>运单号 <input type="text" name="trackingNo" th:value="${o.trackingNo}"/></label>
+                            <label>承运商 <input type="text" name="carrier" th:value="${o.carrier}"/></label>
+                            <label>查询网址 <input type="text" name="trackingUrl" th:value="${o.trackingUrl}"/></label>
+                            <label>轨迹备注 <input type="text" name="eventDescription" placeholder="如：已到达转运中心"/></label>
+                            <label>地点 <input type="text" name="eventLocation" placeholder="可选"/></label>
+                            <label class="switch" style="margin:6px 0;"><input type="checkbox" name="markShipped" value="on"/><span>同时标记为已发货</span></label>
+                            <button class="btn btn-sm" type="submit">保存物流</button>
+                        </form>
+                    </details>
+                    <form method="post" th:action="@{|${adminBase}/orders/delete|}" class="inline-form"
+                          th:if="${me != null and me.canWrite()}"
+                          onsubmit="return confirm('删除后不可恢复，确认删除这笔订单？');">
+                        <input type="hidden" name="id" th:value="${o.id}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(orders)}"><td colspan="9">没有符合条件的订单</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

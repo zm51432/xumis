@@ -51,7 +51,7 @@ public class CustomIdeaController {
             return "custom";
         }
         // 防刷：同一 IP 10 分钟内最多 5 次定制提交
-        String key = "custom:" + ReviewController.clientIp(request);
+        String key = "custom:" + com.shine.xumis.util.IpUtils.clientIp(request);
         if (!rateLimitService.allow(key, 5, 10 * 60 * 1000L)) {
             model.addAttribute("rateLimited", rateLimitService.retryAfterSeconds(key, 5, 10 * 60 * 1000L));
             return "custom";

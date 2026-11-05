@@ -33,6 +33,10 @@ public class OrderItem {
 
     private String imageUrl;
 
+    /** SKU 规格快照（P1-2） */
+    private Long skuId;
+    @Column(length = 200) private String skuLabel;
+
     // ===== getter / setter =====
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,4 +54,8 @@ public class OrderItem {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Long getSkuId() { return skuId; }
+    public void setSkuId(Long skuId) { this.skuId = skuId; }
+    public String getSkuLabel() { return skuLabel; }
+    public void setSkuLabel(String skuLabel) { this.skuLabel = skuLabel; }
 }

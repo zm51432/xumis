@@ -1,6 +1,5 @@
 package com.shine.xumis.app.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -36,9 +35,6 @@ class StatusActivity : AppCompatActivity() {
         binding.topAppBar.setNavigationOnClickListener { finish() }
 
         binding.btnRun.setOnClickListener { run(rounds) }
-        binding.btnPressure.setOnClickListener {
-            startActivity(Intent(this, DiagnosticsActivity::class.java))
-        }
 
         renderLast()
         renderDetail()

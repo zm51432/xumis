@@ -1,5 +1,6 @@
 package com.shine.xumis.controller;
 
+import com.shine.xumis.service.AnalyticsService;
 import com.shine.xumis.service.RateLimitService;
 import com.shine.xumis.service.SubscriptionService;
 import com.shine.xumis.util.RedirectUtils;
@@ -16,10 +17,13 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
     private final RateLimitService rateLimitService;
+    private final AnalyticsService analytics;
 
-    public SubscriptionController(SubscriptionService subscriptionService, RateLimitService rateLimitService) {
+    public SubscriptionController(SubscriptionService subscriptionService, RateLimitService rateLimitService,
+                                  AnalyticsService analytics) {
         this.subscriptionService = subscriptionService;
         this.rateLimitService = rateLimitService;
+        this.analytics = analytics;
     }
 
     @PostMapping("/subscribe")
@@ -27,7 +31,7 @@ public class SubscriptionController {
                             @RequestParam(required = false) String redirect,
                             HttpServletRequest request) {
         // 防刷：同一 IP 10 分钟内最多 5 次订阅提交；邮箱格式也做一次服务端校验
-        String key = "subscribe:" + ReviewController.clientIp(request);
+        String key = "subscribe:" + com.shine.xumis.util.IpUtils.clientIp(request);
         boolean badEmail = email == null || !email.matches("^[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}$");
         boolean tooFast = !rateLimitService.allow(key, 5, 10 * 60 * 1000L);
         if (badEmail || tooFast) {
@@ -36,6 +40,7 @@ public class SubscriptionController {
             return "redirect:" + back + (back.contains("?") ? "&" : "?") + flag;
         }
         subscriptionService.subscribe(email);
+        analytics.record("SUBSCRIBE", "/subscribe", null, request.getSession().getId());
         String back = RedirectUtils.safe(redirect, request);
         return "redirect:" + back + (back.contains("?") ? "&" : "?") + "subscribed=1";
     }

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${storeName} + ' · ERP 同步'">ERP 同步</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">ERP 同步 / 对账</h2>
+            <p class="sub">网站 ↔ ERP 双向链路的可观测面板：失败自动重试、差异一键查看、全量补推</p></div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已提交，可刷新查看最新状态</div>
+    <div class="alert-error" th:if="${param.denied != null}">当前角色为只读，不能执行同步操作</div>
+
+    <div class="report-grid" style="margin-bottom:16px;">
+        <div class="report-card"><span class="muted">同步成功</span><strong th:text="${okCount}">0</strong></div>
+        <div class="report-card"><span class="muted">待重试</span><strong th:text="${failCount}">0</strong></div>
+        <div class="report-card"><span class="muted">已放弃</span><strong th:text="${gaveUpCount}">0</strong></div>
+        <div class="report-card"><span class="muted">网站商品 / 订单</span>
+            <strong th:text="${productCount} + ' / ' + ${orderCount}">0 / 0</strong></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+        <h3 class="block-title">运维操作</h3>
+        <div class="btn-row" style="justify-content:flex-start;flex-wrap:wrap;">
+            <form method="post" th:action="@{|${adminBase}/erp-sync/retry|}"><button class="btn btn-sm" type="submit">立即重试失败项</button></form>
+            <form method="post" th:action="@{|${adminBase}/erp-sync/sync-products|}"><button class="btn btn-ghost btn-sm" type="submit">全量补推商品主数据</button></form>
+            <form method="post" th:action="@{|${adminBase}/erp-sync/sync-orders|}"><button class="btn btn-ghost btn-sm" type="submit">全量补推订单</button></form>
+            <form method="post" th:action="@{|${adminBase}/erp-sync/inventory-sync|}"
+                  onsubmit="return confirm('将以网站库存为准拉齐 ERP，确认继续？');">
+                <button class="btn btn-ghost btn-sm" type="submit">库存全量对账</button></form>
+            <form method="post" th:action="@{|${adminBase}/erp-sync/reconcile|}"><button class="btn btn-ghost btn-sm" type="submit">刷新差异并留痕</button></form>
+        </div>
+        <p class="hint" style="margin-top:8px;">全量补推商品只更新主数据，不会覆盖 ERP 手工调整的库存；「库存全量对账」才会以网站数值拉齐。</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+        <h3 class="block-title">两库差异（实时读取 ERP）</h3>
+        <div th:if="${reconcile['ok'] == false}">
+            <p class="alert-error" th:text="${'对账接口不可用：' + reconcile['error']}">对账失败</p>
+        </div>
+        <div th:if="${reconcile['ok'] == true}">
+            <div class="table-wrap"><table class="admin-table">
+                <thead><tr><th>项目</th><th>网站</th><th>ERP</th><th>差异</th></tr></thead>
+                <tbody>
+                <tr><td>商品数</td><td th:text="${reconcile['products']['web']}">0</td>
+                    <td th:text="${reconcile['products']['erp']}">0</td>
+                    <td th:text="${reconcile['products']['stockDiffCount']}">0</td></tr>
+                <tr><td>订单数</td><td th:text="${reconcile['orders']['web']}">0</td>
+                    <td th:text="${reconcile['orders']['erp']}">0</td>
+                    <td th:text="${reconcile['orders']['erpOnlyCount'] + ' 幽灵 / ' + reconcile['orders']['webOnlyCount'] + ' 缺单'}">0</td></tr>
+                <tr><td>询盘</td><td th:text="${reconcile['inquiries']['web']}">0</td>
+                    <td th:text="${reconcile['inquiries']['erp']}">0</td><td>—</td></tr>
+                <tr><td>定制需求</td><td th:text="${reconcile['customIdeas']['web']}">0</td>
+                    <td th:text="${reconcile['customIdeas']['erp']}">0</td><td>—</td></tr>
+                <tr><td>退货记录</td><td th:text="${reconcile['returns']['web']}">0</td>
+                    <td th:text="${reconcile['returns']['erp']}">0</td><td>—</td></tr>
+                </tbody>
+            </table></div>
+            <p class="muted small" th:if="${!#lists.isEmpty(reconcile['products']['stockDiff'])}"
+               th:text="${'库存差异商品：' + reconcileJson}"></p>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h3 class="block-title">最近 60 条同步事件</h3>
+        <div class="table-wrap"><table class="admin-table">
+            <thead><tr><th>时间</th><th>类型</th><th>对象</th><th>端点</th><th>状态</th><th>重试</th><th>说明</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${events}">
+                <td><small th:text="${#strings.substring(e.createdAt.toString(),0,16)}">-</small></td>
+                <td th:text="${e.entity}">-</td>
+                <td th:text="${e.refNo}">-</td>
+                <td><small th:text="${e.endpoint}">-</small></td>
+                <td>
+                    <span class="tag" th:classappend="${e.status == 'OK'} ? 'tag-ok' : 'tag-bad'"
+                          th:text="${e.status}">OK</span>
+                </td>
+                <td th:text="${e.attempts}">0</td>
+                <td><small th:text="${#strings.abbreviate(e.message,120)}"></small></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(events)}"><td colspan="7">暂无同步记录</td></tr>
+            </tbody>
+        </table></div>
+    </div>
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

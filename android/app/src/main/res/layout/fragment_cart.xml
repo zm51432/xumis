@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg" android:padding="10dp">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="购物车" android:textSize="18sp" android:textStyle="bold"
+        android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+
+    <TextView android:id="@+id/tv_empty" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:visibility="gone"
+        android:gravity="center" android:paddingTop="80dp" android:textSize="14sp"
+        android:textColor="@color/shine_sub" android:text="购物车还是空的\n去首页挑几件喜欢的吧"/>
+
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_cart"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:layout_marginTop="4dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingTop="8dp" android:paddingBottom="4dp">
+
+        <TextView android:id="@+id/tv_total" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="wrap_content" android:textSize="17sp" android:textStyle="bold"
+            android:textColor="@color/shine_pink" android:text="合计 US$0.00"/>
+
+        <Button android:id="@+id/btn_checkout" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="去结算"/>
+    </LinearLayout>
+</LinearLayout>

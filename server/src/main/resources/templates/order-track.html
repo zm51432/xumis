@@ -6,10 +6,11 @@
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
     <title th:text="${storeName} + ' · ' + #{track.title}">订单查询</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <meta name="theme-color" content="#7fc5ac"/>
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -23,12 +24,12 @@
     <!-- 查询表单 -->
     <form class="form-wrap" method="post" th:action="@{/order/track}">
         <div class="field">
-            <label th:text="#{track.no}">订单号</label>
-            <input type="text" name="orderNo" required th:value="${defaultNo}" placeholder="SH20261029XXXXXX"/>
+            <label for="tk-no" th:text="#{track.no}">订单号</label>
+            <input id="tk-no" type="text" name="orderNo" required th:value="${defaultNo}" placeholder="SH20261029XXXXXX"/>
         </div>
         <div class="field">
-            <label th:text="#{track.email}">下单邮箱</label>
-            <input type="email" name="email" required th:value="${defaultEmail}" placeholder="you@example.com"/>
+            <label for="tk-email" th:text="#{track.email}">下单邮箱</label>
+            <input id="tk-email" type="email" name="email" required th:value="${defaultEmail}" placeholder="you@example.com"/>
         </div>
         <button class="btn btn-block" type="submit" th:text="#{track.submit}">查询订单</button>
     </form>
@@ -69,6 +70,24 @@
             </li>
         </ol>
 
+        <!-- P1-3 物流单号与轨迹 -->
+        <div class="tracking-box" th:if="${order.trackingNo != null and !#strings.isEmpty(order.trackingNo)}">
+            <h4 class="block-title">物流信息</h4>
+            <p><strong>运单号：</strong><span th:text="${order.trackingNo}">—</span>
+               <span th:if="${order.carrier != null and !#strings.isEmpty(order.carrier)}"
+                     th:text="${' · ' + order.carrier}"></span></p>
+            <p class="muted small" th:if="${order.shippedAt != null}"
+               th:text="${'发货时间：' + #strings.substring(order.shippedAt.toString(),0,16)}"></p>
+            <a th:if="${order.trackingUrl != null and !#strings.isEmpty(order.trackingUrl)}"
+               th:href="${order.trackingUrl}" target="_blank" rel="noopener">在承运商官网查询 ↗</a>
+            <ul class="tracking-events" th:if="${trackingEvents != null and !#lists.isEmpty(trackingEvents)}">
+                <li th:each="ev : ${trackingEvents}">
+                    <div class="strong" th:text="${ev.description}">已揽收</div>
+                    <small class="muted" th:text="${(ev.eventTime == null ? '' : #strings.substring(ev.eventTime.toString(),0,16)) + (ev.location == null ? '' : ' · ' + ev.location)}"></small>
+                </li>
+            </ul>
+        </div>
+
         <!-- 商品明细 -->
         <h4 class="block-title" th:text="#{track.items}">商品明细</h4>
         <div class="table-wrap">
@@ -82,12 +101,20 @@
                 </thead>
                 <tbody>
                 <tr th:each="it : ${order.items}">
-                    <td th:text="${#locale.language == 'en' and it.productNameEn != null ? it.productNameEn : it.productName}">商品</td>
+                    <td>
+                        <span th:text="${#locale.language == 'en' and it.productNameEn != null ? it.productNameEn : it.productName}">商品</span>
+                        <small class="muted" th:if="${it.skuLabel != null and !#strings.isEmpty(it.skuLabel)}"
+                               th:text="${' · ' + it.skuLabel}"></small>
+                    </td>
                     <td th:text="${it.quantity}">1</td>
                     <td th:text="${currencySymbol} + ${#numbers.formatDecimal(it.price.multiply(fxRate),1,2)}">$0.00</td>
                 </tr>
                 </tbody>
             </table>
+        </div>
+        <div class="sum-line" th:if="${order.discountAmount != null and order.discountAmount > 0}">
+            <span>优惠 <small th:text="${order.couponCode}"></small></span>
+            <span class="sum-discount" th:text="${'-' + order.discountAmount}"></span>
         </div>
         <div class="price" style="font-size:20px;"
              th:text="#{cart.total} + '：' + ${currencySymbol} + ${#numbers.formatDecimal(order.totalAmount.multiply(fxRate),1,2)}">

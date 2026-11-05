@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 访问分析'">访问分析</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">访问分析</h2><p class="sub">站内轻量埋点：浏览 / 加购 / 下单转化漏斗，不依赖第三方</p></div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+    <div class="alert-error" th:if="${param.err != null}" th:text="${param.err}">出错了</div>
+
+    <form class="admin-form panel" method="get" th:action="@{|${adminBase}/analytics|}" style="margin-bottom:14px;">
+        <label for="an-days">统计区间
+            <select id="an-days" name="days" onchange="this.form.submit()">
+                <option value="7" th:selected="${days == 7}">最近 7 天</option>
+                <option value="30" th:selected="${days == 30}">最近 30 天</option>
+                <option value="90" th:selected="${days == 90}">最近 90 天</option>
+            </select>
+        </label>
+    </form>
+
+    <div class="report-grid">
+        <div class="report-card"><span class="muted">浏览量 PV</span><strong th:text="${report['pv']}">0</strong></div>
+        <div class="report-card"><span class="muted">独立访客 UV</span><strong th:text="${report['uv']}">0</strong></div>
+        <div class="report-card"><span class="muted">加购次数</span><strong th:text="${report['addCart']}">0</strong></div>
+        <div class="report-card"><span class="muted">下单次数</span><strong th:text="${report['orders']}">0</strong></div>
+        <div class="report-card"><span class="muted">加购率</span><strong th:text="${report['cartRate']} + '%'">0%</strong></div>
+        <div class="report-card"><span class="muted">下单转化率</span><strong th:text="${report['orderRate']} + '%'">0%</strong></div>
+        <div class="report-card"><span class="muted">新增订阅</span><strong th:text="${report['subs']}">0</strong></div>
+        <div class="report-card"><span class="muted">统计天数</span><strong th:text="${report['days']}">7</strong></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+        <h3 class="block-title">每日明细</h3>
+        <div class="table-wrap"><table class="admin-table">
+            <thead><tr><th>日期</th><th>PV</th><th>UV</th><th>加购</th><th>下单</th><th>订阅</th></tr></thead>
+            <tbody>
+            <tr th:each="d : ${report['daily']}">
+                <td th:text="${d['day']}">2026-11-05</td>
+                <td th:text="${d['pv']}">0</td><td th:text="${d['uv']}">0</td>
+                <td th:text="${d['cart']}">0</td><td th:text="${d['orders']}">0</td>
+                <td th:text="${d['subs']}">0</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(report['daily'])}"><td colspan="6">暂无数据，访问几个前台页面后即可看到统计</td></tr>
+            </tbody>
+        </table></div>
+    </div>
+
+    <div class="report-grid-2" style="margin-top:16px;">
+        <div class="panel"><h3 class="block-title">热门页面</h3>
+            <ul class="meta"><li th:each="t : ${report['topPaths']}" th:text="${t['path'] + ' — ' + t['count'] + ' 次'}"></li></ul>
+            <p class="muted small" th:if="${#lists.isEmpty(report['topPaths'])}">暂无数据</p></div>
+        <div class="panel"><h3 class="block-title">热门商品浏览</h3>
+            <ul class="meta"><li th:each="t : ${report['topProducts']}" th:text="${t['name'] + ' — ' + t['count'] + ' 次'}"></li></ul>
+            <p class="muted small" th:if="${#lists.isEmpty(report['topProducts'])}">暂无数据</p></div>
+    </div>
+
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

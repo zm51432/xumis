@@ -8,7 +8,7 @@ import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivityAboutBinding
 import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.OfflineAssets
-import com.shine.xumis.app.util.WebViewSetup
+import com.shine.xumis.app.util.ShareUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,14 +34,14 @@ class AboutActivity : AppCompatActivity() {
         binding.tvFaq.text = FAQ
 
         binding.btnCatalog.setOnClickListener {
-            openAsset("离线商品册", OfflineAssets.CATALOG)
+            startActivity(Intent(this, CatalogActivity::class.java))
         }
         binding.btnPolicies.setOnClickListener {
-            openAsset("配送与售后条款", OfflineAssets.POLICIES)
+            startActivity(DocActivity.intent(this, "配送与售后条款"))
         }
         binding.btnShareApp.setOnClickListener {
             startActivity(
-                WebViewSetup.shareIntent(
+                ShareUtils.shareIntent(
                     "shine 星心",
                     "shine 星心 · 饰品与手工品，官方手机客户端安装即用，断网也能浏览商品册。",
                     ""
@@ -62,7 +62,7 @@ class AboutActivity : AppCompatActivity() {
             val cached = CatalogCache.count(this@AboutActivity)
             binding.tvOfflineStat.text = buildString {
                 append("· 商品图 $imgs 张（${OfflineAssets.sizeText(bytes)}）\n")
-                append("· 离线商品册 1 份、配送与售后条款 1 份\n")
+                append("· 离线商品册、配送与售后条款（原生页面）\n")
                 append("· 内置 Nunito / Quicksand 字体 6 款，离线排版不变形\n")
                 append("· 最近一次在线商品缓存：$cached 件（${CatalogCache.savedAtText(this@AboutActivity)}）")
             }
@@ -87,10 +87,6 @@ class AboutActivity : AppCompatActivity() {
         }
     }
 
-    private fun openAsset(title: String, url: String) {
-        startActivity(Intent(this, WebViewActivity::class.java).putExtra("url", url).putExtra("title", title))
-    }
-
     private fun versionName(): String = try {
         packageManager.getPackageInfo(packageName, 0).versionName ?: "-"
     } catch (e: Exception) {
@@ -111,16 +107,16 @@ class AboutActivity : AppCompatActivity() {
             不需要。App 出厂已在后台直连官方商店服务，打开即用，无需填写任何地址或账号配置。
 
             2. 没有网络还能用吗？
-            可以。首页会展示上次缓存的商品列表，并标注缓存时间；「离线商品册」内置 12 件商品的图片、材质与描述，配送与售后条款也随包安装。
+            可以。首页会展示上次缓存的商品列表，并标注缓存时间；「离线商品册」用同一份缓存以原生列表展示，配送与售后条款也随包安装。
 
             3. 下单、支付在哪里完成？
-            商品详情页点「去网页加购/购买」进入站点完整流程，支持 PayPal、微信支付、支付宝、万事达卡四种渠道。
+            商品详情页点「立即购买」或购物车点「去结算」，都在 App 内完成：收货信息、支付方式、提交订单，不需要跳网页。支持 PayPal、微信支付、支付宝、万事达卡四种渠道。
 
             4. 登录状态会丢吗？
-            App 与站点共用同一套 Cookie，切到购物车、我的账户仍在登录态；重启 App 后依然保留。
+            登录态保存在本机，重启 App 后依然保留；在「我的」里点任意订单可以查看账单详情。
 
             5. 怎么确认服务端正常？
-            本页上方显示实时连接状态；「运行状态」页可以跑 5 轮检测或 50 次压力自检，并保留历史结果。
+            本页上方显示实时连接状态；「运行状态」页可以跑 5 轮检测，并保留历史结果。
         """.trimIndent()
     }
 }

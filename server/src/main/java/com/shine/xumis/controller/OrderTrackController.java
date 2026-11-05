@@ -1,6 +1,7 @@
 package com.shine.xumis.controller;
 
 import com.shine.xumis.model.Order;
+import com.shine.xumis.repository.TrackingEventRepository;
 import com.shine.xumis.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class OrderTrackController {
 
     private final OrderService orderService;
+    private final TrackingEventRepository trackingRepo;
 
-    public OrderTrackController(OrderService orderService) {
+    public OrderTrackController(OrderService orderService, TrackingEventRepository trackingRepo) {
         this.orderService = orderService;
+        this.trackingRepo = trackingRepo;
     }
 
     @GetMapping("/order/track")
@@ -52,6 +55,7 @@ public class OrderTrackController {
         }
         model.addAttribute("order", o);
         model.addAttribute("stage", stageOf(o.getStatus()));
+        model.addAttribute("trackingEvents", trackingRepo.findByOrderNoOrderByEventTimeDescIdDesc(o.getOrderNo()));
         return "order-track";
     }
 

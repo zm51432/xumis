@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta name="color-scheme" content="light"/>
     <meta name="format-detection" content="telephone=no"/>
-    <title th:text="${storeName} + ' · ' + #{nav.home}">shine星心</title>
-    <meta name="description" th:content="${storeName} + ' · ' + #{home.subtitle}"/>
-    <meta name="keywords" content="饰品,手工品,来图定制,外贸独立站,jewelry,handmade,custom"/>
-    <link rel="stylesheet" th:href="@{/css/style.css(v='20261030c')}"/>
+    <title th:text="${#strings.isEmpty(cfg['seo.title']) ? storeName + ' · ' + #messages.msg('nav.home') : cfg['seo.title']}">shine星心</title>
+    <meta name="description" th:content="${#strings.isEmpty(cfg['seo.description']) ? storeName + ' · ' + #messages.msg('home.subtitle') : cfg['seo.description']}"/>
+    <meta name="keywords" th:content="${cfg['seo.keywords']}"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" th:content="${storeName}"/>
+    <meta name="twitter:description" th:content="${#strings.isEmpty(cfg['seo.description']) ? #messages.msg('home.subtitle') : cfg['seo.description']}"/>
+    <meta property="og:site_name" th:content="${storeName}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
     <link rel="apple-touch-icon" th:href="@{/icon.svg}"/>
     <meta name="theme-color" content="#7fc5ac"/>
@@ -18,6 +22,7 @@
     <meta property="og:image" th:if="${not #lists.isEmpty(featured)}" th:content="${siteBaseUrl} + ${featured[0].imageUrl}"/>
     <meta property="og:description" th:content="#{home.subtitle}"/>
     <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
 </head>
 <body>
 
@@ -27,14 +32,14 @@
 <!-- Hero -->
 <section class="hero">
     <div class="hero-inner">
-        <span class="badge-soft">✿ 手作温度 · 跨境好物</span>
-        <h1 th:text="#{home.hero}">让每一份心意，都被亲手点亮</h1>
-        <p th:text="#{home.subtitle}">shine星心 · 饰品与手工品的温柔制造者</p>
+        <span class="badge-soft" th:text="${'✿ ' + (#strings.isEmpty(siteTagline) ? #messages.msg('home.subtitle') : siteTagline)}">✿ 手作温度 · 跨境好物</span>
+        <h1 th:text="${#strings.isEmpty(cfg['home.heroTitle']) ? #messages.msg('home.hero') : cfg['home.heroTitle']}">让每一份心意，都被亲手点亮</h1>
+        <p th:text="${#strings.isEmpty(cfg['home.heroSubtitle']) ? #messages.msg('home.subtitle') : cfg['home.heroSubtitle']}">shine星心 · 饰品与手工品的温柔制造者</p>
         <div class="btn-row">
-            <a class="btn" th:href="@{/custom}" th:text="#{home.ctaCustom}">立即定制</a>
-            <a class="btn btn-ghost" th:href="@{/inquiry}" th:text="#{home.ctaInquiry}">我要咨询</a>
+            <a class="btn" th:href="@{|${langPrefix}/custom|}" th:text="#{home.ctaCustom}">立即定制</a>
+            <a class="btn btn-ghost" th:href="@{|${langPrefix}/inquiry|}" th:text="#{home.ctaInquiry}">我要咨询</a>
         </div>
-        <form class="hero-search" action="/products" method="get">
+        <form class="hero-search" th:action="@{|${langPrefix}/products|}" method="get">
             <input type="text" name="q" th:placeholder="#{search.placeholder}"/>
             <button type="submit" th:text="#{search.button}">搜索</button>
         </form>
@@ -42,19 +47,54 @@
 </section>
 
 <div class="container section">
-    <h2 class="section-title reveal" th:text="#{home.featured}">精选好物</h2>
+    <h2 class="section-title reveal" th:text="${#strings.isEmpty(cfg['home.featuredTitle']) ? #messages.msg('home.featured') : cfg['home.featuredTitle']}">精选好物</h2>
     <p class="sub reveal" th:text="${storeName} + ' / ' + ${storeNameEn}">shine星心</p>
     <div class="grid">
         <div class="card reveal" th:each="p : ${featured}">
             <div class="thumb">
-                <a th:href="@{/product/{id}(id=${p.id})}">
-                    <img th:src="${p.imageUrl}" alt="product" loading="lazy" onerror="imgFallback(this)"/>
+                <a th:href="@{|${langPrefix}/product/${p.id}|}">
+<picture>
+                        <source th:if="${!#strings.isEmpty(p.imageSrcset)}" type="image/webp"
+                                th:srcset="${p.imageSrcset}" sizes="(max-width:600px) 50vw, 300px"/>
+                        <img th:src="${p.imageUrl}" th:alt="${#locale.language == 'en' ? p.nameEn : p.name}" loading="eager" fetchpriority="high" onerror="imgFallback(this)"/>
+                    </picture>
                 </a>
             </div>
             <div class="card-body">
                 <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
                 <span class="tag" th:text="${p.category.label}">分类</span>
                 <span class="tag custom" th:if="${p.customizable}" th:text="#{home.customizable}">支持来图定制</span>
+                <span class="tag sold" th:if="${sold != null and sold[p.id] != null and sold[p.id] > 0}"
+                      th:text="#{products.soldCount(${sold[p.id]})}">已售 1 件</span>
+                <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 热销榜：全站推荐唯一依据 = 真实售出件数（已取消订单不计入） -->
+<div class="container section" th:if="${hot != null and !#lists.isEmpty(hot)}">
+    <h2 class="section-title reveal"
+        th:text="${#strings.isEmpty(cfg['home.hotTitle']) ? '热销榜' : cfg['home.hotTitle']}">热销榜 · 大家都在买</h2>
+    <p class="sub reveal">按真实售出件数排序，订单越多排得越前</p>
+    <div class="grid">
+        <div class="card reveal" th:each="p,it : ${hot}">
+            <div class="thumb">
+                <a th:href="@{|${langPrefix}/product/${p.id}|}">
+<picture>
+                        <source th:if="${!#strings.isEmpty(p.imageSrcset)}" type="image/webp"
+                                th:srcset="${p.imageSrcset}" sizes="(max-width:600px) 50vw, 300px"/>
+                        <img th:src="${p.imageUrl}" th:alt="${#locale.language == 'en' ? p.nameEn : p.name}" loading="lazy" onerror="imgFallback(this)"/>
+                    </picture>
+                </a>
+                <span class="rank-badge" th:text="${'#' + (it.index + 1)}">#1</span>
+            </div>
+            <div class="card-body">
+                <h3 th:text="${#locale.language == 'en' ? p.nameEn : p.name}">商品名</h3>
+                <span class="tag" th:text="${p.category.label}">分类</span>
+                <span class="tag sold" th:if="${sold != null and sold[p.id] != null and sold[p.id] > 0}"
+                      th:text="#{products.soldCount(${sold[p.id]})}">已售 1 件</span>
                 <div class="price" th:text="${currencySymbol} + ${#numbers.formatDecimal(p.price.multiply(fxRate),1,2)}">$0.00</div>
             </div>
         </div>
@@ -99,5 +139,33 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 
 <script th:src="@{/js/store.js}"></script>
+
+<!-- 结构化数据：Organization + WebSite（含站内搜索），利于品牌收录与搜索结果展示 -->
+<script type="application/ld+json" th:inline="javascript">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": /*[[${storeName}]]*/ "shine",
+          "alternateName": /*[[${storeNameEn}]]*/ "shine Star-Heart",
+          "url": /*[[${siteBaseUrl}]]*/ "",
+          "logo": /*[[${siteBaseUrl}]]*/ "" + "/icon.svg",
+          "email": /*[[${siteEmail}]]*/ "",
+          "description": /*[[${cfg['seo.description']}]]*/ ""
+        },
+        {
+          "@type": "WebSite",
+          "name": /*[[${storeName}]]*/ "shine",
+          "url": /*[[${siteBaseUrl}]]*/ "",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": /*[[${siteBaseUrl}]]*/ "" + "/products?q={q}",
+            "query-input": "required name=q"
+          }
+        }
+      ]
+    }
+</script>
 </body>
 </html>

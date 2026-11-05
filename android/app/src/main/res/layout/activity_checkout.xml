@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/shine_bg" android:fillViewport="true">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="14dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="确认订单" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/shine_text" android:layout_marginBottom="10dp"/>
+
+        <!-- 收货信息 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/bg_panel"
+            android:padding="12dp" android:layout_marginBottom="10dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="收货信息" android:textSize="14sp" android:textStyle="bold"
+                android:textColor="@color/shine_text" android:layout_marginBottom="6dp"/>
+
+            <EditText android:id="@+id/et_name" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="收货人姓名" android:inputType="textPersonName"
+                android:autofillHints="name"/>
+
+            <EditText android:id="@+id/et_email" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="邮箱（用于接收订单通知）"
+                android:inputType="textEmailAddress" android:autofillHints="emailAddress"/>
+
+            <EditText android:id="@+id/et_phone" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="电话（选填）"
+                android:inputType="phone" android:autofillHints="phone"/>
+
+            <EditText android:id="@+id/et_country" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="国家 / 地区"
+                android:inputType="text" android:autofillHints="postalAddress"/>
+
+            <EditText android:id="@+id/et_address" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="详细地址（省市区 + 街道门牌）"
+                android:inputType="textMultiLine" android:minLines="2" android:gravity="top"
+                android:autofillHints="streetAddress"/>
+
+            <EditText android:id="@+id/et_note" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:hint="订单备注（选填）"
+                android:inputType="textMultiLine"/>
+        </LinearLayout>
+
+        <!-- 订单摘要 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/bg_panel"
+            android:padding="12dp" android:layout_marginBottom="10dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="订单商品" android:textSize="14sp" android:textStyle="bold"
+                android:textColor="@color/shine_text"/>
+
+            <TextView android:id="@+id/tv_items" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:textSize="13sp" android:textColor="@color/shine_sub"
+                android:lineSpacingExtra="3dp" android:text="加载中…"/>
+
+            <TextView android:id="@+id/tv_charges" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                android:textSize="12.5sp" android:textColor="@color/shine_sub"
+                android:lineSpacingExtra="3dp" android:text=""/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <EditText android:id="@+id/et_coupon" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content"
+                    android:hint="优惠码 / 满减券" android:inputType="textCapCharacters"/>
+                <Button android:id="@+id/btn_coupon" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="校验并使用"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/tv_coupon_msg" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="12sp" android:textColor="@color/shine_sub" android:text=""/>
+
+            <TextView android:id="@+id/tv_total" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                android:textSize="17sp" android:textStyle="bold" android:gravity="end"
+                android:textColor="@color/shine_pink" android:text="合计 US$0.00"/>
+        </LinearLayout>
+
+        <!-- 支付方式 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/bg_panel"
+            android:padding="12dp" android:layout_marginBottom="10dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="支付方式" android:textSize="14sp" android:textStyle="bold"
+                android:textColor="@color/shine_text" android:layout_marginBottom="4dp"/>
+
+            <RadioGroup android:id="@+id/rg_pay" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical">
+
+                <RadioButton android:id="@+id/rb_paypal" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="PayPal" android:checked="true"/>
+
+                <RadioButton android:id="@+id/rb_wechat" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="微信支付"/>
+
+                <RadioButton android:id="@+id/rb_alipay" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="支付宝"/>
+
+                <RadioButton android:id="@+id/rb_card" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="信用卡 / Mastercard"/>
+            </RadioGroup>
+
+            <TextView android:id="@+id/tv_pay_hint" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="12sp" android:textColor="@color/shine_sub"
+                android:lineSpacingExtra="2dp"
+                android:text="下单后我们会通过邮件发送付款指引，完成付款后安排发货。"/>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_submit" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="提交订单"/>
+
+        <TextView android:id="@+id/tv_progress" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:visibility="gone"
+            android:gravity="center" android:textSize="12sp" android:textColor="@color/shine_sub"
+            android:layout_marginTop="8dp" android:text="提交中…"/>
+    </LinearLayout>
+</ScrollView>

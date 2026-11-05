@@ -5,6 +5,8 @@ import com.shine.xumis.model.UserAccount;
 import com.shine.xumis.service.OrderService;
 import com.shine.xumis.service.LoginAttemptService;
 import com.shine.xumis.service.UserAccountService;
+import com.shine.xumis.service.MailService;
+import com.shine.xumis.service.VerificationCodeService;
 import com.shine.xumis.util.RedirectUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -13,8 +15,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * C 端账号：注册 / 登录 / 我的账户（资料 + 我的订单）。
@@ -26,12 +31,17 @@ public class AccountController {
     private final UserAccountService userService;
     private final OrderService orderService;
     private final LoginAttemptService attemptService;
+    private final MailService mailService;
+    private final VerificationCodeService codeService;
 
     public AccountController(UserAccountService userService, OrderService orderService,
-                             LoginAttemptService attemptService) {
+                             LoginAttemptService attemptService, MailService mailService,
+                             VerificationCodeService codeService) {
         this.userService = userService;
         this.orderService = orderService;
         this.attemptService = attemptService;
+        this.mailService = mailService;
+        this.codeService = codeService;
     }
 
     static UserAccount currentUser(HttpSession session) {
@@ -57,11 +67,31 @@ public class AccountController {
         return "auth";
     }
 
+    /** 发送注册邮箱验证码（JSON）。前端 fetch 调用，需携带 CSRF 令牌。 */
+    @PostMapping("/register/send-code")
+    @ResponseBody
+    public Map<String, Object> sendRegisterCode(@RequestParam(required = false) String email) {
+        Map<String, Object> r = new HashMap<>();
+        VerificationCodeService.SendOutcome o = codeService.send(email);
+        if (o.result == VerificationCodeService.SendResult.INVALID_EMAIL) {
+            r.put("ok", false);
+            r.put("error", "badEmail");
+        } else if (o.result == VerificationCodeService.SendResult.RATE_LIMITED) {
+            r.put("ok", false);
+            r.put("error", "rateLimited");
+        } else {
+            mailService.sendCode(email, o.code);
+            r.put("ok", true);
+        }
+        return r;
+    }
+
     @PostMapping("/register")
     public String register(@RequestParam(required = false) String email,
                            @RequestParam(required = false) String password,
                            @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
                            @RequestParam(required = false) String name,
+                           @RequestParam(value = "code", required = false) String code,
                            @RequestParam(value = "redirect", required = false) String redirect,
                            HttpServletRequest request,
                            Model model) {
@@ -90,8 +120,17 @@ public class AccountController {
             model.addAttribute("name", name);
             return "auth";
         }
+        // 邮箱真人校验：必须凭正确且未过期的验证码才能注册（验证码一次性使用）
+        if (code == null || !codeService.verify(email, code)) {
+            model.addAttribute("regError", "badCode");
+            model.addAttribute("tab", "register");
+            model.addAttribute("redirectTo", redirect);
+            model.addAttribute("email", email);
+            model.addAttribute("name", name);
+            return "auth";
+        }
         var created = userService.register(email, password, name,
-                com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"));
+                com.shine.xumis.util.IpUtils.clientIp(request), request.getHeader("User-Agent"), true);
         if (created.isEmpty()) {
             model.addAttribute("regError", "dupEmail");
             model.addAttribute("tab", "register");

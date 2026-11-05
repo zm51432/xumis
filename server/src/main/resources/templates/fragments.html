@@ -4,41 +4,103 @@
     <meta charset="UTF-8"/>
     <title th:text="${storeName}">shine星心</title>
     <meta name="_csrf" th:content="${csrf}"/>
+    <!-- 统一 head：canonical + hreflang（P2-2）+ 可选外部分析（P2-3）。所有前台页引用它 -->
+    <th:block th:fragment="headseo">
+        <link rel="canonical" th:href="${canonicalUrl}"/>
+        <link rel="alternate" hreflang="zh" th:href="${alternateZh}"/>
+        <link rel="alternate" hreflang="en" th:href="${alternateEn}"/>
+        <link rel="alternate" hreflang="x-default" th:href="${alternateZh}"/>
+        <script th:if="${analyticsExternalId != null and #strings.startsWith(analyticsExternalId,'G-')}"
+                async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${analyticsExternalId}"></script>
+        <script th:if="${analyticsExternalId != null and #strings.startsWith(analyticsExternalId,'G-')}"
+                th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', /*[[${analyticsExternalId}]]*/ '');
+        </script>
+        <script th:if="${analyticsExternalId != null and !#strings.isEmpty(analyticsExternalId) and !#strings.startsWith(analyticsExternalId,'G-')}"
+                defer th:attr="data-domain=${analyticsExternalId}"
+                th:src="'https://plausible.io/js/script.js'"></script>
+    </th:block>
 </head>
 <body>
 
-<!-- 顶部导航 -->
-<nav class="nav" th:fragment="nav">
-    <a class="brand" th:href="@{/}">
-        <span class="dot"></span>
-        <span th:text="${storeName}">shine星心</span>
-        <small th:text="${storeNameEn}">shine Star-Heart</small>
-    </a>
-    <button class="hamburger" aria-label="menu" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-        <a th:href="@{/}" th:text="#{nav.home}">首页</a>
-        <a th:href="@{/products}" th:text="#{nav.products}">商品</a>
-        <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
-        <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
-        <select class="currency-select" onchange="setCurrency(this.value)" aria-label="currency">
-            <option th:each="c : ${currencies}"
-                    th:value="${c.code}"
-                    th:text="${c.code + ' ' + c.symbol}"
-                    th:selected="${c.code == currencyCode}">USD $</option>
-        </select>
-        <a class="cart-link" th:href="@{/cart}">🛒
-            <span class="badge" th:classappend="${cartCount != null and cartCount > 0} ? 'badge-live' : 'badge-zero'"
-                  th:text="${cartCount}">0</span>
-        </a>
-        <a th:if="${user == null}" th:href="@{/login}" th:text="#{account.login}">登录</a>
-        <a th:if="${user == null}" class="nav-register" th:href="@{/register}" th:text="#{account.register}">注册</a>
-        <a th:if="${user != null}" th:href="@{/account}" th:text="#{account.my}">我的账户</a>
-        <button class="lang-btn" th:data-lang="${#locale.language}" onclick="toggleLang(this)"
-                th:text="${#locale.language == 'en'} ? '中文' : 'EN'">EN</button>
+<!-- 顶部：全宽公告条 + 主导航 -->
+<header class="site-header" th:fragment="nav"
+        th:with="notice=${#locale.language == 'en'
+            ? (cfg == null or #strings.isEmpty(cfg['home.noticeEn']) ? #messages.msg('nav.ticker') : cfg['home.noticeEn'])
+            : (cfg == null or #strings.isEmpty(cfg['home.notice']) ? #messages.msg('nav.ticker') : cfg['home.notice'])}">
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <span id="main-content" tabindex="-1" class="skip-anchor"></span>
+
+    <!-- 滚动公告：单行连续滚动，JS 驱动（系统关闭动画时仍然滚动） -->
+    <div class="announce-bar" role="status" aria-label="notice">
+        <span class="sr-only" th:text="${notice}">只有销量，没有评价。</span>
+        <div class="announce-badge">
+            <span class="announce-dot"></span>
+            <span th:text="#{nav.notice}">站点公告</span>
+        </div>
+        <div class="announce-viewport">
+            <div class="announce-track" id="announceTrack" aria-hidden="true">
+                <div class="announce-group">
+                    <span class="announce-item" th:each="i : ${#numbers.sequence(1,4)}">
+                        <span th:text="${notice}">只有销量，没有评价。</span>
+                        <span class="sep">✦</span>
+                    </span>
+                </div>
+                <div class="announce-group">
+                    <span class="announce-item" th:each="i : ${#numbers.sequence(1,4)}">
+                        <span th:text="${notice}">只有销量，没有评价。</span>
+                        <span class="sep">✦</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="announce-side" th:text="${storeNameEn}">shine Star-Heart</div>
     </div>
-</nav>
+
+    <!-- 主导航 -->
+    <nav class="main-nav" aria-label="primary">
+        <div class="nav-inner">
+            <a class="brand-box" th:href="@{|${langPrefix}/|}">
+                <span class="brand-mark">✦</span>
+                <span class="brand-text">
+                    <strong th:text="${storeName}">shine星心</strong>
+                    <small th:text="${storeNameEn}">shine Star-Heart</small>
+                </span>
+            </a>
+
+            <div class="main-links" id="navLinks">
+                <a th:href="@{|${langPrefix}/|}" th:text="#{nav.home}">首页</a>
+                <a th:href="@{|${langPrefix}/products|}" th:text="#{nav.products}">商品</a>
+                <a th:href="@{|${langPrefix}/custom|}" th:text="#{nav.custom}">来图定制</a>
+                <a th:href="@{|${langPrefix}/inquiry|}" th:text="#{nav.inquiry}">询盘联系</a>
+            </div>
+
+            <div class="nav-tools">
+                <select class="cur-select" onchange="setCurrency(this.value)" aria-label="currency">
+                    <option th:each="c : ${currencies}"
+                            th:value="${c.code}"
+                            th:text="${c.code + ' ' + c.symbol}"
+                            th:selected="${c.code == currencyCode}">USD $</option>
+                </select>
+                <a class="cart-pill" th:href="@{/cart}" aria-label="cart">🛒
+                    <span class="badge" th:classappend="${cartCount != null and cartCount > 0} ? 'badge-live' : 'badge-zero'"
+                          th:text="${cartCount}">0</span>
+                </a>
+                <a th:if="${user == null}" class="login-link" th:href="@{/login}" th:text="#{account.login}">登录</a>
+                <a th:if="${user != null}" class="login-link" th:href="@{/account}" th:text="#{account.my}">我的账户</a>
+                <a class="lang-pill" th:if="${isEn}" th:href="@{/(lang='zh')}">中文</a>
+                <a class="lang-pill" th:unless="${isEn}" th:href="@{/en/(lang='en')}">EN</a>
+            </div>
+
+            <button class="hamburger-btn" aria-label="menu" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+</header>
 
 <!-- 手机端底部导航 -->
 <nav class="mobile-nav" th:fragment="mobilenav">
@@ -49,29 +111,110 @@
     <a th:href="@{/inquiry}"><span class="mi">✉️</span><span th:text="#{nav.inquiry}">联系</span></a>
 </nav>
 
-<!-- 页脚 -->
+<!-- 后台模块导航（所有后台页面共用，避免每个页面各写一遍入口） -->
+<div class="admin-nav" th:fragment="adminnav">
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">📊 仪表盘</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/products|}">📦 商品</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/orders|}">🧾 订单</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/returns|}">↩️ 退货申请</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/customers|}">👥 客户</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/inquiries|}">✉️ 询盘</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/custom-ideas|}">🎨 定制</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/restock|}">🔔 到货</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/subscriptions|}">📮 订阅</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/coupons|}">🎟️ 优惠券</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/categories|}">🗂️ 分类</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/pages|}">📄 内容页</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/analytics|}">📈 访问分析</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/erp-sync|}">🔄 ERP 同步</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/audit|}">🛡️ 操作审计</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/settings|}">⚙️ 站点设置</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}/health|}">🩺 站点自检</a>
+    <a class="btn btn-ghost btn-sm" th:href="@{/erp/}" target="_blank">🏭 ERP 系统 ↗</a>
+    <a class="btn btn-ghost btn-sm" th:if="${me != null and me.canManageAdmins()}"
+       th:href="@{|${adminBase}/admins|}">👤 账号权限</a>
+</div>
+
+<!-- 页脚：品牌 / 联系我们 / 购物指南 / 订阅优惠 四列 -->
 <footer class="footer" th:fragment="footer">
-    <div class="footer-grid">
-        <div>
-            <h4 th:text="${storeName}">shine星心</h4>
-            <p th:text="#{footer.text}">© shine星心</p>
+    <div class="footer-inner">
+        <div class="footer-main">
+
+            <!-- 品牌 -->
+            <div class="footer-brand">
+                <a class="footer-logo" th:href="@{|${langPrefix}/|}">
+                    <span class="footer-logo-mark" aria-hidden="true">✦</span>
+                    <span>
+                        <strong th:text="${storeName}">shine星心</strong>
+                        <small th:text="${storeNameEn}">shine Star-Heart</small>
+                    </span>
+                </a>
+                <p class="footer-tagline"
+                   th:text="${#locale.language == 'en' ? 'Handcrafted jewelry & custom keepsakes, made with care.' : '手作饰品与来图定制，把心意认真做出来。'}">手作饰品与来图定制</p>
+                <p class="footer-slogan"
+                   th:text="${#locale.language == 'en' ? 'Real sales only. No reviews.' : '只有销量，没有评价。'}">只有销量，没有评价。</p>
+            </div>
+
+            <!-- 联系我们 -->
+            <div class="footer-col">
+                <h4 th:text="${#locale.language == 'en' ? 'Contact Us' : '联系我们'}">联系我们</h4>
+                <div class="footer-contact-row">
+                    <span class="fc-label" th:text="${#locale.language == 'en' ? 'Company' : '企业'}">企业</span>
+                    <span class="fc-value" th:text="${storeName}">shine星心</span>
+                </div>
+                <div class="footer-contact-row">
+                    <span class="fc-label" th:text="${#locale.language == 'en' ? 'Contact' : '联系人'}">联系人</span>
+                    <span class="fc-value" th:text="${siteContact}">Ben</span>
+                </div>
+                <div class="footer-contact-row">
+                    <span class="fc-label" th:text="${#locale.language == 'en' ? 'Email' : '邮箱'}">邮箱</span>
+                    <a class="fc-value fc-mail" th:href="'mailto:' + ${siteEmail}" th:text="${siteEmail}">xumo92241@gmail.com</a>
+                </div>
+                <div class="footer-contact-row" th:if="${sitePhone != null and !#strings.isEmpty(sitePhone)}">
+                    <span class="fc-label" th:text="${#locale.language == 'en' ? 'Phone' : '电话'}">电话</span>
+                    <span class="fc-value" th:text="${sitePhone}">—</span>
+                </div>
+                <div class="footer-contact-row" th:if="${siteAddress != null and !#strings.isEmpty(siteAddress)}">
+                    <span class="fc-label" th:text="${#locale.language == 'en' ? 'Studio' : '地址'}">地址</span>
+                    <span class="fc-value" th:text="${siteAddress}">—</span>
+                </div>
+            </div>
+
+            <!-- 购物指南 -->
+            <div class="footer-col footer-links">
+                <h4 th:text="${#locale.language == 'en' ? 'Shop Guide' : '购物指南'}">购物指南</h4>
+                <a th:href="@{|${langPrefix}/order/track|}" th:text="#{nav.track}">订单查询</a>
+                <a th:href="@{|${langPrefix}/custom|}" th:text="#{nav.custom}">来图定制</a>
+                <a th:href="@{|${langPrefix}/inquiry|}" th:text="#{nav.inquiry}">询盘联系</a>
+                <a th:each="pg : ${contentPages}" th:href="@{|${langPrefix}/p/${pg.slug}|}"
+                   th:text="${#locale.language == 'en' and !#strings.isEmpty(pg.titleEn) ? pg.titleEn : pg.titleZh}">内容页</a>
+            </div>
+
+            <!-- 订阅 -->
+            <div class="footer-col footer-subscribe">
+                <h4 th:text="#{subscribe.title}">订阅优惠</h4>
+                <p th:text="#{subscribe.desc}">订阅后第一时间获取新品与限时优惠。</p>
+                <form class="subscribe" action="/subscribe" method="post">
+                    <label class="sr-only" for="subscribe-email" th:text="#{subscribe.title}">订阅邮箱</label>
+                    <input id="subscribe-email" type="email" name="email" required th:placeholder="#{subscribe.placeholder}"/>
+                    <button type="submit" th:text="#{subscribe.button}">订阅</button>
+                </form>
+                <p class="ok-msg" th:if="${param.subscribed != null}" th:text="#{subscribe.success}">订阅成功</p>
+                <p class="error" th:if="${param.subBad != null}" th:text="#{subscribe.badEmail}">邮箱格式不正确</p>
+                <p class="error" th:if="${param.subRate != null}" th:text="#{subscribe.rateLimited}">订阅过于频繁</p>
+                <p class="footer-fineprint"
+                   th:text="${#locale.language == 'en' ? 'Unsubscribe anytime from any email.' : '订阅后可随时通过邮件内链接退订'}">订阅后可随时通过邮件内链接退订</p>
+            </div>
         </div>
-        <div class="footer-links">
-            <h4 th:text="#{nav.help}">帮助</h4>
-            <a th:href="@{/order/track}" th:text="#{nav.track}">订单查询</a>
-            <a th:href="@{/custom}" th:text="#{nav.custom}">来图定制</a>
-            <a th:href="@{/inquiry}" th:text="#{nav.inquiry}">询盘联系</a>
-        </div>
-        <div>
-            <h4 th:text="#{subscribe.title}">订阅优惠</h4>
-            <p class="muted" th:text="#{subscribe.desc}">订阅后获取新品与优惠</p>
-            <form class="subscribe" action="/subscribe" method="post">
-                <input type="email" name="email" required th:placeholder="#{subscribe.placeholder}"/>
-                <button type="submit" th:text="#{subscribe.button}">订阅</button>
-            </form>
-            <p class="ok-msg" th:if="${param.subscribed != null}" th:text="#{subscribe.success}">订阅成功</p>
-            <p class="error" th:if="${param.subBad != null}" th:text="#{subscribe.badEmail}">邮箱格式不正确</p>
-            <p class="error" th:if="${param.subRate != null}" th:text="#{subscribe.rateLimited}">订阅过于频繁</p>
+
+        <!-- 底部版权条 -->
+        <div class="footer-bottom">
+            <span th:text="${#locale.language == 'en' ? '© ' + currentYear + ' ' + storeName + '. All rights reserved.' : '© ' + currentYear + ' ' + storeName + ' · 保留所有权利。'}">© 2026 shine星心 · 保留所有权利。</span>
+            <span class="footer-bottom-links">
+                <a th:href="@{|${langPrefix}/p/shipping|}" th:text="${#locale.language == 'en' ? 'Shipping & Returns' : '配送与退换'}">配送与退换</a>
+                <a th:href="@{|${langPrefix}/p/care|}" th:text="${#locale.language == 'en' ? 'Materials & Care' : '材质保养'}">材质保养</a>
+                <a th:href="@{|${langPrefix}/p/size|}" th:text="${#locale.language == 'en' ? 'Size Guide' : '尺寸指南'}">尺寸指南</a>
+            </span>
         </div>
     </div>
 </footer>

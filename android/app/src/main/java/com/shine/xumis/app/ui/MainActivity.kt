@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            binding.bottomNav.selectedItemId = R.id.nav_home
+            selectTab(intent.getStringExtra("tab"))
         }
 
         AppPrefs.init(applicationContext)
@@ -99,6 +99,21 @@ class MainActivity : AppCompatActivity() {
             if (isFinishing) return@launch
             startActivity(UpdateActivity.intent(this@MainActivity, rel, resp.force))
         }
+    }
+
+    private fun selectTab(tab: String?) {
+        binding.bottomNav.selectedItemId = when (tab) {
+            "cart" -> R.id.nav_cart
+            "account" -> R.id.nav_account
+            "search" -> R.id.nav_search
+            else -> R.id.nav_home
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        selectTab(intent.getStringExtra("tab"))
     }
 
     private fun switchTo(fragment: Fragment): Boolean {

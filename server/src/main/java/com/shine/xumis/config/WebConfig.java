@@ -20,6 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final AdminAuthInterceptor adminAuthInterceptor;
     private final CsrfInterceptor csrfInterceptor;
+    private final AdminAuditInterceptor adminAuditInterceptor;
 
     @Value("${app.upload-dir:./uploads}")
     private String uploadDir;
@@ -27,9 +28,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload-url:/files/}")
     private String uploadUrl;
 
-    public WebConfig(AdminAuthInterceptor adminAuthInterceptor, CsrfInterceptor csrfInterceptor) {
+    public WebConfig(AdminAuthInterceptor adminAuthInterceptor, CsrfInterceptor csrfInterceptor,
+                     AdminAuditInterceptor adminAuditInterceptor) {
         this.adminAuthInterceptor = adminAuthInterceptor;
         this.csrfInterceptor = csrfInterceptor;
+        this.adminAuditInterceptor = adminAuditInterceptor;
     }
 
     @Override
@@ -53,5 +56,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(adminAuthInterceptor)
                 .addPathPatterns("/admin/**")
                 .excludePathPatterns("/admin/login", "/admin/logout");
+
+        // 阶段4：后台写操作审计（放在鉴权之后，能拿到 currentAdmin）
+        registry.addInterceptor(adminAuditInterceptor).addPathPatterns("/admin/**");
     }
 }

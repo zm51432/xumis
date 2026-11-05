@@ -67,11 +67,12 @@ function showToast(msg, type) {
 }
 
 // 加入购物车：无刷新提交，成功后更新角标并弹提示
-function addToCart(productId, qty) {
+function addToCart(productId, qty, skuId) {
   const q = (qty && qty > 0) ? qty : 1;
   const body = new URLSearchParams();
   body.set('productId', String(productId));
   body.set('quantity', String(q));
+  if (skuId) body.set('skuId', String(skuId));
   fetch('/cart/add-json', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'X-CSRF-Token': csrfToken() },
@@ -143,7 +144,7 @@ function previewImage(input) {
 // 手机端汉堡菜单开合
 function toggleMenu() {
   const links = document.getElementById('navLinks');
-  const btn = document.querySelector('.hamburger');
+  const btn = document.querySelector('.hamburger-btn');
   if (links) links.classList.toggle('open');
   if (btn) btn.classList.toggle('open');
   // 点击菜单项后自动收起
@@ -215,3 +216,108 @@ function initCookieConsent() {
     banner.remove();
   });
 }
+
+
+/* ===== P1-4：结算页优惠码实时校验 ===== */
+function checkCoupon(inputId, msgId) {
+  const code = (document.getElementById(inputId) || {}).value || '';
+  const msg = document.getElementById(msgId);
+  const body = new URLSearchParams();
+  body.set('code', code.trim());
+  fetch('/cart/coupon-check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'X-CSRF-Token': csrfToken() },
+    body: body
+  }).then(r => r.json()).then(d => {
+    if (msg) {
+      msg.textContent = d.message || '';
+      msg.className = 'coupon-msg ' + (d.ok ? 'ok' : 'bad');
+    }
+    const hidden = document.getElementById('couponCodeInput');
+    if (hidden) hidden.value = d.ok ? code.trim() : '';
+    const line = document.getElementById('discountLine');
+    if (line) {
+      line.style.display = (d.ok && d.discount > 0) ? 'flex' : 'none';
+      const dv = document.getElementById('discountValue');
+      if (dv) dv.textContent = '-' + Number(d.discount || 0).toFixed(2);
+    }
+    const totalNum = document.getElementById('totalNumber');
+    const fxEl = document.getElementById('fxRate');
+    const fx = fxEl ? (parseFloat(fxEl.textContent) || 1) : 1;
+    if (totalNum && typeof d.total === 'number') totalNum.textContent = (Number(d.total) * fx).toFixed(2);
+    const dvEl = document.getElementById('discountValue');
+    if (dvEl) dvEl.textContent = '-' + (Number(d.discount || 0) * fx).toFixed(2);
+    // 阶段1：运费 / 税费随优惠券（含免运费券）实时重算
+    const setAmt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (Number(v || 0) * fx).toFixed(2); };
+    if (typeof d.shippingFee === 'number') setAmt('shippingValue', d.shippingFee);
+    if (typeof d.taxAmount === 'number') setAmt('taxValue', d.taxAmount);
+    if (typeof d.subtotal === 'number') setAmt('subtotalValue', d.subtotal);
+    const shipHint = document.getElementById('shipHint');
+    if (shipHint && d.freeShipping) shipHint.textContent = (document.documentElement.lang || '').startsWith('en') ? 'Free shipping applied' : '已达包邮门槛，本单免运费';
+  }).catch(() => { if (msg) { msg.textContent = '网络异常，请重试'; msg.className = 'coupon-msg bad'; } });
+}
+
+/* ===== P1-2：详情页规格选择 ===== */
+let selectedSkuId = null;
+function selectSku(el, skuId, delta) {
+  document.querySelectorAll('.sku-opt').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  selectedSkuId = skuId || null;
+  const priceEl = document.getElementById('skuPriceDelta');
+  if (priceEl) priceEl.textContent = delta ? '(+' + delta + ' USD)' : '';
+}
+function addDetailToCart(productId, qtyInputId) {
+  const qty = (document.getElementById(qtyInputId) || {}).value || 1;
+  return addToCart(productId, qty, selectedSkuId);
+}
+
+
+/* ==========================================================================
+   顶部公告滚动：JS 驱动（rAF）
+   系统开启「减少动态效果 / prefers-reduced-motion」时 CSS 动画会被浏览器
+   整个禁用，纯 CSS 字幕会静止不动。这里接管 transform，保证始终平滑滚动；
+   双份内容组 + 按组宽取模 = 无缝循环，鼠标悬停暂停便于阅读。
+   ========================================================================== */
+(function initAnnounceTicker() {
+  var track = document.getElementById('announceTrack');
+  if (!track) return;
+  var group = track.querySelector('.announce-group');
+  if (!group) return;
+
+  track.classList.add('js-driven');      // 关掉同名的 CSS 动画，避免两套 transform 打架
+  var width = 0, offset = 0, last = 0, paused = false;
+  var SPEED = 52;                        // px / 秒
+
+  function measure() {
+    var w = group.getBoundingClientRect().width;
+    if (w > 0) {
+      width = w;
+      if (offset >= width) offset = offset % width;
+    }
+  }
+  measure();
+  if (window.ResizeObserver) { try { new ResizeObserver(measure).observe(group); } catch (e) {} }
+  window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
+
+  var bar = track.closest ? track.closest('.announce-bar') : null;
+  if (bar) {
+    bar.addEventListener('mouseenter', function () { paused = true; });
+    bar.addEventListener('mouseleave', function () { paused = false; last = 0; });
+    bar.addEventListener('touchstart', function () { paused = true; }, { passive: true });
+    bar.addEventListener('touchend', function () { paused = false; last = 0; }, { passive: true });
+  }
+  document.addEventListener('visibilitychange', function () { last = 0; });
+
+  function frame(ts) {
+    if (!last) last = ts;
+    var dt = Math.min(120, ts - last);
+    last = ts;
+    if (!paused && width > 0 && !document.hidden) {
+      offset = (offset + SPEED * dt / 1000) % width;
+      track.style.transform = 'translate3d(' + (-offset).toFixed(2) + 'px,0,0)';
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();

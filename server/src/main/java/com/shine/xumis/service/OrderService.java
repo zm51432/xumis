@@ -5,6 +5,7 @@ import com.shine.xumis.dto.SalesSummary;
 import com.shine.xumis.model.Order;
 import com.shine.xumis.model.OrderItem;
 import com.shine.xumis.repository.OrderRepository;
+import com.shine.xumis.repository.OrderReturnRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,11 @@ import java.util.Optional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderReturnRepository returnRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, OrderReturnRepository returnRepository) {
         this.orderRepository = orderRepository;
+        this.returnRepository = returnRepository;
     }
 
     public Order save(Order order) {
@@ -35,6 +38,10 @@ public class OrderService {
 
     public Order findByOrderNo(String orderNo) {
         return orderRepository.findByOrderNo(orderNo).orElse(null);
+    }
+
+    public Order findById(Long id) {
+        return id == null ? null : orderRepository.findById(id).orElse(null);
     }
 
     public long countAll() {
@@ -84,6 +91,15 @@ public class OrderService {
                 }
             }
         }
+        // 退货闭环：退款从销售额里扣，退货件数从售出件数里扣（不为负）
+        BigDecimal refunded = returnRepository.totalRefunded();
+        long returnedQty = 0;
+        for (Object[] row : returnRepository.sumReturnedByProduct()) {
+            if (row[1] != null) returnedQty += ((Number) row[1]).longValue();
+        }
+        total = total.subtract(refunded);
+        paid = paid.subtract(refunded);
+        items = Math.max(0, items - returnedQty);
         BigDecimal avg = (orders > 0)
                 ? total.divide(BigDecimal.valueOf(orders), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
@@ -108,6 +124,22 @@ public class OrderService {
                 long[] cur = acc.computeIfAbsent(it.getProductId(), k -> new long[2]);
                 cur[0] += qty;
                 cur[1] += cents;
+            }
+        }
+        for (Object[] row : returnRepository.sumReturnedByProduct()) {
+            if (row[0] == null || row[1] == null) continue;
+            long[] cur = acc.get(((Number) row[0]).longValue());
+            if (cur != null) cur[0] = Math.max(0, cur[0] - ((Number) row[1]).longValue());
+        }
+        BigDecimal refund = returnRepository.totalRefunded();
+        if (refund.signum() > 0 && !acc.isEmpty()) {
+            // 退款金额按商品销售额占比分摊，保证「销售额 − 退款」与各商品之和一致
+            long totalCents = acc.values().stream().mapToLong(v -> v[1]).sum();
+            if (totalCents > 0) {
+                long refundCents = refund.movePointRight(2).longValue();
+                for (long[] v : acc.values()) {
+                    v[1] = Math.max(0, v[1] - Math.round(refundCents * (v[1] / (double) totalCents)));
+                }
             }
         }
         Map<Long, ProductSales> out = new HashMap<>();

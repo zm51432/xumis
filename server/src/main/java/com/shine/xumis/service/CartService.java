@@ -22,6 +22,8 @@ public class CartService {
     }
 
     public static final String SESSION_KEY = "SHINE_CART";
+    /** 购物车行选中的 SKU：productId -> skuId（P1-2），不影响原来的数量 Map 结构 */
+    public static final String SKU_KEY = "SHINE_CART_SKU";
 
     /** 单件商品的数量上限，避免手改参数塞进 absurd 数量 */
     private static final int MAX_QTY_PER_ITEM = 99;
@@ -81,10 +83,36 @@ public class CartService {
 
     public void remove(HttpSession session, Long productId) {
         getCart(session).remove(productId);
+        removeSku(session, productId);
     }
 
     public void clear(HttpSession session) {
         session.removeAttribute(SESSION_KEY);
+        session.removeAttribute(SKU_KEY);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<Long, Long> getSkus(HttpSession session) {
+        Map<Long, Long> m = (Map<Long, Long>) session.getAttribute(SKU_KEY);
+        if (m == null) {
+            m = new LinkedHashMap<>();
+            session.setAttribute(SKU_KEY, m);
+        }
+        return m;
+    }
+
+    public void setSku(HttpSession session, Long productId, Long skuId) {
+        if (productId == null) return;
+        if (skuId == null) getSkus(session).remove(productId);
+        else getSkus(session).put(productId, skuId);
+    }
+
+    public Long getSku(HttpSession session, Long productId) {
+        return productId == null ? null : getSkus(session).get(productId);
+    }
+
+    public void removeSku(HttpSession session, Long productId) {
+        if (productId != null) getSkus(session).remove(productId);
     }
 
     public int count(HttpSession session) {

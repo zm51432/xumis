@@ -8,7 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import com.shine.xumis.app.api.ApiClient
 import com.shine.xumis.app.databinding.ActivitySplashBinding
 import com.shine.xumis.app.util.CatalogCache
-import com.shine.xumis.app.util.OfflineAssets
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -78,11 +77,8 @@ class SplashActivity : AppCompatActivity() {
         } else {
             binding.btnOffline.text = "浏览离线商品册"
             binding.btnOffline.setOnClickListener {
-                startActivity(
-                    Intent(this, WebViewActivity::class.java)
-                        .putExtra("url", OfflineAssets.CATALOG)
-                        .putExtra("title", "离线商品册")
-                )
+                // 原生离线商品册，不再打开本地 HTML 网页
+                startActivity(Intent(this, CatalogActivity::class.java))
             }
         }
     }

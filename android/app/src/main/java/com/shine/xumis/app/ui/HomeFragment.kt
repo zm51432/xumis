@@ -28,6 +28,9 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.rv.adapter = adapter
+        // 顶部滚动字幕：文案复制多份使其超宽，触发跑马灯无限循环
+        binding.tvTicker.text = "只有销量，没有评价。  ✦  ".repeat(6)
+        binding.tvTicker.isSelected = true
         binding.swipe.setOnRefreshListener { load() }
         binding.btnRetry.setOnClickListener { load() }
         load()

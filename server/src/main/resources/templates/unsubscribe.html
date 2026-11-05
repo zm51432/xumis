@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta name="color-scheme" content="light"/>
+    <title th:text="${storeName}">shine星心</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<main class="container section" id="main-content">
+    <div class="panel center-box">
+        <h1 class="section-title">邮件订阅管理</h1>
+        <div th:if="${done}">
+            <p class="alert-success">✅ 已成功退订，你将不再收到新品与优惠邮件。</p>
+            <p class="muted">如果改变主意，可以随时在页脚重新订阅。</p>
+        </div>
+        <div th:if="${done == null or !done}">
+            <div th:if="${sub != null}">
+                <p>确认要取消订阅 <strong th:text="${sub.email}">you@example.com</strong> 吗？</p>
+                <p class="muted small">退订后我们只会保留一条退订记录，用于避免再次向你发信。</p>
+                <form method="post" th:action="@{/unsubscribe}" class="inline-form">
+                    <input type="hidden" name="token" th:value="${token}"/>
+                    <button class="btn" type="submit">确认退订</button>
+                </form>
+            </div>
+            <div th:if="${sub == null}">
+                <p class="alert-error">链接无效或已经退订过了。</p>
+                <p class="muted">如需帮助请联系客服邮箱。</p>
+            </div>
+        </div>
+        <a class="btn btn-ghost" style="margin-top:14px;" th:href="@{/}" th:text="#{nav.home}">返回首页</a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

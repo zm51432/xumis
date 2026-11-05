@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 分类管理'">分类管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">分类管理</h2><p class="sub">内置三个枚举分类可改名，还可以新增自定义分类（商品编辑里可指定）</p></div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+    <div class="alert-success" th:if="${param.saved != null}">✅ 操作已完成</div>
+    <div class="alert-error" th:if="${param.err != null}" th:text="${param.err}">出错了</div>
+
+    <div class="panel admin-form">
+        <h3 class="block-title">新增 / 修改分类</h3>
+        <form method="post" th:action="@{|${adminBase}/categories/save|}">
+            <div class="form-grid">
+                <div class="field"><label for="cat-code">编码 *</label>
+                    <input id="cat-code" type="text" name="code" required maxlength="60" placeholder="RINGS"/></div>
+                <div class="field"><label for="cat-sort">排序</label>
+                    <input id="cat-sort" type="number" name="sortOrder" value="99"/></div>
+                <div class="field"><label for="cat-zh">中文名</label><input id="cat-zh" type="text" name="nameZh"/></div>
+                <div class="field"><label for="cat-en">English name</label><input id="cat-en" type="text" name="nameEn"/></div>
+                <div class="field switches"><label class="switch">
+                    <input type="checkbox" name="enabled" value="on" checked/><span>启用</span></label></div>
+            </div>
+            <div class="form-actions"><button class="btn" type="submit">保存分类</button></div>
+        </form>
+    </div>
+    <div class="panel" style="margin-top:16px;">
+        <h3 class="block-title">全部分类</h3>
+        <div class="table-wrap"><table class="admin-table">
+            <thead><tr><th>编码</th><th>中文名</th><th>English</th><th>排序</th><th>状态</th><th>类型</th><th>操作</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${cats}">
+                <td><strong th:text="${c.code}">JEWELRY</strong></td>
+                <td th:text="${c.nameZh}">饰品</td><td th:text="${c.nameEn}">Jewelry</td>
+                <td th:text="${c.sortOrder}">1</td>
+                <td th:text="${c.enabled} ? '启用' : '停用'">启用</td>
+                <td th:text="${c.builtin} ? '内置（不可删）' : '自定义'">内置</td>
+                <td>
+                    <form method="post" th:action="@{|${adminBase}/categories/delete|}" class="inline-form"
+                          th:if="${!c.builtin}" onsubmit="return confirm('确认删除该分类？');">
+                        <input type="hidden" name="code" th:value="${c.code}"/>
+                        <button class="btn btn-ghost btn-sm" type="submit">删除</button>
+                    </form>
+                    <span class="muted small" th:if="${c.builtin}">—</span>
+                </td>
+            </tr>
+            </tbody>
+        </table></div>
+    </div>
+
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

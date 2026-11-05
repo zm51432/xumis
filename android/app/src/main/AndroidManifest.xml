@@ -11,7 +11,7 @@
     -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
-    <!-- ========== 1. 定位：估算运费 / 就近自提点，WebView 地理定位 ========== -->
+    <!-- ========== 1. 定位：估算运费 / 就近自提点 ========== -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
@@ -102,8 +102,8 @@
     <application
         android:name=".ShineApp"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:roundIcon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="shine 星心"
         android:theme="@style/Theme.ShineApp"
         android:usesCleartextTraffic="true"
@@ -120,13 +120,17 @@
         </activity>
         <activity android:name=".ui.MainActivity" android:exported="false" />
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
+        <activity android:name=".ui.CheckoutActivity" android:exported="false" />
+        <activity android:name=".ui.OrderDetailActivity" android:exported="false" />
+        <activity android:name=".ui.RegisterActivity" android:exported="false" />
+        <activity android:name=".ui.ResetPasswordActivity" android:exported="false" />
+        <activity android:name=".ui.DocActivity" android:exported="false" />
+        <activity android:name=".ui.CatalogActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.PermissionActivity" android:exported="false" />
         <activity android:name=".ui.UpdateActivity" android:exported="false" />
-        <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
         <activity android:name=".ui.StatusActivity" android:exported="false" />
         <activity android:name=".ui.AboutActivity" android:exported="false" />
-        <activity android:name=".ui.WebViewActivity" android:exported="false" />
 
         <!-- 拍照上传：把缓存里的临时照片以 content:// 交给相机 App，
              避免 Android 7+ 直接传 file:// 触发 FileUriExposedException -->

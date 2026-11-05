@@ -16,7 +16,7 @@ import com.shine.xumis.app.util.CatalogCache
 import com.shine.xumis.app.util.OfflineAssets
 import com.shine.xumis.app.util.Permissions
 import com.shine.xumis.app.util.UpdateChecker
-import com.shine.xumis.app.util.WebViewSetup
+import com.shine.xumis.app.util.ShareUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,9 +62,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setUpGeneral() {
         bind(
-            binding.rowTextZoom, R.drawable.ic_text_size, "网页字号",
-            "站点页面在 App 内的显示大小"
-        ) { chooseTextZoom() }
+            binding.rowPrivacy, R.drawable.ic_shield, "隐私说明",
+            "我们收集什么、权限用在哪里、不做什么"
+        ) { startActivity(DocActivity.intent(this, "隐私说明", DocActivity.PRIVACY)) }
 
         bind(
             binding.rowNetwork, R.drawable.ic_network, "检查网络",
@@ -72,22 +72,9 @@ class SettingsActivity : AppCompatActivity() {
         ) { checkNetwork() }
 
         bind(
-            binding.rowCache, R.drawable.ic_cache, "清除网页缓存",
-            "只清理网页与图片缓存，不影响登录状态"
+            binding.rowCache, R.drawable.ic_cache, "清除图片缓存",
+            "回收商品图缓存，不影响登录状态与购物车"
         ) { confirmClearCache() }
-    }
-
-    private fun chooseTextZoom() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("网页字号")
-            .setSingleChoiceItems(AppPrefs.textZoomOptions, AppPrefs.textZoomIndex) { dialog, which ->
-                AppPrefs.textZoomIndex = which
-                dialog.dismiss()
-                refreshRows()
-                Toast.makeText(this, "已切换为${AppPrefs.textZoomLabel()}，重新打开页面后生效", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("取消", null)
-            .show()
     }
 
     private fun checkNetwork() {
@@ -111,12 +98,17 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun confirmClearCache() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("清除网页缓存")
-            .setMessage("将清理 App 内的网页与图片缓存，登录状态、购物车与离线商品册不受影响。")
+            .setTitle("清除图片缓存")
+            .setMessage("将回收 App 内的商品图缓存，登录状态、购物车与离线商品册不受影响。")
             .setNegativeButton("取消", null)
             .setPositiveButton("清除") { _, _ ->
-                WebViewSetup.clearWebCache(this)
-                Toast.makeText(this, "缓存已清理", Toast.LENGTH_SHORT).show()
+                com.bumptech.glide.Glide.get(this).clearMemory()
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching { com.bumptech.glide.Glide.get(this@SettingsActivity).clearDiskCache() }
+                    }
+                    Toast.makeText(this@SettingsActivity, "图片缓存已清理", Toast.LENGTH_SHORT).show()
+                }
             }
             .show()
     }
@@ -125,9 +117,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setUpContent() {
         bind(
-            binding.rowCatalog, R.drawable.ic_storage, "离线商品缓存",
+            binding.rowCatalog, R.drawable.ic_storage, "离线商品册",
             "正在统计…"
-        ) { openOffline(OfflineAssets.CATALOG, "离线商品册") }
+        ) { startActivity(Intent(this, CatalogActivity::class.java)) }
 
         bind(
             binding.rowOffline, R.drawable.ic_image, "离线资源",
@@ -143,12 +135,14 @@ class SettingsActivity : AppCompatActivity() {
             .setMessage(
                 "以下内容随安装包内置，不额外消耗流量：\n\n" +
                     "· 商品图 $imgs 张（$size）\n" +
-                    "· 离线商品册、离线首页、配送与售后条款 3 个页面\n" +
+                    "· 离线商品册、配送与售后条款 2 个原生页面\n" +
                     "· Nunito / Quicksand 字体 6 款，离线排版不变形\n\n" +
                     "断网时首页、商品册与条款均可正常浏览。"
             )
             .setNegativeButton("关闭", null)
-            .setPositiveButton("打开商品册") { _, _ -> openOffline(OfflineAssets.CATALOG, "离线商品册") }
+            .setPositiveButton("打开商品册") { _, _ ->
+                startActivity(Intent(this, CatalogActivity::class.java))
+            }
             .show()
     }
 
@@ -169,14 +163,11 @@ class SettingsActivity : AppCompatActivity() {
         bind(binding.rowStatus, R.drawable.ic_status, "运行状态", "通过率、延迟、缓存与崩溃记录") {
             startActivity(Intent(this, StatusActivity::class.java))
         }
-        bind(binding.rowDiag, R.drawable.ic_diagnostics, "接口自检（50 次）", "连续校验商品、分类与健康接口") {
-            startActivity(Intent(this, DiagnosticsActivity::class.java))
-        }
         bind(binding.rowAbout, R.drawable.ic_help, "帮助与关于", "常见问题、离线内容与联系方式") {
             startActivity(Intent(this, AboutActivity::class.java))
         }
         bind(binding.rowPolicies, R.drawable.ic_doc, "配送与售后条款", "发货、跨境运费、退换与支付说明") {
-            openOffline(OfflineAssets.POLICIES, "配送与售后条款")
+            startActivity(DocActivity.intent(this, "配送与售后条款"))
         }
     }
 
@@ -191,7 +182,7 @@ class SettingsActivity : AppCompatActivity() {
         bind(binding.rowVersion, R.drawable.ic_info, "版本", null, chevron = false)
         bind(binding.rowShare, R.drawable.ic_share, "分享给朋友", "把 App 推荐给朋友") {
             startActivity(
-                WebViewSetup.shareIntent(
+                ShareUtils.shareIntent(
                     "shine 星心",
                     "shine 星心 · 饰品与手工品，官方手机客户端安装即用，断网也能浏览商品册。",
                     ""
@@ -234,7 +225,6 @@ class SettingsActivity : AppCompatActivity() {
     // ---------------- 刷新 ----------------
 
     private fun refreshRows() {
-        setValue(binding.rowTextZoom, AppPrefs.textZoomLabel())
         if (!checkingUpdate) setValue(binding.rowUpdate, "v" + versionName())
         setValue(binding.rowVersion, "v${versionName()}（${versionCode()}）")
         setValue(binding.rowPermissions, Permissions.summary(this))
@@ -284,14 +274,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun setValue(row: ItemSettingsRowBinding, text: String) {
         row.tvValue.text = text
         row.tvValue.visibility = if (text.isBlank()) View.GONE else View.VISIBLE
-    }
-
-    private fun openOffline(url: String, title: String) {
-        startActivity(
-            Intent(this, WebViewActivity::class.java)
-                .putExtra("url", url)
-                .putExtra("title", title)
-        )
     }
 
     private fun versionName(): String = try {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title th:text="${storeName} + ' · 站点设置'">站点设置</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    <style>
+        .setting-row { padding: 10px 0; border-bottom: 1px dashed #eef3ef; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-row label { display:block; font-weight:700; font-size:13px; margin-bottom:6px; }
+        .setting-row input[type=text], .setting-row textarea {
+            width:100%; padding:9px 11px; border:1px solid #dfe9e3; border-radius:10px;
+            font-size:14px; font-family:inherit; background:#fff;
+        }
+        .setting-row textarea { resize: vertical; }
+        .setting-row .hint { margin:5px 0 0; font-size:11.5px; color:#8a9a92; }
+        .setting-row .key { font-family: ui-monospace, Consolas, monospace; font-size:11px; color:#a3b3ab; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+
+<div class="container section">
+    <div class="admin-head">
+        <div>
+            <h2 class="section-title">站点设置 Settings</h2>
+            <p class="sub">店铺名、首页文案、滚动字幕、运费、SEO、分类名称——改完即时生效</p>
+        </div>
+        <div class="admin-head-actions">
+            <span class="admin-me"><span class="strong" th:text="${me != null ? me.displayName : '-'}">管理员</span></span>
+            <form method="post" th:action="@{|${adminBase}/logout|}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit">退出登录</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: adminnav}"></div>
+
+    <div class="alert-success" th:if="${param.saved != null}">✅ 设置已保存并生效</div>
+    <div class="alert-success" th:if="${param.reset != null}">↩ 该分组已恢复默认值</div>
+
+    <form method="post" th:action="@{|${adminBase}/settings/save|}">
+        <div th:each="g : ${groups}">
+            <h3 class="block-title">
+                <span th:text="${g.key}">分组</span>
+            </h3>
+            <div class="panel">
+                <div class="setting-row" th:each="d : ${g.value}">
+                    <label th:text="${d.label}">配置项</label>
+                    <input th:if="${!d.multiline}" type="text" th:name="${d.key}"
+                           th:value="${values[d.key]}" th:placeholder="${d.def}"/>
+                    <textarea th:if="${d.multiline}" th:name="${d.key}" rows="3"
+                              th:text="${values[d.key]}" th:placeholder="${d.def}"></textarea>
+                    <p class="hint">
+                        <span th:if="${!#strings.isEmpty(d.hint)}" th:text="${d.hint} + ' · '"></span>
+                        <span class="key" th:text="${d.key}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-row" style="margin:18px 0 8px;">
+            <button class="btn" type="submit" th:if="${me != null and me.canWrite()}">保存全部设置</button>
+            <a class="btn btn-ghost" th:href="@{|${adminBase}|}">返回仪表盘</a>
+        </div>
+    </form>
+
+    <p class="muted small">
+        提示：留空的配置项会回落到默认值；「首页内容」的分组保存后刷新首页即可看到效果。
+        需要恢复某项默认值时，把它清空后保存即可。
+    </p>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

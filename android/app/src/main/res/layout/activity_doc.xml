@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 纯原生文字页：条款、隐私、帮助说明（不再用 WebView 打开 HTML） -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/shine_bg">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar" android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" android:background="@color/shine_pink"
+        app:titleTextColor="@android:color/white" app:title="条款"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_panel"
+                android:padding="16dp">
+
+                <TextView android:id="@+id/tv_title" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="18sp"
+                    android:textStyle="bold" android:textColor="@color/shine_text"
+                    android:text="—"/>
+
+                <TextView android:id="@+id/tv_subtitle" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                    android:textSize="12sp" android:textColor="@color/shine_sub"
+                    android:text="本页随 App 一起安装，断网也能查阅"/>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:layout_marginTop="12dp" android:layout_marginBottom="12dp"
+                    android:background="@color/shine_yellow_line"/>
+
+                <TextView android:id="@+id/tv_body" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13.5sp"
+                    android:lineSpacingExtra="5dp" android:textColor="@color/shine_text"
+                    android:text="—"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

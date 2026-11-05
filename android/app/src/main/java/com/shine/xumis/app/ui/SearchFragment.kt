@@ -1,11 +1,13 @@
 package com.shine.xumis.app.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -22,6 +24,8 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
     private val adapter = ProductAdapter { openDetail(it) }
     private val categories = mutableListOf<CategoryItem>()
+    /** 只在第一次进入时自动弹输入法，避免每次切 tab 都强弹键盘 */
+    private var keyboardShown = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
@@ -35,8 +39,39 @@ class SearchFragment : Fragment() {
         setupCategorySpinner()
         binding.btnSearch.setOnClickListener { doSearch() }
         binding.etQuery.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) { doSearch(); true } else false
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                hideKeyboard()
+                doSearch()
+                true
+            } else false
         }
+        // 输入框外壳整条都可以点：点空白处也能直接开始输入
+        binding.etQuery.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.etQuery.hint = ""
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 首次进入搜索页：直接聚焦并弹出输入法（不需要用户先"下拉一下"）
+        if (!keyboardShown) {
+            keyboardShown = true
+            binding.etQuery.postDelayed({ showKeyboard() }, 160)
+        }
+    }
+
+    private fun showKeyboard() {
+        val v = _binding?.etQuery ?: return
+        v.requestFocus()
+        v.setSelection(v.text?.length ?: 0)
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.etQuery.windowToken, 0)
+        binding.etQuery.clearFocus()
     }
 
     private fun setupCategorySpinner() {

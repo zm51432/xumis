@@ -3,6 +3,14 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// 正式签名：读取 android/keystore.properties（不入库）；缺失时回退到 debug 签名，保证他人克隆后仍可构建
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def hasReleaseSigning = keystorePropsFile.exists() && keystoreProps.getProperty("storeFile")
+
 android {
     namespace 'com.shine.xumis.app'
     // targetSdk 34：小米 HyperOS / OPPO ColorOS 14 / vivo OriginOS 4 底层均为 Android 14，
@@ -13,13 +21,26 @@ android {
         applicationId 'com.shine.xumis.app'
         minSdk 24
         targetSdk 34
-        versionCode 6
-        versionName '1.5.0'
+        versionCode 10
+        versionName '1.5.4'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(keystoreProps.getProperty("storeFile"))
+                storePassword keystoreProps.getProperty("storePassword")
+                keyAlias keystoreProps.getProperty("keyAlias")
+                keyPassword keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
+            // 有正式密钥就用正式密钥签名，否则退回 debug，避免构建失败
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

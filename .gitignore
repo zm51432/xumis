@@ -31,3 +31,14 @@ Thumbs.db
 
 # 安装包为构建产物，发布走 APK 推送服务（deploy/ota），不入库
 /shine.apk
+
+# 正式签名密钥与口令（绝不入库）
+keystore.properties
+*.jks
+*.keystore
+
+# ERP 运行时密钥（绝不入库）：真实配置只存在于服务器
+erp/config.env
+erp/secrets.json
+erp/__pycache__/
+*.pyc

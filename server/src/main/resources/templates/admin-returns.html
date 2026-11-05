@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>退货申请 · 后台</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v='20261105g')}"/>
+    <meta name="robots" content="noindex,nofollow"/>
+    <meta name="_csrf" th:content="${csrf}"/>
+    <th:block th:replace="~{fragments :: headseo}"></th:block>
+</head>
+<body>
+<div th:replace="~{fragments :: nav}"></div>
+<div class="container section">
+    <div class="admin-head">
+        <div><h2 class="section-title">↩️ 退货申请</h2>
+            <p class="sub">客户在「我的订单」发起，批准后会回滚库存、扣减销量并同步 ERP</p></div>
+        <div class="admin-head-actions"><a class="btn btn-ghost btn-sm" th:href="@{|${adminBase}|}">返回仪表盘</a></div>
+    </div>
+    <div class="alert-success" th:if="${param.msg != null}" th:text="${param.msg[0]}">已处理</div>
+    <div th:replace="~{fragments :: adminnav}"></div>
+
+    <div class="panel" th:each="g : ${groups}" style="margin-top:16px;">
+        <div class="admin-head">
+            <div>
+                <h3 class="block-title" th:text="${g.requestNo}">WR...</h3>
+                <p class="muted small">
+                    原订单 <a th:href="@{|${adminBase}/orders|}" th:text="${g.orderNo}">SH...</a>
+                    · <span th:text="${g.email}">email</span>
+                    · <span th:text="${g.createdAt}">时间</span>
+                    · 共 <strong th:text="${g.totalQty}">0</strong> 件
+                    · 预计退款 <strong th:text="${'$' + #numbers.formatDecimal(g.refundTotal,1,2)}">$0.00</strong>
+                    · <span class="status-badge" th:text="${g.status}">REQUESTED</span>
+                </p>
+                <p class="small" th:if="${g.reason != null}" th:text="'原因：' + ${g.reason}">原因</p>
+                <ul class="small">
+                    <li th:each="l : ${g.lines}"
+                        th:text="${(l.productName != null ? l.productName : '#' + l.productId) + ' × ' + l.quantity + ' · $' + #numbers.formatDecimal(l.refundAmount,1,2)}">商品</li>
+                </ul>
+            </div>
+            <div class="admin-head-actions" th:if="${g.status == 'REQUESTED'}">
+                <form method="post" th:action="@{|${adminBase}/returns/approve|}" style="display:inline;">
+                    <input type="hidden" name="requestNo" th:value="${g.requestNo}"/>
+                    <input type="text" name="note" placeholder="审核备注" style="width:130px;"/>
+                    <button class="btn btn-sm" type="submit">批准退货</button>
+                </form>
+                <form method="post" th:action="@{|${adminBase}/returns/reject|}" style="display:inline;">
+                    <input type="hidden" name="requestNo" th:value="${g.requestNo}"/>
+                    <button class="btn btn-ghost btn-sm" type="submit">驳回</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(groups)}">暂无退货申请</div>
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/store.js}"></script>
+</body>
+</html>

@@ -44,7 +44,7 @@ public class InquiryController {
             return "inquiry";
         }
         // 防刷：同一 IP 10 分钟内最多 5 条询盘
-        String key = "inquiry:" + ReviewController.clientIp(request);
+        String key = "inquiry:" + com.shine.xumis.util.IpUtils.clientIp(request);
         if (!rateLimitService.allow(key, 5, 10 * 60 * 1000L)) {
             model.addAttribute("rateLimited", rateLimitService.retryAfterSeconds(key, 5, 10 * 60 * 1000L));
             return "inquiry";

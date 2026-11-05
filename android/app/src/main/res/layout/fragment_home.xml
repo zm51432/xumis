@@ -11,13 +11,31 @@
 
             <TextView android:id="@+id/tv_offline" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:visibility="gone"
-                android:background="#FFF0F4" android:padding="10dp" android:layout_margin="6dp"
-                android:textSize="12sp" android:textColor="@color/shine_pink_dark"
+                android:background="@drawable/bg_chip_yellow" android:padding="10dp" android:layout_margin="6dp"
+                android:textSize="12sp" android:textColor="@color/shine_amber_text"
                 android:text="离线数据 · 正在展示上次缓存的商品，联网后下拉刷新"/>
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="精选 / 全部商品" android:textSize="18sp" android:textStyle="bold"
-                android:textColor="@color/shine_text" android:layout_margin="6dp"/>
+                android:textColor="@color/shine_pink" android:layout_margin="8dp"/>
+
+            <!-- 滚动字幕：只有销量，没有评价。（与网页顶部同款） -->
+            <TextView android:id="@+id/tv_ticker"
+                android:layout_width="match_parent" android:layout_height="32dp"
+                android:layout_marginStart="6dp" android:layout_marginEnd="6dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_ticker"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:textSize="13sp" android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:text="只有销量，没有评价。" />
 
             <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv"
                 android:layout_width="match_parent" android:layout_height="match_parent"
