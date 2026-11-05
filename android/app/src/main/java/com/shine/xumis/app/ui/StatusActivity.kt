@@ -35,10 +35,6 @@ class StatusActivity : AppCompatActivity() {
         binding.topAppBar.setNavigationOnClickListener { finish() }
 
         binding.btnRun.setOnClickListener { run(rounds) }
-        binding.btnPressure.setOnClickListener {
-            // 与「立即检测」同一套逻辑，只是跑 50 轮；不再跳转重复的自检页
-            run(50)
-        }
 
         renderLast()
         renderDetail()

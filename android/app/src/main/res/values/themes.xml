@@ -68,4 +68,25 @@
         <item name="android:background">@drawable/bg_card</item>
         <item name="android:clipToOutline">true</item>
     </style>
+
+    <!-- 账号/结算等表单页通用样式（阶段1-4 引入） -->
+    <style name="ShineInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textColor">@color/shine_text</item>
+        <item name="android:textColorHint">@color/shine_sub</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="ShineLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/shine_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+    </style>
 </resources>

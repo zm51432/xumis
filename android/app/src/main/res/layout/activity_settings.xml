@@ -36,7 +36,7 @@
             <LinearLayout style="@style/SettingsCard">
 
                 <include
-                    android:id="@+id/row_privacy"
+                    android:id="@+id/row_text_zoom"
                     layout="@layout/item_settings_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />

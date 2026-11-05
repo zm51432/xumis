@@ -64,16 +64,6 @@ class ProductDetailActivity : AppCompatActivity() {
                 )
                 true
             }
-            R.id.menu_browser -> {
-                try {
-                    startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(ServerConfig.siteBase() + "product/" + productId))
-                    )
-                } catch (e: Exception) {
-                    Toast.makeText(this, "没有可用的浏览器", Toast.LENGTH_SHORT).show()
-                }
-                true
-            }
             else -> super.onOptionsItemSelected(item)
         }
     }
