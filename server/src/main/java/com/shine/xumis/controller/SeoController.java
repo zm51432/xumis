@@ -21,9 +21,9 @@ public class SeoController {
     private final ProductService productService;
     private final ContentPageService contentPages;
 
-    /** 后台隐藏入口（见 AdminPathFilter）；未启用时为 /admin */
-    @Value("${app.admin-path:}")
-    private String adminPath;
+    /** 站点绝对基址（SEO 链接必须用公开域名，不能用内网 127.0.0.1:8080） */
+    @Value("${app.site-base-url:}")
+    private String siteBaseUrl;
 
     public SeoController(ProductService productService, ContentPageService contentPages) {
         this.productService = productService;
@@ -77,11 +77,11 @@ public class SeoController {
 
     @GetMapping(value = "/robots.txt", produces = "text/plain")
     public void robots(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String p = (adminPath == null) ? "" : adminPath.trim();
-        String adminDisallow = (p.isEmpty() || p.equals("admin") || p.equals("/admin"))
-                ? "/admin" : (p.startsWith("/") ? p : "/" + p);
-        String txt = "User-agent: *\nAllow: /\nDisallow: " + adminDisallow
-                + "\nDisallow: /h2-console\nDisallow: /cart/checkout"
+        // 安全基线：robots.txt 不是保密手段，绝不在其中列出后台隐藏入口、
+        // 管理面、调试端点等敏感路径（列出来等于告诉扫描器去哪敲门）。
+        // 只屏蔽常规交易/接口类路径即可。
+        String txt = "User-agent: *\nAllow: /"
+                + "\nDisallow: /cart\nDisallow: /checkout\nDisallow: /account\nDisallow: /api/"
                 + "\n\nSitemap: " + baseUrl(request) + "/sitemap.xml\n";
         write(response, "text/plain", txt);
     }
@@ -93,11 +93,19 @@ public class SeoController {
     }
 
     private String baseUrl(HttpServletRequest request) {
-        String scheme = request.getScheme();
-        String host = request.getServerName();
+        // 优先使用配置的公开站点基址（反代后 request 里只有 127.0.0.1:8080）
+        if (siteBaseUrl != null && !siteBaseUrl.isBlank()) {
+            String u = siteBaseUrl.trim();
+            return u.endsWith("/") ? u.substring(0, u.length() - 1) : u;
+        }
+        // 兜底：尊重反代头，仍没有才用本地请求信息
+        String proto = request.getHeader("X-Forwarded-Proto");
+        String scheme = (proto != null && !proto.isBlank()) ? proto : request.getScheme();
+        String fwdHost = request.getHeader("X-Forwarded-Host");
+        String host = (fwdHost != null && !fwdHost.isBlank()) ? fwdHost : request.getServerName();
         int port = request.getServerPort();
         String base = scheme + "://" + host;
-        if (!((scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443))) {
+        if (fwdHost == null && !((scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443))) {
             base += ":" + port;
         }
         return base;

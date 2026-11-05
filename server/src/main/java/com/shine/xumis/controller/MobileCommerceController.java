@@ -65,73 +65,15 @@ public class MobileCommerceController {
     }
 
     // ==================== 购物车 ====================
-
-    @GetMapping("/cart")
-    public ResponseEntity<?> cart(@RequestHeader(value = "Accept-Language", required = false) String lang,
-                                  HttpSession session) {
-        cartService.pruneInvalid(session);
-        boolean en = lang != null && lang.toLowerCase().contains("en");
-        Map<Long, Integer> cart = cartService.getCart(session);
-        List<Map<String, Object>> lines = new ArrayList<>();
-        BigDecimal total = BigDecimal.ZERO;
-        for (Map.Entry<Long, Integer> e : cart.entrySet()) {
-            Product p = productService.findById(e.getKey());
-            if (p == null) continue;
-            int qty = Math.max(1, e.getValue());
-            BigDecimal price = p.getPrice() == null ? BigDecimal.ZERO : p.getPrice();
-            BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(qty));
-            total = total.add(lineTotal);
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", p.getId());
-            m.put("name", en ? p.getNameEn() : p.getName());
-            m.put("nameEn", p.getNameEn());
-            m.put("price", price);
-            m.put("imageUrl", img(p));
-            m.put("stock", p.getStock());
-            m.put("qty", qty);
-            m.put("lineTotal", lineTotal);
-            lines.add(m);
-        }
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("lines", lines);
-        body.put("count", cartService.count(session));
-        body.put("total", total);
-        body.put("isEmpty", lines.isEmpty());
-        return ResponseEntity.ok(body);
-    }
-
-    @PostMapping("/cart/add")
-    public ResponseEntity<?> add(@RequestParam Long productId,
-                                 @RequestParam(defaultValue = "1") int quantity,
-                                 HttpSession session) {
-        Product p = productService.findById(productId);
-        if (p == null) return err("商品不存在");
-        if (p.getStock() != null && p.getStock() <= 0) return err("该商品暂时缺货");
-        int q = Math.max(1, Math.min(quantity, 99));
-        int added = cartService.add(session, productId, q);
-        if (added <= 0) return err("库存不足");
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("ok", true);
-        body.put("count", cartService.count(session));
-        body.put("qty", added);
-        body.put("name", p.getName());
-        return ResponseEntity.ok(body);
-    }
+    // 注意：GET /cart、POST /cart/add、POST /cart/remove、GET /me 已由
+    // MobileShopApiController 提供（生产基线），此处不再重复映射，避免
+    // Ambiguous mapping 导致启动失败。本控制器只保留其独有的端点。
 
     @PostMapping("/cart/update")
     public ResponseEntity<?> update(@RequestParam Long productId,
                                     @RequestParam int quantity,
                                     HttpSession session) {
         cartService.setQty(session, productId, quantity);
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("ok", true);
-        body.put("count", cartService.count(session));
-        return ResponseEntity.ok(body);
-    }
-
-    @PostMapping("/cart/remove")
-    public ResponseEntity<?> remove(@RequestParam Long productId, HttpSession session) {
-        cartService.remove(session, productId);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("ok", true);
         body.put("count", cartService.count(session));
@@ -276,19 +218,6 @@ public class MobileCommerceController {
     }
 
     // ==================== 我的账户 ====================
-
-    @GetMapping("/me")
-    public ResponseEntity<?> me(HttpSession session) {
-        UserAccount u = AccountController.currentUser(session);
-        Map<String, Object> body = new LinkedHashMap<>();
-        if (u == null) {
-            body.put("loggedIn", false);
-            return ResponseEntity.ok(body);
-        }
-        body.put("loggedIn", true);
-        body.put("user", userMap(u));
-        return ResponseEntity.ok(body);
-    }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestParam(required = false) String email,
